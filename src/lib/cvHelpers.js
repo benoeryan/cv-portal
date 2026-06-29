@@ -6,10 +6,20 @@ export function formatDateJP(dateStr) {
   if (dateStr.includes("/")) {
     const parts = dateStr.split("/");
     if (parts.length === 3) {
-      let [m, day, y] = parts;
-      if (y.length === 2) y = parseInt(y) > 30 ? "19" + y : "20" + y;
-      d = new Date(parseInt(y), parseInt(m) - 1, parseInt(day));
+      let [a, b, c] = parts;
+      // Determine format: M/D/YY or D/M/YY or YYYY/MM/DD
+      if (a.length === 4) {
+        // YYYY/MM/DD
+        d = new Date(parseInt(a), parseInt(b) - 1, parseInt(c));
+      } else {
+        // M/D/YY format (US style from Google Sheets)
+        let year = parseInt(c);
+        if (year < 100) year = year > 30 ? 1900 + year : 2000 + year;
+        d = new Date(year, parseInt(a) - 1, parseInt(b));
+      }
     }
+  } else if (dateStr.includes("-")) {
+    d = new Date(dateStr);
   } else {
     d = new Date(dateStr);
   }
@@ -23,10 +33,17 @@ export function formatDateShortJP(dateStr) {
   if (dateStr.includes("/")) {
     const parts = dateStr.split("/");
     if (parts.length === 3) {
-      let [m, day, y] = parts;
-      if (y.length === 2) y = parseInt(y) > 30 ? "19" + y : "20" + y;
-      d = new Date(parseInt(y), parseInt(m) - 1, parseInt(day));
+      let [a, b, c] = parts;
+      if (a.length === 4) {
+        d = new Date(parseInt(a), parseInt(b) - 1, parseInt(c));
+      } else {
+        let year = parseInt(c);
+        if (year < 100) year = year > 30 ? 1900 + year : 2000 + year;
+        d = new Date(year, parseInt(a) - 1, parseInt(b));
+      }
     }
+  } else if (dateStr.includes("-")) {
+    d = new Date(dateStr);
   } else {
     d = new Date(dateStr);
   }
@@ -36,17 +53,18 @@ export function formatDateShortJP(dateStr) {
 
 export function calculateAge(birthDate) {
   if (!birthDate) return "";
-  // Handle various date formats: "MM/DD/YY", "YYYY-MM-DD", "M/D/YY", etc.
   let birth;
   if (birthDate.includes("/")) {
     const parts = birthDate.split("/");
     if (parts.length === 3) {
-      let [m, d, y] = parts;
-      // If year is 2 digits, assume 1900s if > 30, else 2000s
-      if (y.length === 2) {
-        y = parseInt(y) > 30 ? "19" + y : "20" + y;
+      let [a, b, c] = parts;
+      if (a.length === 4) {
+        birth = new Date(parseInt(a), parseInt(b) - 1, parseInt(c));
+      } else {
+        let year = parseInt(c);
+        if (year < 100) year = year > 30 ? 1900 + year : 2000 + year;
+        birth = new Date(year, parseInt(a) - 1, parseInt(b));
       }
-      birth = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
     }
   } else {
     birth = new Date(birthDate);

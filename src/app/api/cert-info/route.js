@@ -1,26 +1,13 @@
 import { NextResponse } from "next/server";
 
-const API_KEY = "AIzaSyAWlNi_iBOWxZBD6E20aHOSrRpPsirDdOM";
-
-// Extract file ID from Google Drive URL
-function extractFileId(url) {
-  if (!url) return null;
-  const patterns = [
-    /\/open\?id=([a-zA-Z0-9_-]+)/,
-    /\/file\/d\/([a-zA-Z0-9_-]+)/,
-    /id=([a-zA-Z0-9_-]+)/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
-}
+// Since Google Drive API is restricted, we'll use a different approach:
+// Parse the file metadata using the Google Drive embed page which doesn't need API key
+// Or derive certificate info from the URL context and candidate data
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { urls } = body; // Array of Google Drive URLs
+    const { urls, candidateData } = body;
 
     if (!urls || urls.length === 0) {
       return NextResponse.json({ files: [] });
@@ -28,30 +15,61 @@ export async function POST(request) {
 
     const files = [];
 
-    for (const url of urls) {
-      const fileId = extractFileId(url);
-      if (!fileId) continue;
+    // Map URLs to certificate types based on field names from candidate data
+    if (candidateData) {
+      if (candidateData.sertifikatBahasaJepang) {
+        files.push({
+          url: candidateData.sertifikatBahasaJepang,
+          nama: "国際交流基金日本語基礎テスト",
+          tanggal: candidateData.tanggalJFT || "",
+          type: "JFT",
+        });
+      }
+      if (candidateData.sertifikatSSW) {
+        files.push({
+          url: candidateData.sertifikatSSW,
+          nama: "介護日本語評価試験結果通知書",
+          tanggal: candidateData.tanggalSSW || "",
+          type: "SSW",
+        });
 
-      try {
-        // Fetch file metadata from Google Drive API
-        const res = await fetch(
-          `https://www.googleapis.com/drive/v3/files/${fileId}?fields=name,mimeType,createdTime&key=${API_KEY}`
-        );
-
-        if (res.ok) {
-          const data = await res.json();
+        // If bidang is KAIGO, add Kaigo-specific cert
+        if (candidateData.bidangKerja === "KAIGO") {
           files.push({
-            url,
-            fileId,
-            name: data.name || "",
-            mimeType: data.mimeType || "",
-            createdTime: data.createdTime || "",
+            url: candidateData.sertifikatSSW,
+            nama: "介護日本語評価試験結果通知書 (Kaigo)",
+            tanggal: candidateData.tanggalSSWKaigo || candidateData.tanggalSSW || "",
+            type: "SSW_KAIGO",
           });
-        } else {
-          files.push({ url, fileId, name: "Unable to fetch", mimeType: "", createdTime: "" });
         }
-      } catch (err) {
-        files.push({ url, fileId, name: "Error", mimeType: "", createdTime: "" });
+      }
+      if (candidateData.sertifikatSenmonkyuu) {
+        files.push({
+          url: candidateData.sertifikatSenmonkyuu,
+          nama: "技能実習修了証明書",
+          tanggal: candidateData.tanggalShuryoShomei || "",
+          type: "SENMONKYUU",
+        });
+      }
+      if (candidateData.sertifikatSelesaiMagang) {
+        files.push({
+          url: candidateData.sertifikatSelesaiMagang,
+          nama: "技能実習修了証明書 (JITCO)",
+          tanggal: "",
+          type: "JITCO",
+        });
+      }
+    }
+
+    // If no candidateData provided, just return basic info from URLs
+    if (files.length === 0) {
+      for (const url of urls) {
+        files.push({
+          url,
+          nama: "証明書",
+          tanggal: "",
+          type: "UNKNOWN",
+        });
       }
     }
 

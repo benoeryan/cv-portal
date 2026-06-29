@@ -215,21 +215,23 @@ export default function EditCandidatePage() {
                   <button
                     onClick={async () => {
                       const urls = [data.sertifikatBahasaJepang, data.sertifikatSSW, data.sertifikatSenmonkyuu, data.sertifikatSelesaiMagang].filter(Boolean);
-                      if (urls.length === 0) { setMessage("Tidak ada link sertifikat"); return; }
+                      if (urls.length === 0) { setMessage("Tidak ada link sertifikat. Isi link di bagian 'Link Dokumen' terlebih dahulu."); return; }
                       try {
                         const res = await fetch("/api/cert-info", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ urls }),
+                          body: JSON.stringify({ urls, candidateData: data }),
                         });
                         const result = await res.json();
                         if (result.files && result.files.length > 0) {
                           const certs = result.files.map((f) => ({
-                            nama: f.name.replace(/\.(pdf|jpg|jpeg|png)$/i, "").replace(/_/g, " "),
-                            tanggal: f.createdTime ? new Date(f.createdTime).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "年").replace(/年/, "年") + "日" : "",
+                            nama: f.nama,
+                            tanggal: f.tanggal || "",
                           }));
                           handleChange("sertifikat", certs);
-                          setMessage(`${certs.length} sertifikat terdeteksi dari link`);
+                          setMessage(`${certs.length} sertifikat terdeteksi. Silakan isi tanggal ujian masing-masing.`);
+                        } else {
+                          setMessage("Tidak ada sertifikat terdeteksi dari link yang tersedia.");
                         }
                       } catch (err) {
                         setMessage("Error: " + err.message);

@@ -6,31 +6,38 @@ import { doc, setDoc } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 
 const SPREADSHEET_ID = "1ZBpJyZasfXfWGZY1F88wddtIEQpzCkF1tRbDJoappqY";
-const SHEET_NAME = "Form Responses 3";
+const SHEET_OPTIONS = ["Form Responses 3", "Responses 1", "Form Responses 1", "Form_Responses3"];
 const API_KEY = "AIzaSyAWlNi_iBOWxZBD6E20aHOSrRpPsirDdOM"; // Reuse Firebase API key (enable Sheets API in GCP)
 
 function parseRow(headers, values) {
-  const get = (keyword) => {
-    const idx = headers.findIndex((h) => h && h.toLowerCase().includes(keyword.toLowerCase()));
-    return idx >= 0 ? (values[idx] || "").trim() : "";
+  // Smart getter that tries multiple possible header names
+  const get = (...keywords) => {
+    for (const keyword of keywords) {
+      const idx = headers.findIndex((h) => h && h.toLowerCase().includes(keyword.toLowerCase()));
+      if (idx >= 0 && values[idx] && values[idx].trim()) {
+        return values[idx].trim();
+      }
+    }
+    return "";
   };
 
+  // Try to find name from multiple possible columns (Responses 1 vs Responses 3)
   const nama = get("NAMA LENGKAP");
   if (!nama) return null;
 
   return {
-    kodeReferensi: get("Kode Referensi"),
-    kodeJob: get("Kode Job"),
-    kategoriKandidat: get("KATEGORI KANDIDAT"),
+    kodeReferensi: get("Kode Referensi", "KODE REFERENSI"),
+    kodeJob: get("Kode Job", "KODE JOB"),
+    kategoriKandidat: get("KATEGORI KANDIDAT", "KANDIDAT"),
     domisili: get("DOMISILI"),
     namaLengkap: nama,
     namaPanggilan: get("NAMA PANGGILAN"),
-    bidangKerja: get("BIDANG KERJA YANG DIPILIH"),
-    noHp: get("NO. HP AKTIF"),
-    email: get("ALAMAT EMAIL"),
-    tanggalLahir: get("TANGGA LAHIR"),
+    bidangKerja: get("BIDANG KERJA YANG DIPILIH", "BIDANG SSW YANG DILAMAR", "BIDANG TG YANG DILAMAR"),
+    noHp: get("NO. HP AKTIF", "NO TELP AKTIF", "NO TELP"),
+    email: get("ALAMAT EMAIL", "EMAIL"),
+    tanggalLahir: get("TANGGA LAHIR", "TANGGAL LAHIR"),
     tempatLahir: get("TEMPAT LAHIR"),
-    alamatLengkap: get("ALAMAT LENGKAP"),
+    alamatLengkap: get("ALAMAT LENGKAP", "ALAMAT LENGKAP SESUAI KTP"),
     jenisKelamin: get("JENIS KELAMIN"),
     agama: get("AGAMA"),
     golonganDarah: get("GOLONGAN DARAH"),
@@ -38,63 +45,66 @@ function parseRow(headers, values) {
     beratBadan: get("BERAT BADAN"),
     dominanTangan: get("DOMINAN TANGAN"),
     butaWarna: get("BUTA WARNA"),
-    merokok: get("APAKAH ANDA MEROKOK"),
-    minumAlkohol: get("APAKAH ANDA MINUM ALKOHOL"),
-    tato: get("APAKAH MEMILIKI TATO"),
-    penyakitBerat: get("APAKAH MEMILIKI PENYAKIT BERAT"),
-    alergi: get("APAKAH MEMILIKI ALERGI"),
+    merokok: get("APAKAH ANDA MEROKOK", "MEROKOK"),
+    minumAlkohol: get("APAKAH ANDA MINUM ALKOHOL", "MINUM ALKOHOL"),
+    tato: get("APAKAH MEMILIKI TATO", "BERTATO"),
+    penyakitBerat: get("APAKAH MEMILIKI PENYAKIT BERAT", "APAKAH PUNYA PENYAKIT BERAT"),
+    alergi: get("APAKAH MEMILIKI ALERGI", "APAKAH PUNYA ALERGI"),
     hobi: get("HOBI"),
     statusPernikahan: get("STATUS PERNIKAHAN"),
     pernahKeJepang: get("APAKAH PERNAH KE JEPANG"),
     memilikiPaspor: get("APAKAH MEMILIKI PASPOR"),
-    nomorPaspor: get("NOMOR PASPOR"),
+    nomorPaspor: get("NOMOR PASPOR", "NO PASPOR"),
     masaBerlakuPaspor: get("MASA BERLAKU PASPOR"),
     memilikiSim: get("APAKAH MEMILIKI SIM"),
     keluarga: [
-      { nama: get("DATA KELUARGA 1 : NAMA LENGKAP"), hubungan: get("DATA KELUARGA 1 : HUBUNGAN DENGAN ANDA"), usia: get("DATA KELUARGA 1 : USIA"), pekerjaan: get("DATA KELUARGA 1 : PEKERJAAN"), gaji: get("DATA KELUARGA 1 : GAJI PER BULAN"), tinggalBersama: get("DATA KELUARGA 1 : APAKAH TINGGAL BERSAMA") },
-      { nama: get("DATA KELUARGA 2 : NAMA LENGKAP"), hubungan: get("DATA KELUARGA 2 : HUBUNGAN DENGAN ANDA"), usia: get("DATA KELUARGA 2 : USIA"), pekerjaan: get("DATA KELUARGA 2 : PEKERJAAN"), gaji: get("DATA KELUARGA 2 : GAJI PER BULAN"), tinggalBersama: get("DATA KELUARGA 2 : APAKAH TINGGAL BERSAMA") },
-      { nama: get("DATA KELUARGA 3 : NAMA LENGKAP"), hubungan: get("DATA KELUARGA 3 : HUBUNGAN DENGAN ANDA"), usia: get("DATA KELUARGA 3 : USIA"), pekerjaan: get("DATA KELUARGA 3 : PEKERJAAN"), gaji: get("DATA KELUARGA 3 : GAJI PER BULAN"), tinggalBersama: get("DATA KELUARGA 3 : APAKAH TINGGAL BERSAMA") },
-      { nama: get("DATA KELUARGA 4 : NAMA LENGKAP"), hubungan: get("DATA KELUARGA 4 : HUBUNGAN DENGAN ANDA"), usia: get("DATA KELUARGA 4 : USIA"), pekerjaan: get("DATA KELUARGA 4 : PEKERJAAN"), gaji: get("DATA KELUARGA 4 : GAJI PER BULAN"), tinggalBersama: get("DATA KELUARGA 4 : APAKAH TINGGAL BERSAMA") },
+      { nama: get("DATA KELUARGA 1 : NAMA LENGKAP", "DAFTAR KELUARGA 1 :  ISI NAMA LENGKAP"), hubungan: get("DATA KELUARGA 1 : HUBUNGAN", "DAFTAR KELUARGA 1 :  STATUS HUBUNGAN"), usia: get("DATA KELUARGA 1 : USIA", "DAFTAR KELUARGA 1 : USIA"), pekerjaan: get("DATA KELUARGA 1 : PEKERJAAN", "DAFTAR KELUARGA 1 : PEKERJAAN"), gaji: get("DATA KELUARGA 1 : GAJI", "DAFTAR KELUARGA 1 : PENDAPATAN"), tinggalBersama: get("DATA KELUARGA 1 : APAKAH TINGGAL", "DAFTAR KELUARGA 1 : APAKAH TINGGAL") },
+      { nama: get("DATA KELUARGA 2 : NAMA LENGKAP", "DAFTAR KELUARGA 2 :  ISI NAMA LENGKAP"), hubungan: get("DATA KELUARGA 2 : HUBUNGAN", "DAFTAR KELUARGA 2 :  STATUS HUBUNGAN"), usia: get("DATA KELUARGA 2 : USIA", "DAFTAR KELUARGA 2 : USIA"), pekerjaan: get("DATA KELUARGA 2 : PEKERJAAN", "DAFTAR KELUARGA 2 : PEKERJAAN"), gaji: get("DATA KELUARGA 2 : GAJI", "DAFTAR KELUARGA 2 : PENDAPATAN"), tinggalBersama: get("DATA KELUARGA 2 : APAKAH TINGGAL", "DAFTAR KELUARGA 2 : APAKAH TINGGAL") },
+      { nama: get("DATA KELUARGA 3 : NAMA LENGKAP", "DAFTAR KELUARGA 3 :  ISI NAMA LENGKAP"), hubungan: get("DATA KELUARGA 3 : HUBUNGAN", "DAFTAR KELUARGA 3 :  STATUS HUBUNGAN"), usia: get("DATA KELUARGA 3 : USIA", "DAFTAR KELUARGA 3 : USIA"), pekerjaan: get("DATA KELUARGA 3 : PEKERJAAN", "DAFTAR KELUARGA 3 : PEKERJAAN"), gaji: get("DATA KELUARGA 3 : GAJI", "DAFTAR KELUARGA 3 : PENDAPATAN"), tinggalBersama: get("DATA KELUARGA 3 : APAKAH TINGGAL", "DAFTAR KELUARGA 3 : APAKAH TINGGAL") },
+      { nama: get("DATA KELUARGA 4 : NAMA LENGKAP", "DAFTAR KELUARGA 4 :  ISI NAMA LENGKAP"), hubungan: get("DATA KELUARGA 4 : HUBUNGAN", "DAFTAR KELUARGA 4 :  STATUS HUBUNGAN"), usia: get("DATA KELUARGA 4 : USIA", "DAFTAR KELUARGA 4 : USIA"), pekerjaan: get("DATA KELUARGA 4 : PEKERJAAN", "DAFTAR KELUARGA 4 : PEKERJAAN"), gaji: get("DATA KELUARGA 4 : GAJI", "DAFTAR KELUARGA 4 : PENDAPATAN"), tinggalBersama: get("DATA KELUARGA 4 : APAKAH TINGGAL", "DAFTAR KELUARGA 4 : APAKAH TINGGAL") },
     ],
-    sdNama: get("RIWAYAT PENDIDIKAN  SD: NAMA SEKOLAH"),
-    sdMasuk: get("RIWAYAT PENDIDKAN SD : TANGGAL MASUK"),
-    sdLulus: get("RIWAYAT PENDIDKAN SD : TANGGAL LULUS"),
-    smpNama: get("RIWAYAT PENDIDIKAN  SMP: NAMA SEKOLAH"),
-    smpMasuk: get("RIWAYAT PENDIDKAN SMP : TANGGAL MASUK"),
-    smpLulus: get("RIWAYAT PENDIDKAN SMP : TANGGAL LULUS"),
-    smaNama: get("RIWAYAT PENDIDIKAN  SMA/K: NAMA SEKOLAH"),
-    smaMasuk: get("RIWAYAT PENDIDKAN SMA/K : TANGGAL MASUK"),
-    smaLulus: get("RIWAYAT PENDIDKAN SMA/K : TANGGAL LULUS"),
-    smaJurusan: get("RIWAYAT PENDIDKAN SMA/K : JURUSAN"),
-    univNama: get("RIWAYAT PENDIDIKAN  UNIVERSITAS: NAMA SEKOLAH"),
-    univMasuk: get("RIWAYAT PENDIDKAN UNIVERSITAS : TANGGAL MASUK"),
-    univLulus: get("RIWAYAT PENDIDKAN UNIVERSITAS : TANGGAL LULUS"),
-    univJurusan: get("RIWAYAT PENDIDKAN UNIVERSITAS : JURUSAN"),
+    sdNama: get("RIWAYAT PENDIDIKAN  SD: NAMA SEKOLAH", "RIWAYAT PENDIDIKAN SD : NAMA SEKOLAH"),
+    sdMasuk: get("RIWAYAT PENDIDKAN SD : TANGGAL MASUK", "RIWAYAT PENDIDIKAN SD : TANGGAL MASUK"),
+    sdLulus: get("RIWAYAT PENDIDKAN SD : TANGGAL LULUS", "RIWAYAT PENDIDIKAN SD : TANGGAL LULUS"),
+    smpNama: get("RIWAYAT PENDIDIKAN  SMP: NAMA SEKOLAH", "RIWAYAT PENDIDIKAN SMP : NAMA SEKOLAH"),
+    smpMasuk: get("RIWAYAT PENDIDKAN SMP : TANGGAL MASUK", "RIWAYAT PENDIDIKAN SMP : TANGGAL MASUK"),
+    smpLulus: get("RIWAYAT PENDIDKAN SMP : TANGGAL LULUS", "RIWAYAT PENDIDIKAN SMP : TANGGAL LULUS"),
+    smaNama: get("RIWAYAT PENDIDIKAN  SMA/K: NAMA SEKOLAH", "RIWAYAT PENDIDIKAN SMA/K : NAMA SEKOLAH"),
+    smaMasuk: get("RIWAYAT PENDIDKAN SMA/K : TANGGAL MASUK", "RIWAYAT PENDIDIKAN SMA/K : TANGGAL MASUK"),
+    smaLulus: get("RIWAYAT PENDIDKAN SMA/K : TANGGAL LULUS", "RIWAYAT PENDIDIKAN SMA/K : TANGGAL LULUS"),
+    smaJurusan: get("RIWAYAT PENDIDKAN SMA/K : JURUSAN", "RIWAYAT PENDIDIKAN SMA/K : JURUSAN"),
+    univNama: get("RIWAYAT PENDIDIKAN  UNIVERSITAS: NAMA SEKOLAH", "RIWAYAT PENDIDIKAN UNIVERSITAS : NAMA UNIVERSITAS"),
+    univMasuk: get("RIWAYAT PENDIDKAN UNIVERSITAS : TANGGAL MASUK", "RIWAYAT PENDIDIKAN UNIVERSITAS : TANGGAL MASUK"),
+    univLulus: get("RIWAYAT PENDIDKAN UNIVERSITAS : TANGGAL LULUS", "RIWAYAT PENDIDIKAN UNIVERSITAS : TANGGAL LULUS"),
+    univJurusan: get("RIWAYAT PENDIDKAN UNIVERSITAS : JURUSAN", "RIWAYAT PENDIDIKAN UNIVERSITAS : JURUSAN"),
     pekerjaan: [
-      { perusahaan: get("RIWAYAT BEKERJA 1 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 1 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 1 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 1 : BIDANG PEKERJAAN"), status: get("RIWAYAT BEKERJA 1 : STATUS PEKERJA"), uraian: get("RIWAYAT BEKERJA 1 : URAIAN PEKERJAAN") },
-      { perusahaan: get("RIWAYAT BEKERJA 2 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 2 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 2 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 2 : BIDANG PEKERJAAN"), status: get("RIWAYAT BEKERJA 2 : STATUS PEKERJA"), uraian: get("RIWAYAT BEKERJA 2 : URAIAN PEKERJAAN") },
-      { perusahaan: get("RIWAYAT BEKERJA 3 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 3 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 3 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 3 : BIDANG PEKERJAAN"), status: get("RIWAYAT BEKERJA 3 : STATUS PEKERJA"), uraian: get("RIWAYAT BEKERJA 3 : URAIAN PEKERJAAN") },
-      { perusahaan: get("RIWAYAT BEKERJA 4 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 4 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 4 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 4 : BIDANG PEKERJAAN"), status: get("RIWAYAT BEKERJA 4 : STATUS PEKERJA"), uraian: get("RIWAYAT BEKERJA 4 : URAIAN PEKERJAAN") },
+      { perusahaan: get("RIWAYAT BEKERJA 1 : NAMA PERUSAHAAN", "RIWAYAT PEKERJAAN 1 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 1 : TANGGAL MASUK", "RIWAYAT PEKERJAAN 1 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 1 : TANGGAL KELUAR", "RIWAYAT PEKERJAAN 1 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 1 : BIDANG PEKERJAAN", "RIWAYAT PEKERJAAN 1 : POSISI PEKERJAAN"), status: get("RIWAYAT BEKERJA 1 : STATUS PEKERJA", "RIWAYAT PEKERJAAN 1 : JENIS KONTRAK"), uraian: get("RIWAYAT BEKERJA 1 : URAIAN PEKERJAAN", "URAIAN PEKERJAAN YANG DILAKUKAN") },
+      { perusahaan: get("RIWAYAT BEKERJA 2 : NAMA PERUSAHAAN", "RIWAYAT PEKERJAAN 2 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 2 : TANGGAL MASUK", "RIWAYAT PEKERJAAN 2 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 2 : TANGGAL KELUAR", "RIWAYAT PEKERJAAN 2 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 2 : BIDANG PEKERJAAN", "RIWAYAT PEKERJAAN 2 : POSISI PEKERJAAN"), status: get("RIWAYAT BEKERJA 2 : STATUS PEKERJA", "RIWAYAT PEKERJAAN 2 : JENIS KONTRAK"), uraian: get("RIWAYAT BEKERJA 2 : URAIAN PEKERJAAN", "URAIAN PEKERJAAN YANG DILAKUKAN 2") },
+      { perusahaan: get("RIWAYAT BEKERJA 3 : NAMA PERUSAHAAN", "RIWAYAT PEKERJAAN 3 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 3 : TANGGAL MASUK", "RIWAYAT PEKERJAAN 3 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 3 : TANGGAL KELUAR", "RIWAYAT PEKERJAAN 3 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 3 : BIDANG PEKERJAAN", "RIWAYAT PEKERJAAN 3 : POSISI PEKERJAAN"), status: get("RIWAYAT BEKERJA 3 : STATUS PEKERJA", "RIWAYAT PEKERJAAN 3 : JENIS KONTRAK"), uraian: get("RIWAYAT BEKERJA 3 : URAIAN PEKERJAAN", "URAIAN PEKERJAAN YANG DILAKUKAN 3") },
+      { perusahaan: get("RIWAYAT BEKERJA 4 : NAMA PERUSAHAAN", "RIWAYAT PEKERJAAN 4 : NAMA PERUSAHAAN"), masuk: get("RIWAYAT BEKERJA 4 : TANGGAL MASUK", "RIWAYAT PEKERJAAN 4 : TANGGAL MASUK"), keluar: get("RIWAYAT BEKERJA 4 : TANGGAL KELUAR", "RIWAYAT PEKERJAAN 4 : TANGGAL KELUAR"), bidang: get("RIWAYAT BEKERJA 4 : BIDANG PEKERJAAN", "RIWAYAT PEKERJAAN 4: POSISI PEKERJAAN"), status: get("RIWAYAT BEKERJA 4 : STATUS PEKERJA", "RIWAYAT PEKERJAAN 4 : JENIS KONTRAK"), uraian: get("RIWAYAT BEKERJA 4 : URAIAN PEKERJAAN", "URAIAN PEKERJAAN YANG DILAKUKAN 4") },
     ],
     kelebihan: get("KELEBIHAN ANDA"),
     kekurangan: get("KEKURANGAN ANDA"),
-    alasanKeJepang: get("ALASAN INGIN KE JEPANG"),
-    alasanMelamarBidang: get("ALASAN INGIN MELAMAR KE BIDANG INI"),
-    alasanKaigofukushishi: get("ALASAN INGIN MENJADI KAIGOFUKUSHISHI"),
-    impianMasaDepan: get("IMPIAN DI MASA DEPAN"),
+    alasanKeJepang: get("ALASAN INGIN KE JEPANG", "ALASAN INGIN PERGI KE JEPANG"),
+    alasanMelamarBidang: get("ALASAN INGIN MELAMAR KE BIDANG INI", "ALASAN MELAMAR JOB DI BIDANG INI"),
+    alasanKaigofukushishi: get("ALASAN INGIN MENJADI KAIGOFUKUSHISHI", "ALASAN INGIN MENJADI KAIGO FUKUSHISHI"),
+    impianMasaDepan: get("IMPIAN DI MASA DEPAN", "IMPIAN MASA DEPAN"),
     lamaInginTinggal: get("LAMA INGIN TINGGAL DI JEPANG"),
-    lamaBelajarBahasaJepang: get("LAMA BELAJAR BAHASA JEPANG"),
-    nomorDarurat: get("NOMOR DARURAT : NO HP"),
-    namaPemilikDarurat: get("NOMOR DARURAT : NAMA LENGKAP PEMILIK NOMOR HP"),
-    hubunganDarurat: get("NOMOR DARURAT : HUBUNGAN DENGAN PELAMAR"),
+    lamaBelajarBahasaJepang: get("LAMA BELAJAR BAHASA JEPANG", "DURASI BELAJAR BAHASA JEPANG"),
+    nomorDarurat: get("NOMOR DARURAT : NO HP", "NO TELP DARURAT"),
+    namaPemilikDarurat: get("NOMOR DARURAT : NAMA LENGKAP PEMILIK NOMOR HP", "NAMA LENGKAP PEMILIK NOMOR DARURAT"),
+    hubunganDarurat: get("NOMOR DARURAT : HUBUNGAN DENGAN PELAMAR", "HUBUNGAN DENGAN PELAMAR"),
+    // Documents
+    pasPhoto: get("PAS PHOTO 3X4", "PAS FOTO", "PAS PHOTO"),
     sertifikatBahasaJepang: get("SERTIFIKAT BAHASA JEPANG"),
     videoJFT: get("VIDEO SCREEN RECORDING JFT"),
-    sertifikatSSW: get("SERTIFIKAT SSW"),
+    sertifikatSSW: get("SERTIFIKAT SSW", "SERTIFIKAT SSW / SENMONKYU"),
     videoSSW: get("VIDEO SCREEN RECORDING SSW"),
-    cvRirekisho: get("CV/RIREKISHO"),
-    sertifikatSenmonkyuu: get("SERTIFIKAT SENMONKYUU"),
+    cvRirekisho: get("CV/RIREKISHO", "CV/RIREKISHO FORMAT BEBAS"),
+    sertifikatSenmonkyuu: get("SERTIFIKAT SENMONKYUU", "SENMONKYUU/HYOUKACHOSHO"),
     sertifikatSelesaiMagang: get("SERTIFIKAT SELESAI MAGANG"),
-    pasPhoto: get("PAS PHOTO 3X4") || get("PAS PHOTO"),
+    // Promosi diri
+    promosiDiri: get("PROMOSIKAN DIRI ANDA", "PROMOSI DIRI ANDA"),
     importedAt: new Date().toISOString(),
     submittedAt: get("Timestamp") || new Date().toISOString(),
   };
@@ -110,7 +120,7 @@ export default function ImportPage() {
     `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`
   );
   const [customSheetId, setCustomSheetId] = useState(SPREADSHEET_ID);
-  const [customSheetName, setCustomSheetName] = useState(SHEET_NAME);
+  const [customSheetName, setCustomSheetName] = useState("Form Responses 3");
 
   if (authLoading) {
     return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
@@ -240,11 +250,18 @@ export default function ImportPage() {
             </div>
             <div>
               <label className="form-label">Nama Sheet</label>
-              <input
+              <select
                 className="input-field"
                 value={customSheetName}
                 onChange={(e) => setCustomSheetName(e.target.value)}
-                placeholder="Form Responses 3"
+              >
+                {SHEET_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <input
+                className="input-field mt-2 text-xs"
+                value={customSheetName}
+                onChange={(e) => setCustomSheetName(e.target.value)}
+                placeholder="Atau ketik nama sheet manual"
               />
             </div>
           </div>
