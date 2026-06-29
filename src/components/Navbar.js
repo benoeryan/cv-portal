@@ -27,6 +27,9 @@ export default function Navbar() {
                 <Link href="/admin/candidates" className="text-sm text-gray-600 hover:text-blue-600">
                   Data Kandidat
                 </Link>
+                <Link href="/admin/import" className="text-sm text-gray-600 hover:text-blue-600">
+                  Import Data
+                </Link>
               </>
             )}
             {userData?.role === "candidate" && (

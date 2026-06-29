@@ -7,6 +7,9 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 
 const KATEGORI_OPTIONS = ["NEW COMER", "EX-MAGANG/EX-TRAINEER", "ENGINEERING/GIJINKOKU"];
+const BIDANG_OPTIONS_NEW_COMER = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU"];
+const BIDANG_OPTIONS_EX_MAGANG = ["TG JAHIT/GARMEN", "Housei", "KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "KIKAI KAKOU"];
+const BIDANG_OPTIONS_ENGINEERING = ["ENGINEERING", "KIKAI KAKOU"];
 const BIDANG_OPTIONS = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "TG JAHIT/GARMEN", "ENGINEERING", "Housei", "KIKAI KAKOU"];
 const JENIS_KELAMIN_OPTIONS = ["LAKI-LAKI", "PEREMPUAN"];
 const AGAMA_OPTIONS = ["ISLAM", "KRISTEN", "KATOLIK", "HINDU", "BUDHA", "KONGHUCU"];
@@ -135,6 +138,21 @@ export default function CandidateFormPage() {
     nomorDarurat: "",
     namaPemilikDarurat: "",
     hubunganDarurat: "",
+    // Khusus Ex-Magang
+    sertifikatSenmonkyuu: "",
+    sertifikatSelesaiMagang: "",
+    deskripsiMagang: "",
+    // Khusus Engineering
+    jurusanUniv: "",
+    scanIjazah: "",
+    transkripNilai: "",
+    riwayatRelevan: "",
+    // Sertifikat Umum
+    sertifikatBahasaJepang: "",
+    videoJFT: "",
+    sertifikatSSW: "",
+    videoSSW: "",
+    cvRirekisho: "",
   });
 
   useEffect(() => {
@@ -229,7 +247,12 @@ export default function CandidateFormPage() {
             <InputField label="Kode Referensi" name="kodeReferensi" value={formData.kodeReferensi} onChange={handleChange} placeholder="Contoh: Jimusho" />
             <InputField label="Kode Job" name="kodeJob" value={formData.kodeJob} onChange={handleChange} placeholder="Contoh: IJEF076" />
             <InputField label="Kategori Kandidat" name="kategoriKandidat" value={formData.kategoriKandidat} onChange={handleChange} options={KATEGORI_OPTIONS} required />
-            <InputField label="Bidang Kerja" name="bidangKerja" value={formData.bidangKerja} onChange={handleChange} options={BIDANG_OPTIONS} required />
+            <InputField label="Bidang Kerja" name="bidangKerja" value={formData.bidangKerja} onChange={handleChange} options={
+              formData.kategoriKandidat === "NEW COMER" ? BIDANG_OPTIONS_NEW_COMER :
+              formData.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" ? BIDANG_OPTIONS_EX_MAGANG :
+              formData.kategoriKandidat === "ENGINEERING/GIJINKOKU" ? BIDANG_OPTIONS_ENGINEERING :
+              BIDANG_OPTIONS
+            } required />
             <InputField label="Nama Lengkap" name="namaLengkap" value={formData.namaLengkap} onChange={handleChange} required />
             <InputField label="Nama Panggilan" name="namaPanggilan" value={formData.namaPanggilan} onChange={handleChange} required />
             <InputField label="No. HP Aktif" name="noHp" value={formData.noHp} onChange={handleChange} required placeholder="+628xxxxxxxxxx" />
@@ -280,6 +303,25 @@ export default function CandidateFormPage() {
             )}
             <InputField label="Memiliki SIM?" name="memilikiSim" value={formData.memilikiSim} onChange={handleChange} options={["TIDAK PUNYA", "SIM A", "SIM B", "SIM C"]} />
           </FormSection>
+
+          {/* KHUSUS EX-MAGANG: Sertifikat Tambahan */}
+          {formData.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" && (
+            <FormSection title="Dokumen Khusus Ex-Magang/Ex-Traineer">
+              <InputField label="Sertifikat Senmonkyuu/Hyoukachosho (URL)" name="sertifikatSenmonkyuu" value={formData.sertifikatSenmonkyuu} onChange={handleChange} fullWidth placeholder="Link Google Drive" />
+              <InputField label="Sertifikat Selesai Magang/JITCO (URL)" name="sertifikatSelesaiMagang" value={formData.sertifikatSelesaiMagang} onChange={handleChange} fullWidth placeholder="Link Google Drive" />
+              <InputField label="Deskripsi Pekerjaan Magang/TG" name="deskripsiMagang" value={formData.deskripsiMagang} onChange={handleChange} type="textarea" fullWidth />
+            </FormSection>
+          )}
+
+          {/* KHUSUS ENGINEERING: Ijazah & Transkrip */}
+          {formData.kategoriKandidat === "ENGINEERING/GIJINKOKU" && (
+            <FormSection title="Dokumen Khusus Engineering/Gijinkoku">
+              <InputField label="Jurusan D3/S1" name="jurusanUniv" value={formData.jurusanUniv} onChange={handleChange} required />
+              <InputField label="Scan Ijazah (URL)" name="scanIjazah" value={formData.scanIjazah} onChange={handleChange} placeholder="Link Google Drive" />
+              <InputField label="Transkrip Nilai D3/S1 (URL)" name="transkripNilai" value={formData.transkripNilai} onChange={handleChange} placeholder="Link Google Drive" />
+              <InputField label="Riwayat Pekerjaan yang Relevan" name="riwayatRelevan" value={formData.riwayatRelevan} onChange={handleChange} type="textarea" fullWidth />
+            </FormSection>
+          )}
 
           {/* DATA KELUARGA */}
           <div className="card mb-6">
@@ -400,6 +442,15 @@ export default function CandidateFormPage() {
             <InputField label="No HP Darurat" name="nomorDarurat" value={formData.nomorDarurat} onChange={handleChange} required />
             <InputField label="Nama Pemilik No Darurat" name="namaPemilikDarurat" value={formData.namaPemilikDarurat} onChange={handleChange} required />
             <InputField label="Hubungan dengan Pelamar" name="hubunganDarurat" value={formData.hubunganDarurat} onChange={handleChange} required />
+          </FormSection>
+
+          {/* DOKUMEN / SERTIFIKAT */}
+          <FormSection title="Upload Dokumen (Link Google Drive)">
+            <InputField label="Sertifikat Bahasa Jepang JFT/JLPT (URL)" name="sertifikatBahasaJepang" value={formData.sertifikatBahasaJepang} onChange={handleChange} fullWidth placeholder="https://drive.google.com/..." />
+            <InputField label="Video Screen Recording JFT (URL)" name="videoJFT" value={formData.videoJFT} onChange={handleChange} fullWidth placeholder="https://drive.google.com/..." />
+            <InputField label="Sertifikat SSW (URL)" name="sertifikatSSW" value={formData.sertifikatSSW} onChange={handleChange} fullWidth placeholder="https://drive.google.com/..." />
+            <InputField label="Video Screen Recording SSW (URL)" name="videoSSW" value={formData.videoSSW} onChange={handleChange} fullWidth placeholder="https://drive.google.com/..." />
+            <InputField label="CV/Rirekisho (URL)" name="cvRirekisho" value={formData.cvRirekisho} onChange={handleChange} fullWidth placeholder="https://drive.google.com/..." />
           </FormSection>
 
           <div className="flex justify-end space-x-3 mb-12">
