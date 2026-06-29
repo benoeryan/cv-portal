@@ -216,26 +216,26 @@ export default function EditCandidatePage() {
                     onClick={async () => {
                       const urls = [data.sertifikatBahasaJepang, data.sertifikatSSW, data.sertifikatSenmonkyuu, data.sertifikatSelesaiMagang].filter(Boolean);
                       if (urls.length === 0) { setMessage("Tidak ada link sertifikat. Isi link di bagian 'Link Dokumen' terlebih dahulu."); return; }
-                      try {
-                        const res = await fetch("/api/cert-info", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ urls, candidateData: data }),
-                        });
-                        const result = await res.json();
-                        if (result.files && result.files.length > 0) {
-                          const certs = result.files.map((f) => ({
-                            nama: f.nama,
-                            tanggal: f.tanggal || "",
-                          }));
-                          handleChange("sertifikat", certs);
-                          setMessage(`${certs.length} sertifikat terdeteksi. Silakan isi tanggal ujian masing-masing.`);
-                        } else {
-                          setMessage("Tidak ada sertifikat terdeteksi dari link yang tersedia.");
-                        }
-                      } catch (err) {
-                        setMessage("Error: " + err.message);
+                      
+                      // Generate cert list based on available links
+                      const certs = [];
+                      if (data.sertifikatBahasaJepang) {
+                        certs.push({ nama: "国際交流基金日本語基礎テスト", tanggal: data.tanggalJFT || "" });
                       }
+                      if (data.sertifikatSSW) {
+                        certs.push({ nama: "介護日本語評価試験結果通知書", tanggal: data.tanggalSSW || "" });
+                        if (data.bidangKerja === "KAIGO") {
+                          certs.push({ nama: "介護日本語評価試験結果通知書 (Kaigo)", tanggal: data.tanggalSSWKaigo || "" });
+                        }
+                      }
+                      if (data.sertifikatSenmonkyuu) {
+                        certs.push({ nama: "技能実習修了証明書", tanggal: data.tanggalShuryoShomei || "" });
+                      }
+                      if (data.sertifikatSelesaiMagang) {
+                        certs.push({ nama: "技能実習修了証明書 (JITCO)", tanggal: "" });
+                      }
+                      handleChange("sertifikat", certs);
+                      setMessage(`${certs.length} sertifikat terdeteksi. Silakan isi tanggal ujian masing-masing.`);
                     }}
                     className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700"
                   >
