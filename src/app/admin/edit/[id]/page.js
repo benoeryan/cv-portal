@@ -19,6 +19,14 @@ const TRANSLATABLE_FIELDS = [
   { key: "impianMasaDepan", label: "Impian Masa Depan" },
 ];
 
+const CERT_TEMPLATES = [
+  { nama: "国際交流基金日本語基礎テスト (JFT)", field: "tanggalJFT" },
+  { nama: "介護日本語評価試験結果通知書", field: "tanggalSSW" },
+  { nama: "介護日本語評価試験結果通知書 (Kaigo)", field: "tanggalSSWKaigo" },
+  { nama: "日本語能力試験 (JLPT)", field: "tanggalJLPT" },
+  { nama: "技能実習修了証明書", field: "tanggalShuryoShomei" },
+];
+
 export default function EditCandidatePage() {
   const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -132,6 +140,9 @@ export default function EditCandidatePage() {
           <button onClick={() => setActiveTab("data")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "data" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             Data Kandidat
           </button>
+          <button onClick={() => setActiveTab("certs")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "certs" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+            Sertifikat
+          </button>
           <button onClick={() => setActiveTab("japanese")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "japanese" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             Terjemahan Jepang
           </button>
@@ -178,6 +189,76 @@ export default function EditCandidatePage() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "certs" && (
+          <div className="space-y-4">
+            <div className="card">
+              <h3 className="font-semibold text-gray-700 mb-4">Sertifikat & Tanggal Ujian (免許・資格・受験日)</h3>
+              <p className="text-xs text-gray-500 mb-4">Isi tanggal ujian untuk setiap sertifikat yang dimiliki. Data ini akan muncul di CV.</p>
+              
+              <div className="space-y-4">
+                {CERT_TEMPLATES.map((cert) => (
+                  <div key={cert.field} className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
+                    <div className="flex-grow">
+                      <label className="form-label">{cert.nama}</label>
+                      <input
+                        type="text"
+                        className="input-field"
+                        value={data[cert.field] || ""}
+                        onChange={(e) => handleChange(cert.field, e.target.value)}
+                        placeholder="Contoh: 2026年06月05日 atau 2026/06/05"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 border-t pt-4">
+                <h4 className="font-medium text-gray-700 mb-3">Sertifikat Custom (Tambahan)</h4>
+                <p className="text-xs text-gray-500 mb-3">Format: satu baris per sertifikat. Contoh: "JLPT N3 - 受験日: 2025年12月01日"</p>
+                <textarea
+                  className="input-field min-h-[100px] text-sm"
+                  value={(data.sertifikat || []).map((s) => `${s.nama} - 受験日: ${s.tanggal}`).join("\n")}
+                  onChange={(e) => {
+                    const lines = e.target.value.split("\n").filter((l) => l.trim());
+                    const serts = lines.map((line) => {
+                      const match = line.match(/^(.+?)\s*-\s*受験日:\s*(.+)$/);
+                      if (match) return { nama: match[1].trim(), tanggal: match[2].trim() };
+                      return { nama: line.trim(), tanggal: "" };
+                    });
+                    handleChange("sertifikat", serts);
+                  }}
+                  placeholder="国際交流基金日本語基礎テスト - 受験日: 2026年06月05日"
+                />
+              </div>
+
+              <div className="mt-4 border-t pt-4">
+                <h4 className="font-medium text-gray-700 mb-3">Link Dokumen</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="form-label">Pas Photo (URL)</label>
+                    <input className="input-field text-xs" value={data.pasPhoto || ""} onChange={(e) => handleChange("pasPhoto", e.target.value)} placeholder="https://drive.google.com/..." />
+                  </div>
+                  <div>
+                    <label className="form-label">Sertifikat Bahasa Jepang (URL)</label>
+                    <input className="input-field text-xs" value={data.sertifikatBahasaJepang || ""} onChange={(e) => handleChange("sertifikatBahasaJepang", e.target.value)} placeholder="https://drive.google.com/..." />
+                  </div>
+                  <div>
+                    <label className="form-label">Sertifikat SSW (URL)</label>
+                    <input className="input-field text-xs" value={data.sertifikatSSW || ""} onChange={(e) => handleChange("sertifikatSSW", e.target.value)} placeholder="https://drive.google.com/..." />
+                  </div>
+                  <div>
+                    <label className="form-label">CV/Rirekisho (URL)</label>
+                    <input className="input-field text-xs" value={data.cvRirekisho || ""} onChange={(e) => handleChange("cvRirekisho", e.target.value)} placeholder="https://drive.google.com/..." />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button onClick={handleSave} className="btn-primary" disabled={saving}>{saving ? "Menyimpan..." : "Simpan"}</button>
             </div>
           </div>
         )}

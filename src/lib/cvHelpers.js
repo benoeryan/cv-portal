@@ -2,22 +2,59 @@
 
 export function formatDateJP(dateStr) {
   if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
+  let d;
+  if (dateStr.includes("/")) {
+    const parts = dateStr.split("/");
+    if (parts.length === 3) {
+      let [m, day, y] = parts;
+      if (y.length === 2) y = parseInt(y) > 30 ? "19" + y : "20" + y;
+      d = new Date(parseInt(y), parseInt(m) - 1, parseInt(day));
+    }
+  } else {
+    d = new Date(dateStr);
+  }
+  if (!d || isNaN(d.getTime())) return dateStr;
   return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, "0")}月${String(d.getDate()).padStart(2, "0")}日`;
 }
 
 export function formatDateShortJP(dateStr) {
   if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
+  let d;
+  if (dateStr.includes("/")) {
+    const parts = dateStr.split("/");
+    if (parts.length === 3) {
+      let [m, day, y] = parts;
+      if (y.length === 2) y = parseInt(y) > 30 ? "19" + y : "20" + y;
+      d = new Date(parseInt(y), parseInt(m) - 1, parseInt(day));
+    }
+  } else {
+    d = new Date(dateStr);
+  }
+  if (!d || isNaN(d.getTime())) return dateStr;
   return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, "0")}月`;
 }
 
 export function calculateAge(birthDate) {
   if (!birthDate) return "";
+  // Handle various date formats: "MM/DD/YY", "YYYY-MM-DD", "M/D/YY", etc.
+  let birth;
+  if (birthDate.includes("/")) {
+    const parts = birthDate.split("/");
+    if (parts.length === 3) {
+      let [m, d, y] = parts;
+      // If year is 2 digits, assume 1900s if > 30, else 2000s
+      if (y.length === 2) {
+        y = parseInt(y) > 30 ? "19" + y : "20" + y;
+      }
+      birth = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    }
+  } else {
+    birth = new Date(birthDate);
+  }
+  
+  if (!birth || isNaN(birth.getTime())) return "";
+  
   const today = new Date();
-  const birth = new Date(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
