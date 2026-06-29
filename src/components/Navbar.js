@@ -30,6 +30,9 @@ export default function Navbar() {
                 <Link href="/admin/import" className="text-sm text-gray-600 hover:text-blue-600">
                   Import Data
                 </Link>
+                <Link href="/admin/settings" className="text-sm text-gray-600 hover:text-blue-600">
+                  Settings
+                </Link>
               </>
             )}
             {userData?.role === "candidate" && (
@@ -39,6 +42,13 @@ export default function Navbar() {
                 </Link>
                 <Link href="/candidate/cv" className="text-sm text-gray-600 hover:text-blue-600">
                   Lihat CV
+                </Link>
+              </>
+            )}
+            {(userData?.role === "viewer" || userData?.role === "approval") && (
+              <>
+                <Link href="/admin/candidates" className="text-sm text-gray-600 hover:text-blue-600">
+                  Data Kandidat
                 </Link>
               </>
             )}

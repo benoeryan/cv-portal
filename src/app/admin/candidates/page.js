@@ -23,11 +23,11 @@ export default function AdminCandidatesPage() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && (!user || userData?.role !== "admin")) {
+    if (!authLoading && (!user || !["admin", "viewer", "approval"].includes(userData?.role))) {
       router.push("/");
       return;
     }
-    if (user && userData?.role === "admin") {
+    if (user && ["admin", "viewer", "approval"].includes(userData?.role)) {
       loadCandidates();
     }
   }, [user, userData, authLoading]);
@@ -139,14 +139,16 @@ export default function AdminCandidatesPage() {
             <p className="text-gray-500 text-sm">{candidates.length} kandidat terdaftar</p>
           </div>
           <div className="flex space-x-2">
-            {selected.length > 0 && (
+            {userData?.role === "admin" && selected.length > 0 && (
               <button onClick={handleDeleteBulk} className="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600">
                 Hapus {selected.length} terpilih
               </button>
             )}
-            <button onClick={handleResetAll} className="bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm hover:bg-red-200">
-              Reset Semua
-            </button>
+            {userData?.role === "admin" && (
+              <button onClick={handleResetAll} className="bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm hover:bg-red-200">
+                Reset Semua
+              </button>
+            )}
           </div>
         </div>
 
@@ -224,12 +226,16 @@ export default function AdminCandidatesPage() {
                       <Link href={`/admin/cv/${c.id}`} className="text-blue-600 hover:text-blue-800 text-xs font-medium">
                         CV
                       </Link>
-                      <Link href={`/admin/edit/${c.id}`} className="text-green-600 hover:text-green-800 text-xs font-medium">
-                        Edit
-                      </Link>
-                      <button onClick={() => handleDeleteSingle(c)} className="text-red-500 hover:text-red-700 text-xs font-medium">
-                        Hapus
-                      </button>
+                      {(userData?.role === "admin" || userData?.role === "approval") && (
+                        <Link href={`/admin/edit/${c.id}`} className="text-green-600 hover:text-green-800 text-xs font-medium">
+                          Edit
+                        </Link>
+                      )}
+                      {userData?.role === "admin" && (
+                        <button onClick={() => handleDeleteSingle(c)} className="text-red-500 hover:text-red-700 text-xs font-medium">
+                          Hapus
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
