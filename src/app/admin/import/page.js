@@ -13,6 +13,8 @@ const API_KEY = "AIzaSyAWlNi_iBOWxZBD6E20aHOSrRpPsirDdOM"; // Reuse Firebase API
 function normalizeHeader(h) {
   if (!h) return "";
   return h
+    .replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "")
+    .replace(/[^\x20-\x7EÅÄÖåäö\u00C0-\u024F]/g, "")
     .trim()
     .replace(/\s+/g, " ")
     .toLowerCase()
@@ -58,6 +60,13 @@ function analyzeHeaderMapping(headers) {
         }
         // Exact substring match
         if (nh.includes(nk) || nk.includes(nh)) {
+          foundField = fieldName;
+          break;
+        }
+        // Raw case-insensitive match as fallback
+        const rawHeader = headers[i].toLowerCase().trim();
+        const rawKeyword = keyword.toLowerCase().trim();
+        if (rawHeader === rawKeyword) {
           foundField = fieldName;
           break;
         }
@@ -611,10 +620,17 @@ function parseRow(headers, values) {
   // Exact match getter - matches headers EXACTLY (equals, not includes)
   const getExact = (...headerNames) => {
     for (const name of headerNames) {
+      // Try normalized match first
       const nn = normalizeHeader(name);
       const idx = normalizedHeaders.findIndex((h) => h === nn);
       if (idx >= 0 && values[idx] && values[idx].trim()) {
         return values[idx].trim();
+      }
+      // Try raw case-insensitive match as fallback
+      const nameLower = name.toLowerCase().trim();
+      const idx2 = headers.findIndex((h) => h && h.toLowerCase().trim() === nameLower);
+      if (idx2 >= 0 && values[idx2] && values[idx2].trim()) {
+        return values[idx2].trim();
       }
     }
     return "";
