@@ -1,0 +1,19 @@
+{
+  "project_type": "Next.js 15 app with Firebase, app router",
+  "language": "JavaScript",
+  "build_system": "npm with Next.js 15.5.18",
+  "test_framework": "None found - no test files present",
+  "build_command": "npm run build",
+  "test_command": "npm run build",
+  "verification_instructions": "Run npm run build and confirm it succeeds with exit code 0",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "npm install in /projects/sandbox/cv-portal",
+  "environment_constraints": "OPEN_INTERNET - full network access available for npm install",
+  "contribution_requirements": "No CONTRIBUTING.md found",
+  "key_patterns": "API routes use Next.js app router pattern (route.js with named export functions). pdf-parse is imported from 'pdf-parse/lib/pdf-parse' to bypass a known test file bug. Error messages are in Indonesian (Bahasa). The API downloads PDFs from Google Drive using public download URLs.",
+  "relevant_files": [
+    "/projects/sandbox/cv-portal/src/app/api/extract-cert-date/route.js",
+    "/projects/sandbox/cv-portal/package.json"
+  ],
+  "directory_structure": "src/app/api/extract-cert-date/route.js - the API route to modify. package.json at project root."
+}

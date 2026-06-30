@@ -1,0 +1,7 @@
+{
+  "task_id": "task-ocr-fallback",
+  "task_description": "Add Google Drive OCR fallback to extract-cert-date API route for scanned/image PDFs",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001"],
+  "blocked_reason": null
+}

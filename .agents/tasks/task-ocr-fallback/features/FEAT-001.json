@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Add Google Drive OCR fallback to extract-cert-date API route when pdf-parse returns empty text for scanned/image PDFs",
+  "status": "completed",
+  "steps": [
+    "Add 'googleapis' to dependencies in /projects/sandbox/cv-portal/package.json",
+    "Run npm install to install the googleapis package",
+    "Update /projects/sandbox/cv-portal/src/app/api/extract-cert-date/route.js to add OCR fallback logic: (a) When pdf-parse returns empty text, check for GOOGLE_SERVICE_ACCOUNT_JSON env var. If not set, return a helpful error message telling the user to configure it. (b) Parse the service account JSON from the env var. (c) Authenticate with Google Drive API v3 using googleapis and the service account credentials. (d) Copy the PDF file as a Google Doc (mimeType: application/vnd.google-apps.document) which triggers OCR. (e) Export the new Google Doc as plain text (text/plain). (f) Delete the temporary Google Doc. (g) Parse dates from the OCR-extracted text using the same date pattern logic already in the file.",
+    "Ensure the flow order is: (1) try pdf-parse first, (2) if empty text try Google Drive OCR, (3) if both fail return the manual entry error message",
+    "Run npm run build to verify the build passes"
+  ],
+  "acceptance_criteria": [
+    "package.json includes googleapis as a dependency",
+    "node_modules/googleapis exists after npm install",
+    "The route.js file imports and uses googleapis for OCR when pdf-parse returns empty text",
+    "The route.js checks for GOOGLE_SERVICE_ACCOUNT_JSON env var and returns a helpful error if not configured",
+    "The OCR fallback uses drive.files.copy with mimeType 'application/vnd.google-apps.document'",
+    "The OCR fallback exports the doc as text/plain using drive.files.export",
+    "The OCR fallback deletes the temporary Google Doc after extraction",
+    "The date parsing logic is applied to OCR text the same way as pdf-parse text",
+    "npm run build succeeds with exit code 0"
+  ],
+  "verification": [
+    "Run 'npm run build' in /projects/sandbox/cv-portal and confirm it exits with code 0",
+    "Check that package.json contains googleapis in dependencies",
+    "Read route.js and confirm the OCR fallback logic is present"
+  ],
+  "blocked_reason": null,
+  "findings": "googleapis installed successfully (41 packages added). Build passes cleanly. Used top-level import for googleapis instead of dynamic import since it does not have the same test-file bug as pdf-parse. Added a helper function findDatesInText to avoid code duplication between pdf-parse and OCR paths. OCR result includes method: 'ocr' field to distinguish from direct pdf-parse extraction."
+}
