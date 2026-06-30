@@ -2,7 +2,7 @@
   "task_id": "task-multiline-cell-parser",
   "task_description": "Add auto-detection and parsing of multi-line concatenated values in Form Responses 1 spreadsheet cells. When education, family, or work data is stored as multiple lines in a single cell, the system should automatically split and map them to the structured fields matching Form Responses 3 format.",
   "status": "in_progress",
-  "feature_order": ["FEAT-001", "FEAT-002"],
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
   "blocked_reason": null,
   "verification": {
     "build": "pass",

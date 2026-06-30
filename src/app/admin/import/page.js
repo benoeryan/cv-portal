@@ -279,6 +279,88 @@ function isFamilyDataLine(line) {
   return false;
 }
 
+// Detect hubungan (relationship) for a family member entry when not explicitly stated
+// Priority: (1) explicit keywords in original line, (2) pekerjaan-based detection, (3) heuristic by age/position
+function detectHubungan(entry, originalLine, index, allEntries) {
+  // If hubungan is already set, do not override
+  if (entry.hubungan && entry.hubungan.trim()) return entry.hubungan;
+
+  const lineUpper = (originalLine || "").toUpperCase();
+
+  // 1. Check originalLine for explicit relationship keywords
+  const keywordMap = [
+    { keywords: ["AYAH", "BAPAK"], value: "Ayah" },
+    { keywords: ["IBU", "MAMA"], value: "Ibu" },
+    { keywords: ["KAKAK"], value: "Kakak" },
+    { keywords: ["ADIK"], value: "Adik" },
+    { keywords: ["SUAMI"], value: "Suami" },
+    { keywords: ["ISTRI"], value: "Istri" },
+    { keywords: ["ANAK"], value: "Anak" },
+  ];
+
+  for (const mapping of keywordMap) {
+    for (const kw of mapping.keywords) {
+      // Use word boundary check to avoid false positives (e.g., "IBUNYA" should not match "IBU")
+      const regex = new RegExp("\\b" + kw + "\\b", "i");
+      if (regex.test(lineUpper)) {
+        return mapping.value;
+      }
+    }
+  }
+
+  // 2. Check entry.pekerjaan for IBU RUMAH TANGGA / IBU RUMAH / IRT patterns
+  const pekerjaanUpper = (entry.pekerjaan || "").toUpperCase().trim();
+  if (
+    pekerjaanUpper.includes("IBU RUMAH TANGGA") ||
+    pekerjaanUpper.includes("IBU RUMAH") ||
+    pekerjaanUpper === "IRT"
+  ) {
+    return "Ibu";
+  }
+
+  // 3. Heuristic fallback based on age and position
+  const age = parseInt(entry.usia, 10);
+  if (!isNaN(age) && age > 40) {
+    // Check if another entry already claimed "Ayah" or "Ibu"
+    const existingRelations = allEntries
+      .filter((e, i) => i < index && e.hubungan)
+      .map((e) => e.hubungan);
+    const ayahTaken = existingRelations.includes("Ayah");
+    const ibuTaken = existingRelations.includes("Ibu");
+
+    if (!ibuTaken) {
+      // If pekerjaan hints female role or name/context suggests female, assign Ibu
+      const femaleHints = /rumah|tangga|irt|ibu|wiraswasta/i;
+      if (femaleHints.test(pekerjaanUpper)) {
+        return "Ibu";
+      }
+    }
+    if (!ayahTaken) {
+      // Default elder to Ayah if not already taken
+      return "Ayah";
+    }
+    if (!ibuTaken) {
+      return "Ibu";
+    }
+  }
+
+  // For younger entries (age <= 40 or no age), guess Kakak or Adik based on position
+  if (!isNaN(age) && age <= 40 && index >= 2) {
+    return "Adik";
+  }
+  if (!isNaN(age) && age <= 40 && index >= 1) {
+    // If we have parents assigned already, this might be a sibling
+    const existingRelations = allEntries
+      .filter((e, i) => i < index && e.hubungan)
+      .map((e) => e.hubungan);
+    if (existingRelations.includes("Ayah") || existingRelations.includes("Ibu")) {
+      return "Kakak";
+    }
+  }
+
+  return "";
+}
+
 // Parse multi-line family text into array of family members
 // Each line format: "nama - usia - pekerjaan - gaji" or "nama - hubungan - usia - pekerjaan - gaji"
 // Lines may be prefixed with "- "
@@ -372,6 +454,11 @@ function parseMultilineFamily(text) {
           entry.gaji = parts.slice(4).join(" - ").trim();
         }
       }
+    }
+
+    // Auto-detect hubungan if not already set
+    if (!entry.hubungan || !entry.hubungan.trim()) {
+      entry.hubungan = detectHubungan(entry, line, result.length, result);
     }
 
     result.push(entry);

@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Add detectHubungan() function to auto-detect family member relationship (hubungan) when it is not explicitly stated in parsed data.",
+  "status": "in_progress",
+  "steps": [
+    "Add detectHubungan(entry, originalLine, index, allEntries) function above parseMultilineFamily that: (1) checks originalLine for explicit keywords (AYAH/BAPAK, IBU/MAMA, KAKAK, ADIK, SUAMI, ISTRI, ANAK), (2) checks entry.pekerjaan for 'IBU RUMAH TANGGA'/'IBU RUMAH'/'IRT' patterns and returns 'Ibu', (3) uses heuristic fallback: first elder (age >40) male = Ayah, first elder female = Ibu, younger entries = Kakak/Adik based on position",
+    "Call detectHubungan() after parsing each entry in parseMultilineFamily() when entry.hubungan is empty",
+    "Ensure the function does not override hubungan if it was already set by the parser from explicit data in the line"
+  ],
+  "acceptance_criteria": [
+    "If pekerjaan contains 'IBU RUMAH TANGGA' or 'IBU RUMAH' or 'IRT', hubungan is set to 'Ibu'",
+    "If the text line contains AYAH/BAPAK keyword, hubungan is 'Ayah'",
+    "If the text line contains IBU/MAMA keyword, hubungan is 'Ibu'",
+    "If the text line contains KAKAK keyword, hubungan is 'Kakak'",
+    "If the text line contains ADIK keyword, hubungan is 'Adik'",
+    "If the text line contains SUAMI keyword, hubungan is 'Suami'",
+    "If the text line contains ISTRI keyword, hubungan is 'Istri'",
+    "If the text line contains ANAK keyword, hubungan is 'Anak'",
+    "Heuristic: first entry with age >40 and no detected relationship guesses Ayah or Ibu based on context",
+    "Does not override hubungan if already set from parsing",
+    "npm run build succeeds without errors"
+  ],
+  "verification": [
+    "Run 'npm run build' in /projects/sandbox/cv-portal and confirm it succeeds with exit code 0"
+  ],
+  "blocked_reason": null,
+  "findings": null
+}
