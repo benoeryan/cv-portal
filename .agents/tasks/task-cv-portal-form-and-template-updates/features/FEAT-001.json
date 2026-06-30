@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Update candidate form: add 'Lainnya' option to bidang kerja with manual input, add SIM upload field, fix kategori-specific sections (hide alasanKaigofukushishi for engineering), and fix import page kategori parsing",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "In src/app/candidate/form/page.js, add 'LAINNYA' to the end of each BIDANG_OPTIONS array (BIDANG_OPTIONS_NEW_COMER, BIDANG_OPTIONS_EX_MAGANG, BIDANG_OPTIONS_ENGINEERING, and the fallback BIDANG_OPTIONS).",
     "Add a new field 'bidangKerjaLainnya' to the formData state in src/app/candidate/form/page.js with default empty string.",
@@ -23,5 +23,5 @@
     "Run npm run build to confirm no compilation errors"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All changes built successfully with npm run build. No test suite configured."
 }
