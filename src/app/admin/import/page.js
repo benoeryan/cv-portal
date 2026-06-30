@@ -82,7 +82,7 @@ function getFieldDefinitions() {
   return {
     "Kode Referensi": ["kode referensi", "referensi"],
     "Kode Job": ["kode job", "kode pekerjaan"],
-    "Kategori Kandidat": ["kategori kandidat", "kandidat", "kategori"],
+    "Kategori Kandidat": ["kategori kandidat", "kandidat", "kategori", "anda adalah kandidat", "anda termasuk kandidat", "pilih kategori", "jenis kandidat", "status kandidat", "candidate type", "kategori peserta", "tipe kandidat"],
     "Domisili": ["domisili", "kota domisili", "kota tinggal"],
     "Nama Lengkap": ["nama lengkap", "nama lengkap sesuai paspor", "nama sesuai paspor", "nama lengkap anda"],
     "Nama Panggilan": ["nama panggilan", "panggilan"],
@@ -647,7 +647,18 @@ function parseRow(headers, values) {
   const result = {
     kodeReferensi: get("Kode Referensi", "KODE REFERENSI", "REFERENSI"),
     kodeJob: get("Kode Job", "KODE JOB", "KODE PEKERJAAN"),
-    kategoriKandidat: normalizeKategori(get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI")),
+    kategoriKandidat: normalizeKategori((() => {
+      const fromHeader = get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI", "ANDA ADALAH KANDIDAT", "ANDA TERMASUK KANDIDAT", "PILIH KATEGORI", "JENIS KANDIDAT", "STATUS KANDIDAT", "CANDIDATE TYPE", "KATEGORI PESERTA", "TIPE KANDIDAT");
+      if (fromHeader) return fromHeader;
+      // Fallback: scan all values in the row for kategori-related content
+      const kategoriPatterns = /new\s*comer|ex[\s-]*magang|magang|engineering|gijinkoku/i;
+      for (let i = 0; i < values.length; i++) {
+        if (values[i] && kategoriPatterns.test(values[i])) {
+          return values[i].trim();
+        }
+      }
+      return "";
+    })()),
     domisili: get("DOMISILI", "KOTA DOMISILI", "KOTA TINGGAL"),
     namaLengkap: nama,
     namaPanggilan: get("NAMA PANGGILAN", "PANGGILAN"),

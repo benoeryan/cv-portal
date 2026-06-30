@@ -1,0 +1,23 @@
+{
+  "id": "FEAT-004",
+  "type": "fix",
+  "description": "Fix kategori kandidat import: add more keyword alternatives to detect Form Responses 1 column E header (e.g. 'ANDA ADALAH KANDIDAT'), and add fallback row-value scan for kategori detection",
+  "status": "in_progress",
+  "steps": [
+    "In getFieldDefinitions(), expand the 'Kategori Kandidat' keywords array with: 'anda adalah kandidat', 'anda termasuk kandidat', 'pilih kategori', 'jenis kandidat', 'status kandidat', 'candidate type', 'kategori peserta', 'tipe kandidat'",
+    "In the parseRow() function's kategoriKandidat get() call, add the same additional keyword alternatives: 'ANDA ADALAH KANDIDAT', 'ANDA TERMASUK KANDIDAT', 'PILIH KATEGORI', 'JENIS KANDIDAT', 'STATUS KANDIDAT', 'CANDIDATE TYPE', 'KATEGORI PESERTA', 'TIPE KANDIDAT'",
+    "After the get() call for kategoriKandidat, if the result is still empty (get returns empty string), add a fallback that scans ALL values in the row for strings containing 'New Comer', 'Ex-Magang', 'Magang', 'Engineering', 'Gijinkoku' - if found, use that value as the raw kategori input to normalizeKategori()"
+  ],
+  "acceptance_criteria": [
+    "getFieldDefinitions() 'Kategori Kandidat' entry includes all new keywords",
+    "The get() call for kategoriKandidat includes all 8 new keyword alternatives",
+    "If header-based matching fails, the fallback scans row values and detects kategori-related content",
+    "normalizeKategori() is applied to both header-matched and fallback-scanned values",
+    "npm run build succeeds without errors"
+  ],
+  "verification": [
+    "Run 'npm run build' in /projects/sandbox/cv-portal and confirm it succeeds with exit code 0"
+  ],
+  "blocked_reason": null,
+  "findings": null
+}
