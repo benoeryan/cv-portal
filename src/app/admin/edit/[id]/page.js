@@ -219,8 +219,9 @@ export default function EditCandidatePage() {
                       // Check if any certificate links exist
                       const hasJFT = data.sertifikatBahasaJepang && data.sertifikatBahasaJepang.includes("http");
                       const hasSSW = data.sertifikatSSW && data.sertifikatSSW.includes("http");
+                      const hasSenmonkyuu = data.sertifikatSenmonkyuu && data.sertifikatSenmonkyuu.includes("http");
                       
-                      if (!hasJFT && !hasSSW) {
+                      if (!hasJFT && !hasSSW && !hasSenmonkyuu) {
                         setMessage("Tidak ada link sertifikat. Isi link di bagian 'Link Dokumen' terlebih dahulu.");
                         return;
                       }
@@ -279,6 +280,29 @@ export default function EditCandidatePage() {
                           }
                         } catch (err) {
                           results.push(`SSW: Error - ${err.message}`);
+                          failCount++;
+                        }
+                      }
+
+                      // Extract from sertifikatSenmonkyuu -> tanggalShuryoShomei
+                      if (hasSenmonkyuu) {
+                        try {
+                          const res = await fetch("/api/extract-cert-date", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ url: data.sertifikatSenmonkyuu }),
+                          });
+                          const result = await res.json();
+                          if (result.success) {
+                            handleChange("tanggalShuryoShomei", result.date);
+                            results.push(`Senmonkyuu: ${result.date}`);
+                            successCount++;
+                          } else {
+                            results.push(`Senmonkyuu: Gagal - ${result.error}`);
+                            failCount++;
+                          }
+                        } catch (err) {
+                          results.push(`Senmonkyuu: Error - ${err.message}`);
                           failCount++;
                         }
                       }

@@ -134,7 +134,6 @@ export async function POST(request) {
         {
           success: false,
           error: "Tidak ditemukan tanggal dalam format YYYY/MM/DD atau YYYY-MM-DD di PDF",
-          rawText: pdfText.substring(0, 200),
         },
         { status: 422 }
       );
@@ -149,7 +148,6 @@ export async function POST(request) {
       date: japaneseDate,
       rawDate: lastDate,
       totalDatesFound: allDates.length,
-      rawText: pdfText.substring(0, 200),
     });
   } catch (err) {
     return NextResponse.json(
