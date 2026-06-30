@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import { translateToJapanese } from "@/lib/translateHelper";
+import JapaneseDatePicker from "@/components/JapaneseDatePicker";
 
 // Fields that should be translated to Japanese
 const TRANSLATABLE_FIELDS = [
@@ -246,17 +247,12 @@ export default function EditCandidatePage() {
 
               <div className="space-y-4">
                 {CERT_TEMPLATES.map((cert) => (
-                  <div key={cert.field} className="flex items-center gap-4 p-3 border border-gray-200 rounded-lg">
-                    <div className="flex-grow">
-                      <label className="form-label">{cert.nama}</label>
-                      <input
-                        type="text"
-                        className="input-field"
-                        value={data[cert.field] || ""}
-                        onChange={(e) => handleChange(cert.field, e.target.value)}
-                        placeholder="Contoh: 2026年06月05日 atau 2026/06/05"
-                      />
-                    </div>
+                  <div key={cert.field} className="p-3 border border-gray-200 rounded-lg">
+                    <label className="form-label mb-2 block">{cert.nama}</label>
+                    <JapaneseDatePicker
+                      value={data[cert.field] || ""}
+                      onChange={(val) => handleChange(cert.field, val)}
+                    />
                   </div>
                 ))}
               </div>
