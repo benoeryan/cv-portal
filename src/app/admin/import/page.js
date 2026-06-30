@@ -587,6 +587,18 @@ function parseMultilineWork(text) {
   return result;
 }
 
+function normalizeKategori(rawValue) {
+  if (!rawValue) return "NEW COMER";
+  const upper = rawValue.toUpperCase().trim();
+  if (upper.includes("MAGANG") || upper.includes("TRAINEER") || upper.includes("TRAINEE")) {
+    return "EX-MAGANG/EX-TRAINEER";
+  }
+  if (upper.includes("ENGINEERING") || upper.includes("GIJINKOKU")) {
+    return "ENGINEERING/GIJINKOKU";
+  }
+  return "NEW COMER";
+}
+
 function parseRow(headers, values) {
   // Normalize all headers for better matching
   const normalizedHeaders = headers.map(normalizeHeader);
@@ -635,7 +647,7 @@ function parseRow(headers, values) {
   const result = {
     kodeReferensi: get("Kode Referensi", "KODE REFERENSI", "REFERENSI"),
     kodeJob: get("Kode Job", "KODE JOB", "KODE PEKERJAAN"),
-    kategoriKandidat: (get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI") || "").toUpperCase(),
+    kategoriKandidat: normalizeKategori(get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI")),
     domisili: get("DOMISILI", "KOTA DOMISILI", "KOTA TINGGAL"),
     namaLengkap: nama,
     namaPanggilan: get("NAMA PANGGILAN", "PANGGILAN"),
