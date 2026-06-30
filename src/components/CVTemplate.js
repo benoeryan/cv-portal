@@ -20,7 +20,7 @@ export default function CVTemplate({ data }) {
   const photoUrl = getDriveImageUrl(data.pasPhoto);
 
   return (
-    <div className="cv-container bg-white p-6 max-w-[210mm] mx-auto" id="cv-print-area">
+    <div className="cv-container bg-white p-6 max-w-[297mm] mx-auto" id="cv-print-area">
       {/* Header */}
       <h2 className="text-center text-lg font-bold mb-4 border-b-2 border-black pb-2">
         履歴書 (CV)
@@ -117,45 +117,8 @@ export default function CVTemplate({ data }) {
           </tr>
           <tr>
             <td className="font-bold bg-gray-100">アレルギー</td>
-            <td colSpan="3">{boolToJP(data.alergi)}{data.alergi === "YA" ? ` (${data.namaAlergi})` : ""}</td>
-            <td className="font-bold bg-gray-100">色覚</td>
-            <td colSpan="3">{data.butaWarna === "TIDAK" ? "正常" : data.butaWarna === "YA" ? "色弱" : "正常"}</td>
+            <td colSpan="7">{boolToJP(data.alergi)}{data.alergi === "YA" ? ` (${data.namaAlergi})` : ""}</td>
           </tr>
-        </tbody>
-      </table>
-
-      {/* Certificates Section - 免許・資格・受験日 */}
-      <h3 className="font-bold text-sm mb-2">免許・資格・受験日</h3>
-      <table className="cv-table mb-4">
-        <tbody>
-          {/* Always show individual date fields as primary entries */}
-          {data.tanggalJFT && (
-            <tr><td className="text-xs py-1">国際交流基金日本語基礎テスト - 受験日: {data.tanggalJFT}</td></tr>
-          )}
-          {data.tanggalSSW && (
-            <tr><td className="text-xs py-1">介護日本語評価試験結果通知書 - 受験日: {data.tanggalSSW}</td></tr>
-          )}
-          {data.tanggalSSWKaigo && (
-            <tr><td className="text-xs py-1">介護日本語評価試験結果通知書 (Kaigo) - 受験日: {data.tanggalSSWKaigo}</td></tr>
-          )}
-          {data.tanggalJLPT && (
-            <tr><td className="text-xs py-1">日本語能力試験 (JLPT) - 受験日: {data.tanggalJLPT}</td></tr>
-          )}
-          {data.tanggalShuryoShomei && (
-            <tr><td className="text-xs py-1">技能実習修了証明書 - 受験日: {data.tanggalShuryoShomei}</td></tr>
-          )}
-          {/* Show custom sertifikat entries as additional rows */}
-          {data.sertifikat && data.sertifikat.length > 0 && data.sertifikat.map((s, idx) => (
-            s.nama && s.tanggal ? (
-              <tr key={`sert-${idx}`}>
-                <td className="text-xs py-1">{s.nama} - 受験日: {s.tanggal}</td>
-              </tr>
-            ) : null
-          ))}
-          {/* Show placeholder if nothing is available */}
-          {!data.tanggalJFT && !data.tanggalSSW && !data.tanggalSSWKaigo && !data.tanggalJLPT && !data.tanggalShuryoShomei && !(data.sertifikat && data.sertifikat.some(s => s.nama && s.tanggal)) && (
-            <tr><td className="text-xs py-1 text-gray-400">-</td></tr>
-          )}
         </tbody>
       </table>
 
@@ -305,22 +268,16 @@ export default function CVTemplate({ data }) {
       <table className="cv-table mb-4">
         <tbody>
           <tr>
-            <td className="font-bold bg-gray-100 w-[150px]">希望滞在期間</td>
-            <td>{data.lamaInginTinggal}</td>
-            <td className="font-bold bg-gray-100 w-[150px]">日本語学習期間</td>
-            <td>{data.lamaBelajarBahasaJepang}</td>
-          </tr>
-          <tr>
-            <td className="font-bold bg-gray-100">趣味</td>
-            <td>{data.hobi}</td>
-            <td className="font-bold bg-gray-100">渡航歴</td>
+            <td className="font-bold bg-gray-100 w-[150px]">渡航歴</td>
             <td>{data.pernahKeJepang === "YA" ? `有 (${data.keperluanApa || ""})` : "無"}</td>
+            <td className="font-bold bg-gray-100 w-[150px]">趣味</td>
+            <td>{data.hobi}</td>
           </tr>
         </tbody>
       </table>
 
       {/* Emergency Contact */}
-      <table className="cv-table">
+      <table className="cv-table mb-4">
         <tbody>
           <tr>
             <td className="font-bold bg-gray-100 w-[150px]">緊急連絡先</td>
@@ -330,6 +287,41 @@ export default function CVTemplate({ data }) {
             <td className="font-bold bg-gray-100">続柄</td>
             <td>{data.hubunganDarurat}</td>
           </tr>
+        </tbody>
+      </table>
+
+      {/* Certificates Section - 免許・資格・受験日 */}
+      <h3 className="font-bold text-sm mb-2">免許・資格・受験日</h3>
+      <table className="cv-table">
+        <tbody>
+          {/* Always show individual date fields as primary entries */}
+          {data.tanggalJFT && (
+            <tr><td className="text-xs py-1">国際交流基金日本語基礎テスト - 受験日: {data.tanggalJFT}</td></tr>
+          )}
+          {data.tanggalSSW && (
+            <tr><td className="text-xs py-1">介護日本語評価試験結果通知書 - 受験日: {data.tanggalSSW}</td></tr>
+          )}
+          {data.tanggalSSWKaigo && (
+            <tr><td className="text-xs py-1">介護日本語評価試験結果通知書 (Kaigo) - 受験日: {data.tanggalSSWKaigo}</td></tr>
+          )}
+          {data.tanggalJLPT && (
+            <tr><td className="text-xs py-1">日本語能力試験 (JLPT) - 受験日: {data.tanggalJLPT}</td></tr>
+          )}
+          {data.tanggalShuryoShomei && (
+            <tr><td className="text-xs py-1">技能実習修了証明書 - 受験日: {data.tanggalShuryoShomei}</td></tr>
+          )}
+          {/* Show custom sertifikat entries as additional rows */}
+          {data.sertifikat && data.sertifikat.length > 0 && data.sertifikat.map((s, idx) => (
+            s.nama && s.tanggal ? (
+              <tr key={`sert-${idx}`}>
+                <td className="text-xs py-1">{s.nama} - 受験日: {s.tanggal}</td>
+              </tr>
+            ) : null
+          ))}
+          {/* Show placeholder if nothing is available */}
+          {!data.tanggalJFT && !data.tanggalSSW && !data.tanggalSSWKaigo && !data.tanggalJLPT && !data.tanggalShuryoShomei && !(data.sertifikat && data.sertifikat.some(s => s.nama && s.tanggal)) && (
+            <tr><td className="text-xs py-1 text-gray-400">-</td></tr>
+          )}
         </tbody>
       </table>
     </div>

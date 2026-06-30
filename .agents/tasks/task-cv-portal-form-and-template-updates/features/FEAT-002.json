@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Redesign CVTemplate to landscape orientation, remove specified fields (buta warna, lama ingin tinggal, lama belajar bahasa jepang), move 'pernah ke jepang' up to replace lama ingin tinggal position, and move certificates section to the bottom",
+  "status": "in_progress",
+  "steps": [
+    "In src/components/CVTemplate.js, change the container from portrait (max-w-[210mm]) to landscape layout (max-w-[297mm]) to produce an A4 landscape CV.",
+    "In src/styles/globals.css, update the @media print section to set landscape orientation: add @page { size: A4 landscape; } inside the print media query.",
+    "In the Health table of CVTemplate.js, remove the row/cell that displays 'buta warna' (color blindness). Currently it shows in the second row as '色覚' with data.butaWarna value. Remove that cell pair entirely.",
+    "In the 'Additional' table at the bottom of CVTemplate.js (the table with 希望滞在期間, 日本語学習期間, 趣味, 渡航歴), remove the entire first row that shows '希望滞在期間' (lama ingin tinggal) and '日本語学習期間' (lama belajar bahasa jepang). Keep the second row with 趣味 (hobi) and 渡航歴 (pernah ke jepang). Then restructure: move the 渡航歴 (pernah ke jepang) info to where 希望滞在期間 was (first position in the remaining row).",
+    "Move the entire Certificates section ('免許・資格・受験日' heading and its table) from its current position (between Health and Education) to the very bottom of the CV, after the Emergency Contact table.",
+    "Verify the overall layout flows logically in landscape: Header -> Photo+BasicInfo -> MoreInfo -> Health (without buta warna) -> Education -> Work -> Family -> Motivation -> Additional (hobi + pernah ke jepang) -> Emergency Contact -> Certificates (at bottom)."
+  ],
+  "acceptance_criteria": [
+    "CVTemplate container uses max-w-[297mm] for landscape A4",
+    "Print CSS includes @page { size: A4 landscape; }",
+    "The buta warna / 色覚 field is not displayed anywhere in the CV template",
+    "The lama ingin tinggal / 希望滞在期間 field is not displayed in the CV template",
+    "The lama belajar bahasa jepang / 日本語学習期間 field is not displayed in the CV template",
+    "The pernah ke jepang / 渡航歴 info is displayed in the additional section in a prominent position (replacing the removed fields)",
+    "The certificates section (免許・資格・受験日) is rendered at the very bottom of the CV, after emergency contact"
+  ],
+  "verification": [
+    "Run npm run build to confirm no compilation errors"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

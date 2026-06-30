@@ -26,6 +26,9 @@ body {
 
 /* CV Print Styles */
 @media print {
+  @page {
+    size: A4 landscape;
+  }
   .no-print {
     display: none !important;
   }
