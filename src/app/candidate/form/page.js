@@ -319,8 +319,8 @@ export default function CandidateFormPage() {
           {formData.kategoriKandidat === "ENGINEERING/GIJINKOKU" && (
             <FormSection title="Dokumen Khusus Engineering/Gijinkoku">
               <InputField label="Jurusan D3/S1" name="jurusanUniv" value={formData.jurusanUniv} onChange={handleChange} required />
-              <InputField label="Scan Ijazah (URL)" name="scanIjazah" value={formData.scanIjazah} onChange={handleChange} placeholder="Link Google Drive" />
-              <InputField label="Transkrip Nilai D3/S1 (URL)" name="transkripNilai" value={formData.transkripNilai} onChange={handleChange} placeholder="Link Google Drive" />
+              <UploadField label="Scan Ijazah" name="scanIjazah" value={formData.scanIjazah} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
+              <UploadField label="Transkrip Nilai D3/S1" name="transkripNilai" value={formData.transkripNilai} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
               <InputField label="Riwayat Pekerjaan yang Relevan" name="riwayatRelevan" value={formData.riwayatRelevan} onChange={handleChange} type="textarea" fullWidth />
             </FormSection>
           )}

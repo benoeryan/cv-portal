@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
@@ -9,10 +9,20 @@ export default function UploadField({ label, name, value, onChange, accept, user
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
   const fileInputRef = useRef(null);
+  const uploadTaskRef = useRef(null);
 
   const wrapperClass = fullWidth ? "md:col-span-2" : "";
 
   const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+
+  // Cancel upload on unmount
+  useEffect(() => {
+    return () => {
+      if (uploadTaskRef.current) {
+        uploadTaskRef.current.cancel();
+      }
+    };
+  }, []);
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -29,9 +39,15 @@ export default function UploadField({ label, name, value, onChange, accept, user
   };
 
   const uploadFile = (file) => {
-    const storagePath = `candidates/${userId}/${name}/${file.name}`;
+    // Cancel any in-progress upload before starting a new one
+    if (uploadTaskRef.current) {
+      uploadTaskRef.current.cancel();
+    }
+
+    const storagePath = `candidates/${userId}/${name}/${Date.now()}_${file.name}`;
     const storageRef = ref(storage, storagePath);
     const uploadTask = uploadBytesResumable(storageRef, file);
+    uploadTaskRef.current = uploadTask;
 
     setUploading(true);
     setProgress(0);
@@ -43,16 +59,22 @@ export default function UploadField({ label, name, value, onChange, accept, user
         setProgress(pct);
       },
       (err) => {
+        uploadTaskRef.current = null;
         setUploading(false);
+        if (err.code === "storage/canceled") {
+          return; // Silently ignore cancellation
+        }
         setError("Upload gagal: " + err.message);
       },
       async () => {
         try {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          uploadTaskRef.current = null;
           setUploading(false);
           setProgress(100);
           onChange({ target: { name, value: downloadURL } });
         } catch (err) {
+          uploadTaskRef.current = null;
           setUploading(false);
           setError("Gagal mendapatkan URL: " + err.message);
         }
@@ -77,7 +99,7 @@ export default function UploadField({ label, name, value, onChange, accept, user
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className="btn-primary text-sm px-4 py-2"
-          disabled={uploading}
+          disabled={uploading || !userId}
         >
           {uploading ? "Mengupload..." : "Upload File"}
         </button>
