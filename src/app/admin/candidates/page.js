@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy, doc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { translateToJapanese } from "@/lib/translateHelper";
 import Navbar from "@/components/Navbar";
 import DriveImage from "@/components/DriveImage";
 import Link from "next/link";
@@ -21,6 +22,9 @@ export default function AdminCandidatesPage() {
   const [deleteTarget, setDeleteTarget] = useState(null); // single delete
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [extractingAll, setExtractingAll] = useState(false);
+  const [translatingAll, setTranslatingAll] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState("");
 
   useEffect(() => {
     if (!authLoading && (!user || !["admin", "viewer", "approval"].includes(userData?.role))) {
@@ -121,6 +125,141 @@ export default function AdminCandidatesPage() {
     setConfirmText("");
   };
 
+  // Bulk extract certificates
+  const handleBulkExtract = async () => {
+    const targets = selected.length > 0
+      ? filtered.filter((c) => selected.includes(c.id))
+      : filtered;
+
+    if (targets.length === 0) return;
+
+    setExtractingAll(true);
+    setBulkProgress("Mengekstrak sertifikat... 0/" + targets.length);
+
+    for (let i = 0; i < targets.length; i++) {
+      const candidate = targets[i];
+      setBulkProgress(`Mengekstrak sertifikat... ${i + 1}/${targets.length}`);
+
+      const updates = {};
+
+      // Extract tanggalJFT from sertifikatBahasaJepang
+      if (candidate.sertifikatBahasaJepang) {
+        try {
+          const res = await fetch("/api/extract-cert-date", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: candidate.sertifikatBahasaJepang }),
+          });
+          const data = await res.json();
+          if (data.success && data.date) {
+            updates.tanggalJFT = data.date;
+          }
+        } catch (err) {
+          console.error("Extract JFT error:", err);
+        }
+      }
+
+      // Extract tanggalSSW (or tanggalSSWKaigo for KAIGO) from sertifikatSSW
+      if (candidate.sertifikatSSW) {
+        try {
+          const res = await fetch("/api/extract-cert-date", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: candidate.sertifikatSSW }),
+          });
+          const data = await res.json();
+          if (data.success && data.date) {
+            if (candidate.bidangKerja === "KAIGO") {
+              updates.tanggalSSWKaigo = data.date;
+            } else {
+              updates.tanggalSSW = data.date;
+            }
+          }
+        } catch (err) {
+          console.error("Extract SSW error:", err);
+        }
+      }
+
+      // Extract tanggalShuryoShomei from sertifikatSenmonkyuu
+      if (candidate.sertifikatSenmonkyuu) {
+        try {
+          const res = await fetch("/api/extract-cert-date", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: candidate.sertifikatSenmonkyuu }),
+          });
+          const data = await res.json();
+          if (data.success && data.date) {
+            updates.tanggalShuryoShomei = data.date;
+          }
+        } catch (err) {
+          console.error("Extract Senmonkyuu error:", err);
+        }
+      }
+
+      // Update Firestore if we have any extracted dates
+      if (Object.keys(updates).length > 0) {
+        try {
+          await updateDoc(doc(db, "candidates", candidate.id), updates);
+        } catch (err) {
+          console.error("Update doc error:", err);
+        }
+      }
+    }
+
+    setExtractingAll(false);
+    setBulkProgress("");
+    loadCandidates();
+  };
+
+  // Bulk translate
+  const handleBulkTranslate = async () => {
+    const targets = selected.length > 0
+      ? filtered.filter((c) => selected.includes(c.id))
+      : filtered;
+
+    if (targets.length === 0) return;
+
+    const TRANSLATABLE_FIELDS = ["kelebihan", "kekurangan", "alasanKeJepang", "alasanMelamarBidang", "alasanKaigofukushishi", "impianMasaDepan"];
+
+    setTranslatingAll(true);
+    setBulkProgress("Menerjemahkan... 0/" + targets.length);
+
+    for (let i = 0; i < targets.length; i++) {
+      const candidate = targets[i];
+      setBulkProgress(`Menerjemahkan... ${i + 1}/${targets.length}`);
+
+      const translations = candidate.translations || {};
+
+      for (const field of TRANSLATABLE_FIELDS) {
+        if (candidate[field] && candidate[field].trim()) {
+          try {
+            const translated = await translateToJapanese(candidate[field]);
+            translations[field] = translated;
+          } catch (err) {
+            console.error(`Translate error for ${field}:`, err);
+          }
+        }
+      }
+
+      // Save translations to Firestore
+      try {
+        await updateDoc(doc(db, "candidates", candidate.id), { translations });
+      } catch (err) {
+        console.error("Update translations error:", err);
+      }
+
+      // Delay between candidates to avoid rate limiting
+      if (i < targets.length - 1) {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+
+    setTranslatingAll(false);
+    setBulkProgress("");
+    loadCandidates();
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -139,6 +278,24 @@ export default function AdminCandidatesPage() {
             <p className="text-gray-500 text-sm">{candidates.length} kandidat terdaftar</p>
           </div>
           <div className="flex space-x-2">
+            {userData?.role === "admin" && (
+              <button
+                onClick={handleBulkExtract}
+                disabled={extractingAll || translatingAll}
+                className="bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Ekstraksi Semua Sertifikat
+              </button>
+            )}
+            {userData?.role === "admin" && (
+              <button
+                onClick={handleBulkTranslate}
+                disabled={extractingAll || translatingAll}
+                className="bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Translate Semua
+              </button>
+            )}
             {userData?.role === "admin" && selected.length > 0 && (
               <button onClick={handleDeleteBulk} className="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600">
                 Hapus {selected.length} terpilih
@@ -151,6 +308,14 @@ export default function AdminCandidatesPage() {
             )}
           </div>
         </div>
+
+        {/* Progress Banner */}
+        {(extractingAll || translatingAll) && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
+            <span className="text-sm font-medium text-yellow-800">{bulkProgress}</span>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="card mb-6">
