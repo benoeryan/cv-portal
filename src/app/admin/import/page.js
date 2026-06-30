@@ -618,40 +618,54 @@ function parseRow(headers, values) {
   const normalizedHeaders = headers.map(normalizeHeader);
 
   // Exact match getter - matches headers EXACTLY (equals, not includes)
+  // Loops through ALL matching columns to find first non-empty value (handles duplicate headers)
   const getExact = (...headerNames) => {
     for (const name of headerNames) {
-      // Try normalized match first
+      // Try normalized match first - check ALL matching columns
       const nn = normalizeHeader(name);
-      const idx = normalizedHeaders.findIndex((h) => h === nn);
-      if (idx >= 0 && values[idx] && values[idx].trim()) {
-        return values[idx].trim();
+      for (let i = 0; i < normalizedHeaders.length; i++) {
+        if (normalizedHeaders[i] === nn) {
+          if (values[i] && values[i].trim()) {
+            return values[i].trim();
+          }
+        }
       }
-      // Try raw case-insensitive match as fallback
+      // Try raw case-insensitive match as fallback - check ALL matching columns
       const nameLower = name.toLowerCase().trim();
-      const idx2 = headers.findIndex((h) => h && h.toLowerCase().trim() === nameLower);
-      if (idx2 >= 0 && values[idx2] && values[idx2].trim()) {
-        return values[idx2].trim();
+      for (let i = 0; i < headers.length; i++) {
+        if (headers[i] && headers[i].toLowerCase().trim() === nameLower) {
+          if (values[i] && values[i].trim()) {
+            return values[i].trim();
+          }
+        }
       }
     }
     return "";
   };
 
   // Smart getter with normalization and fuzzy matching
+  // Loops through ALL matching columns to find first non-empty value (handles duplicate headers)
   const get = (...keywords) => {
     // Phase 1: Exact substring match on normalized headers
     for (const keyword of keywords) {
       const nk = normalizeHeader(keyword);
-      const idx = normalizedHeaders.findIndex((h) => h && h.includes(nk));
-      if (idx >= 0 && values[idx] && values[idx].trim()) {
-        return values[idx].trim();
+      for (let i = 0; i < normalizedHeaders.length; i++) {
+        if (normalizedHeaders[i] && normalizedHeaders[i].includes(nk)) {
+          if (values[i] && values[i].trim()) {
+            return values[i].trim();
+          }
+        }
       }
     }
     // Phase 2: Reverse substring (header contained in keyword)
     for (const keyword of keywords) {
       const nk = normalizeHeader(keyword);
-      const idx = normalizedHeaders.findIndex((h) => h && nk.includes(h));
-      if (idx >= 0 && values[idx] && values[idx].trim()) {
-        return values[idx].trim();
+      for (let i = 0; i < normalizedHeaders.length; i++) {
+        if (normalizedHeaders[i] && nk.includes(normalizedHeaders[i])) {
+          if (values[i] && values[i].trim()) {
+            return values[i].trim();
+          }
+        }
       }
     }
     // Phase 3: Fuzzy matching with similarity threshold
