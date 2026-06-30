@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Redesign CVTemplate to landscape orientation, remove specified fields (buta warna, lama ingin tinggal, lama belajar bahasa jepang), move 'pernah ke jepang' up to replace lama ingin tinggal position, and move certificates section to the bottom",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "In src/components/CVTemplate.js, change the container from portrait (max-w-[210mm]) to landscape layout (max-w-[297mm]) to produce an A4 landscape CV.",
     "In src/styles/globals.css, update the @media print section to set landscape orientation: add @page { size: A4 landscape; } inside the print media query.",
@@ -24,5 +24,5 @@
     "Run npm run build to confirm no compilation errors"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All changes verified with npm run build - no errors. Changed Emergency Contact table to mb-4 class to add spacing before the Certificates section below it."
 }
