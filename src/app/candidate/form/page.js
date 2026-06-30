@@ -8,10 +8,10 @@ import Navbar from "@/components/Navbar";
 import UploadField from "@/components/UploadField";
 
 const KATEGORI_OPTIONS = ["NEW COMER", "EX-MAGANG/EX-TRAINEER", "ENGINEERING/GIJINKOKU"];
-const BIDANG_OPTIONS_NEW_COMER = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU"];
-const BIDANG_OPTIONS_EX_MAGANG = ["TG JAHIT/GARMEN", "Housei", "KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "KIKAI KAKOU"];
-const BIDANG_OPTIONS_ENGINEERING = ["ENGINEERING", "KIKAI KAKOU"];
-const BIDANG_OPTIONS = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "TG JAHIT/GARMEN", "ENGINEERING", "Housei", "KIKAI KAKOU"];
+const BIDANG_OPTIONS_NEW_COMER = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "LAINNYA"];
+const BIDANG_OPTIONS_EX_MAGANG = ["TG JAHIT/GARMEN", "Housei", "KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "KIKAI KAKOU", "LAINNYA"];
+const BIDANG_OPTIONS_ENGINEERING = ["ENGINEERING", "KIKAI KAKOU", "LAINNYA"];
+const BIDANG_OPTIONS = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "TG JAHIT/GARMEN", "ENGINEERING", "Housei", "KIKAI KAKOU", "LAINNYA"];
 const JENIS_KELAMIN_OPTIONS = ["LAKI-LAKI", "PEREMPUAN"];
 const AGAMA_OPTIONS = ["ISLAM", "KRISTEN", "KATOLIK", "HINDU", "BUDHA", "KONGHUCU"];
 const GOLDAR_OPTIONS = ["A", "B", "AB", "O", "TIDAK TAHU"];
@@ -77,6 +77,7 @@ export default function CandidateFormPage() {
     namaLengkap: "",
     namaPanggilan: "",
     bidangKerja: "",
+    bidangKerjaLainnya: "",
     noHp: "",
     email: "",
     tanggalLahir: "",
@@ -155,6 +156,7 @@ export default function CandidateFormPage() {
     sertifikatSSW: "",
     videoSSW: "",
     cvRirekisho: "",
+    dokumenSIM: "",
   });
 
   useEffect(() => {
@@ -255,6 +257,9 @@ export default function CandidateFormPage() {
               formData.kategoriKandidat === "ENGINEERING/GIJINKOKU" ? BIDANG_OPTIONS_ENGINEERING :
               BIDANG_OPTIONS
             } required />
+            {formData.bidangKerja === "LAINNYA" && (
+              <InputField label="Bidang Kerja (Manual)" name="bidangKerjaLainnya" value={formData.bidangKerjaLainnya} onChange={handleChange} required placeholder="Masukkan bidang kerja" />
+            )}
             <InputField label="Nama Lengkap" name="namaLengkap" value={formData.namaLengkap} onChange={handleChange} required />
             <InputField label="Nama Panggilan" name="namaPanggilan" value={formData.namaPanggilan} onChange={handleChange} required />
             <InputField label="No. HP Aktif" name="noHp" value={formData.noHp} onChange={handleChange} required placeholder="+628xxxxxxxxxx" />
@@ -433,7 +438,9 @@ export default function CandidateFormPage() {
             <InputField label="Kekurangan Anda" name="kekurangan" value={formData.kekurangan} onChange={handleChange} type="textarea" fullWidth required />
             <InputField label="Alasan Ingin ke Jepang" name="alasanKeJepang" value={formData.alasanKeJepang} onChange={handleChange} type="textarea" fullWidth required />
             <InputField label="Alasan Melamar di Bidang Ini" name="alasanMelamarBidang" value={formData.alasanMelamarBidang} onChange={handleChange} type="textarea" fullWidth />
-            <InputField label="Alasan Ingin Menjadi Kaigofukushishi (Khusus Kaigo)" name="alasanKaigofukushishi" value={formData.alasanKaigofukushishi} onChange={handleChange} type="textarea" fullWidth />
+            {formData.kategoriKandidat !== "ENGINEERING/GIJINKOKU" && (
+              <InputField label="Alasan Ingin Menjadi Kaigofukushishi (Khusus Kaigo)" name="alasanKaigofukushishi" value={formData.alasanKaigofukushishi} onChange={handleChange} type="textarea" fullWidth />
+            )}
             <InputField label="Impian di Masa Depan" name="impianMasaDepan" value={formData.impianMasaDepan} onChange={handleChange} type="textarea" fullWidth />
             <InputField label="Lama Ingin Tinggal di Jepang" name="lamaInginTinggal" value={formData.lamaInginTinggal} onChange={handleChange} />
             <InputField label="Lama Belajar Bahasa Jepang" name="lamaBelajarBahasaJepang" value={formData.lamaBelajarBahasaJepang} onChange={handleChange} />
@@ -454,6 +461,7 @@ export default function CandidateFormPage() {
             <UploadField label="Sertifikat SSW" name="sertifikatSSW" value={formData.sertifikatSSW} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
             <UploadField label="Video Screen Recording SSW" name="videoSSW" value={formData.videoSSW} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
             <UploadField label="CV/Rirekisho" name="cvRirekisho" value={formData.cvRirekisho} onChange={handleChange} accept="application/pdf,image/*" userId={user?.uid} fullWidth />
+            <UploadField label="SIM (Surat Izin Mengemudi)" name="dokumenSIM" value={formData.dokumenSIM} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
           </FormSection>
 
           <div className="flex justify-end space-x-3 mb-12">

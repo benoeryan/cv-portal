@@ -635,7 +635,7 @@ function parseRow(headers, values) {
   const result = {
     kodeReferensi: get("Kode Referensi", "KODE REFERENSI", "REFERENSI"),
     kodeJob: get("Kode Job", "KODE JOB", "KODE PEKERJAAN"),
-    kategoriKandidat: get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI"),
+    kategoriKandidat: (get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI") || "").toUpperCase(),
     domisili: get("DOMISILI", "KOTA DOMISILI", "KOTA TINGGAL"),
     namaLengkap: nama,
     namaPanggilan: get("NAMA PANGGILAN", "PANGGILAN"),

@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Update candidate form: add 'Lainnya' option to bidang kerja with manual input, add SIM upload field, fix kategori-specific sections (hide alasanKaigofukushishi for engineering), and fix import page kategori parsing",
+  "status": "in_progress",
+  "steps": [
+    "In src/app/candidate/form/page.js, add 'LAINNYA' to the end of each BIDANG_OPTIONS array (BIDANG_OPTIONS_NEW_COMER, BIDANG_OPTIONS_EX_MAGANG, BIDANG_OPTIONS_ENGINEERING, and the fallback BIDANG_OPTIONS).",
+    "Add a new field 'bidangKerjaLainnya' to the formData state in src/app/candidate/form/page.js with default empty string.",
+    "In the Bidang Kerja section of the form, add conditional rendering: when formData.bidangKerja === 'LAINNYA', show an additional InputField for manual text input with name='bidangKerjaLainnya' and label='Bidang Kerja (Manual)'.",
+    "In the 'Upload Dokumen' FormSection in src/app/candidate/form/page.js, add a new UploadField for SIM (Surat Izin Mengemudi) with name='dokumenSIM', label='SIM (Surat Izin Mengemudi)', accept='image/*,application/pdf'. Add 'dokumenSIM' field with empty string default to formData state.",
+    "In the Motivasi section, wrap the 'alasanKaigofukushishi' InputField with a conditional: only show it when formData.kategoriKandidat !== 'ENGINEERING/GIJINKOKU'. This ensures the field appears for NEW COMER and EX-MAGANG but NOT for ENGINEERING.",
+    "In src/app/admin/import/page.js, check the parseRow function's kategoriKandidat extraction. The current code: kategoriKandidat: get('KATEGORI KANDIDAT', 'KANDIDAT', 'KATEGORI') should correctly match the values 'EX-MAGANG/EX-TRAINEER' and 'ENGINEERING/GIJINKOKU' from the spreadsheet. Verify the values are normalized/uppercased correctly. If the spreadsheet stores them differently (e.g., lowercase or different delimiter), add normalization to uppercase the kategoriKandidat value after parsing."
+  ],
+  "acceptance_criteria": [
+    "Each BIDANG_OPTIONS array has 'LAINNYA' as the last option",
+    "When 'LAINNYA' is selected in bidang kerja dropdown, a manual text input field appears below it",
+    "The Upload Dokumen section includes a SIM upload field",
+    "The alasanKaigofukushishi field does NOT show when kategori is ENGINEERING/GIJINKOKU",
+    "The alasanKaigofukushishi field DOES show for NEW COMER and EX-MAGANG/EX-TRAINEER",
+    "The import parseRow normalizes kategoriKandidat to uppercase to ensure EX-MAGANG/EX-TRAINEER and ENGINEERING/GIJINKOKU are properly recognized"
+  ],
+  "verification": [
+    "Run npm run build to confirm no compilation errors"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
