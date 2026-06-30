@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Add multi-line cell parsing to parseRow() so that when Form Responses 1 has concatenated education/family/work data in single cells, the system auto-detects and splits them into the structured fields matching Form Responses 3 format.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Add helper function parseMultilineEducation(text) that takes a multi-line string like '07/2005 - SD MELONG MANDIRI 4 - 06/2011\\n07/2011 - SMP PASULINGAN 1 - 06/2014\\n07/2014 - SMAN 4 CIMAHI - 05/2017' and parses each line into {masuk, nama, lulus}. It should detect SD/SMP/SMA/university lines by keywords (SD, SMP, SMA, SMK, UNIVERSITAS, UNIV, POLITEKNIK, AKADEMI, STIKES, etc) or by order (1st=SD, 2nd=SMP, 3rd=SMA, 4th=UNIV). Format per line: 'masuk - nama_sekolah - lulus'. Return object with {sdNama, sdMasuk, sdLulus, smpNama, smpMasuk, smpLulus, smaNama, smaMasuk, smaLulus, univNama, univMasuk, univLulus}.",
     "Add helper function parseMultilineFamily(text) that takes a multi-line string like 'FAROJI - 45 THN - Karyawan Pabrik - Rp 3.5 JT\\nRENI - 47 - Pengabit - Rp 3 JT' and parses each line into {nama, usia, pekerjaan, gaji}. Lines may be prefixed with '- '. Format per line: 'nama - usia - pekerjaan - gaji'. The usia field may contain 'THN' or 'th' suffix. The gaji field may contain 'Rp' prefix. Return array of up to 4 family members. Also handle format with hubungan field: 'nama - hubungan - usia - pekerjaan - gaji'.",
@@ -22,5 +22,5 @@
     "Run 'npm run build' in /projects/sandbox/cv-portal and confirm it succeeds with exit code 0"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Build passes successfully. No test framework configured so verification is build-only. The three helper functions are placed above parseRow() as module-level functions. Post-processing uses the same get() helper inside parseRow() to find combined columns."
 }
