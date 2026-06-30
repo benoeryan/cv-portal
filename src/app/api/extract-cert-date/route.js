@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { google } from "googleapis";
 
 // Extract Google Drive file ID from various URL formats
 function extractFileId(url) {
@@ -22,6 +23,87 @@ function toJapaneseDate(dateStr) {
     return `${parts[0]}年${parts[1]}月${parts[2]}日`;
   }
   return dateStr;
+}
+
+// Find dates in text and return the last one in Japanese format
+function findDatesInText(text) {
+  const datePattern = /\d{4}[\/\-]\d{2}[\/\-]\d{2}/g;
+  const allDates = text.match(datePattern);
+
+  if (!allDates || allDates.length === 0) {
+    return null;
+  }
+
+  // Take the LAST date found (avoids birth dates, matches Apps Script logic)
+  const lastDate = allDates[allDates.length - 1];
+  const japaneseDate = toJapaneseDate(lastDate);
+
+  return {
+    date: japaneseDate,
+    rawDate: lastDate,
+    totalDatesFound: allDates.length,
+  };
+}
+
+// Perform OCR using Google Drive API (copy as Google Doc, export as text)
+async function performOcrWithGoogleDrive(fileId) {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    return {
+      error:
+        "GOOGLE_SERVICE_ACCOUNT_JSON belum dikonfigurasi. Silakan set environment variable dengan credential Google Service Account untuk mengaktifkan OCR pada PDF gambar/scan.",
+    };
+  }
+
+  let credentials;
+  try {
+    credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  } catch (parseErr) {
+    return {
+      error:
+        "GOOGLE_SERVICE_ACCOUNT_JSON tidak valid (bukan JSON). Periksa konfigurasi environment variable.",
+    };
+  }
+
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ["https://www.googleapis.com/auth/drive"],
+  });
+
+  const drive = google.drive({ version: "v3", auth });
+  let newDocId = null;
+
+  try {
+    // Copy the PDF file as a Google Doc (this triggers OCR)
+    const copyResponse = await drive.files.copy({
+      fileId,
+      requestBody: {
+        mimeType: "application/vnd.google-apps.document",
+      },
+    });
+    newDocId = copyResponse.data.id;
+
+    // Export the Google Doc as plain text
+    const exportResponse = await drive.files.export({
+      fileId: newDocId,
+      mimeType: "text/plain",
+    });
+
+    const ocrText = exportResponse.data;
+    return { text: ocrText };
+  } catch (driveErr) {
+    return {
+      error: `Gagal melakukan OCR via Google Drive: ${driveErr.message}`,
+    };
+  } finally {
+    // Always try to delete the temporary Google Doc
+    if (newDocId) {
+      try {
+        await drive.files.delete({ fileId: newDocId });
+      } catch (deleteErr) {
+        // Ignore delete errors - the temp file will remain but OCR result is still valid
+      }
+    }
+  }
 }
 
 export async function POST(request) {
@@ -118,18 +200,15 @@ export async function POST(request) {
       );
     }
 
-    if (!pdfText || pdfText.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: "PDF berupa gambar/scan, tanggal tidak dapat diekstrak otomatis. Silakan isi manual." },
-        { status: 422 }
-      );
-    }
-
-    // Find all date patterns (YYYY/MM/DD or YYYY-MM-DD)
-    const datePattern = /\d{4}[\/\-]\d{2}[\/\-]\d{2}/g;
-    const allDates = pdfText.match(datePattern);
-
-    if (!allDates || allDates.length === 0) {
+    // If pdf-parse extracted text, try to find dates
+    if (pdfText && pdfText.trim().length > 0) {
+      const dateResult = findDatesInText(pdfText);
+      if (dateResult) {
+        return NextResponse.json({
+          success: true,
+          ...dateResult,
+        });
+      }
       return NextResponse.json(
         {
           success: false,
@@ -139,16 +218,47 @@ export async function POST(request) {
       );
     }
 
-    // Take the LAST date found (avoids birth dates, matches Apps Script logic)
-    const lastDate = allDates[allDates.length - 1];
-    const japaneseDate = toJapaneseDate(lastDate);
+    // Fallback: PDF is image/scanned - try OCR via Google Drive API
+    const ocrResult = await performOcrWithGoogleDrive(fileId);
 
-    return NextResponse.json({
-      success: true,
-      date: japaneseDate,
-      rawDate: lastDate,
-      totalDatesFound: allDates.length,
-    });
+    if (ocrResult.error) {
+      return NextResponse.json(
+        { success: false, error: ocrResult.error },
+        { status: 422 }
+      );
+    }
+
+    const ocrText = ocrResult.text;
+
+    if (!ocrText || ocrText.trim().length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "PDF berupa gambar/scan dan OCR tidak berhasil mengekstrak teks. Silakan isi manual.",
+        },
+        { status: 422 }
+      );
+    }
+
+    // Try to find dates in the OCR text
+    const dateResult = findDatesInText(ocrText);
+    if (dateResult) {
+      return NextResponse.json({
+        success: true,
+        ...dateResult,
+        method: "ocr",
+      });
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error:
+          "OCR berhasil membaca teks, tetapi tidak ditemukan tanggal dalam format YYYY/MM/DD atau YYYY-MM-DD. Silakan isi manual.",
+      },
+      { status: 422 }
+    );
   } catch (err) {
     return NextResponse.json(
       { success: false, error: `Server error: ${err.message}` },
