@@ -648,16 +648,30 @@ function parseRow(headers, values) {
     kodeReferensi: get("Kode Referensi", "KODE REFERENSI", "REFERENSI"),
     kodeJob: get("Kode Job", "KODE JOB", "KODE PEKERJAAN"),
     kategoriKandidat: normalizeKategori((() => {
-      const fromHeader = get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI", "ANDA ADALAH KANDIDAT", "ANDA TERMASUK KANDIDAT", "PILIH KATEGORI", "JENIS KANDIDAT", "STATUS KANDIDAT", "CANDIDATE TYPE", "KATEGORI PESERTA", "TIPE KANDIDAT");
-      if (fromHeader) return fromHeader;
-      // Fallback: scan all values in the row for kategori-related content
-      const kategoriPatterns = /new\s*comer|ex[\s-]*magang|magang|engineering|gijinkoku/i;
-      for (let i = 0; i < values.length; i++) {
-        if (values[i] && kategoriPatterns.test(values[i])) {
-          return values[i].trim();
+      let rawKategori = get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI", "ANDA ADALAH KANDIDAT", "ANDA TERMASUK KANDIDAT", "PILIH KATEGORI", "JENIS KANDIDAT", "STATUS KANDIDAT", "CANDIDATE TYPE", "KATEGORI PESERTA", "TIPE KANDIDAT");
+
+      // Fallback: find column with "KATEGORI KANDIDAT" header by direct scan
+      if (!rawKategori) {
+        for (let i = 0; i < headers.length; i++) {
+          if (headers[i] && headers[i].toUpperCase().includes("KATEGORI KANDIDAT") && values[i] && values[i].trim()) {
+            rawKategori = values[i].trim();
+            break;
+          }
         }
       }
-      return "";
+
+      // Final fallback: scan all values in the row for kategori-related content
+      if (!rawKategori) {
+        const kategoriPatterns = /new\s*comer|ex[\s-]*magang|magang|engineering|gijinkoku|ex[\s-]*trainee/i;
+        for (let i = 0; i < values.length; i++) {
+          if (values[i] && kategoriPatterns.test(values[i])) {
+            rawKategori = values[i].trim();
+            break;
+          }
+        }
+      }
+
+      return rawKategori || "";
     })()),
     domisili: get("DOMISILI", "KOTA DOMISILI", "KOTA TINGGAL"),
     namaLengkap: nama,
