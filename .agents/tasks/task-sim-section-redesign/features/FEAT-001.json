@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Redesign SIM section: replace single jenisSim/nomorSim/dokumenSIM with per-type SIM A/B/C rows, each with checkbox, nomor, and upload fields",
+  "status": "in_progress",
+  "steps": [
+    "In src/app/candidate/form/page.js, replace jenisSim, nomorSim, dokumenSIM fields in formData with simA, nomorSimA, dokumenSimA, simB, nomorSimB, dokumenSimB, simC, nomorSimC, dokumenSimC",
+    "Update handleChange cleanup logic for memilikiSim to clear all new SIM fields",
+    "Replace the current SIM section JSX with three separate rows for SIM A, SIM B, SIM C, each with a checkbox/toggle, nomor field, and upload field",
+    "Update admin/edit page to use new SIM fields",
+    "Update admin/import page to use new SIM fields"
+  ],
+  "acceptance_criteria": [
+    "When memilikiSim = YA, three rows are shown for SIM A, SIM B, SIM C",
+    "Each row has a YA/TIDAK toggle, Nomor SIM field, and Upload field",
+    "Old jenisSim, nomorSim, dokumenSIM fields are removed from formData initial state",
+    "New fields simA/nomorSimA/dokumenSimA, simB/nomorSimB/dokumenSimB, simC/nomorSimC/dokumenSimC are in formData",
+    "handleChange clears all new SIM fields when memilikiSim changes to TIDAK",
+    "Build passes with no errors"
+  ],
+  "verification": [
+    "Run npm run build to confirm no compilation errors"
+  ],
+  "blocked_reason": null,
+  "findings": null
+}

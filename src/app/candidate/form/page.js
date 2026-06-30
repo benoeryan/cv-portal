@@ -101,8 +101,15 @@ export default function CandidateFormPage() {
     hobi: "",
     statusPernikahan: "",
     memilikiSim: "TIDAK",
-    jenisSim: "",
-    nomorSim: "",
+    simA: "TIDAK",
+    nomorSimA: "",
+    dokumenSimA: "",
+    simB: "TIDAK",
+    nomorSimB: "",
+    dokumenSimB: "",
+    simC: "TIDAK",
+    nomorSimC: "",
+    dokumenSimC: "",
     // Paspor
     pernahKeJepang: "TIDAK",
     dariKapan: "",
@@ -158,7 +165,6 @@ export default function CandidateFormPage() {
     sertifikatSSW: "",
     videoSSW: "",
     cvRirekisho: "",
-    dokumenSIM: "",
   });
 
   useEffect(() => {
@@ -199,8 +205,28 @@ export default function CandidateFormPage() {
       }
       // When memilikiSim changes away from YA, clear SIM-related fields
       if (name === "memilikiSim" && value !== "YA") {
-        updated.jenisSim = "";
-        updated.nomorSim = "";
+        updated.simA = "TIDAK";
+        updated.nomorSimA = "";
+        updated.dokumenSimA = "";
+        updated.simB = "TIDAK";
+        updated.nomorSimB = "";
+        updated.dokumenSimB = "";
+        updated.simC = "TIDAK";
+        updated.nomorSimC = "";
+        updated.dokumenSimC = "";
+      }
+      // When individual SIM type changes to TIDAK, clear its fields
+      if (name === "simA" && value !== "YA") {
+        updated.nomorSimA = "";
+        updated.dokumenSimA = "";
+      }
+      if (name === "simB" && value !== "YA") {
+        updated.nomorSimB = "";
+        updated.dokumenSimB = "";
+      }
+      if (name === "simC" && value !== "YA") {
+        updated.nomorSimC = "";
+        updated.dokumenSimC = "";
       }
       return updated;
     });
@@ -317,9 +343,44 @@ export default function CandidateFormPage() {
             <InputField label="Memiliki SIM?" name="memilikiSim" value={formData.memilikiSim} onChange={handleChange} options={YA_TIDAK} />
             {formData.memilikiSim === "YA" && (
               <>
-                <InputField label="Jenis SIM" name="jenisSim" value={formData.jenisSim} onChange={handleChange} options={["SIM A", "SIM B1", "SIM B2", "SIM C"]} required />
-                <InputField label="Nomor SIM" name="nomorSim" value={formData.nomorSim} onChange={handleChange} required placeholder="Masukkan nomor SIM" />
-                <UploadField label="Upload SIM" name="dokumenSIM" value={formData.dokumenSIM} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
+                <div className="md:col-span-2 space-y-4">
+                  {/* SIM A */}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <InputField label="SIM A" name="simA" value={formData.simA} onChange={handleChange} options={YA_TIDAK} />
+                      {formData.simA === "YA" && (
+                        <>
+                          <InputField label="Nomor SIM A" name="nomorSimA" value={formData.nomorSimA} onChange={handleChange} required placeholder="Masukkan nomor SIM A" />
+                          <UploadField label="Upload SIM A" name="dokumenSimA" value={formData.dokumenSimA} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {/* SIM B */}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <InputField label="SIM B" name="simB" value={formData.simB} onChange={handleChange} options={YA_TIDAK} />
+                      {formData.simB === "YA" && (
+                        <>
+                          <InputField label="Nomor SIM B" name="nomorSimB" value={formData.nomorSimB} onChange={handleChange} required placeholder="Masukkan nomor SIM B" />
+                          <UploadField label="Upload SIM B" name="dokumenSimB" value={formData.dokumenSimB} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {/* SIM C */}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <InputField label="SIM C" name="simC" value={formData.simC} onChange={handleChange} options={YA_TIDAK} />
+                      {formData.simC === "YA" && (
+                        <>
+                          <InputField label="Nomor SIM C" name="nomorSimC" value={formData.nomorSimC} onChange={handleChange} required placeholder="Masukkan nomor SIM C" />
+                          <UploadField label="Upload SIM C" name="dokumenSimC" value={formData.dokumenSimC} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </>
             )}
           </FormSection>

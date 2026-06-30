@@ -676,18 +676,24 @@ function parseRow(headers, values) {
     nomorPaspor: get("NOMOR PASPOR", "NO PASPOR", "NO. PASPOR"),
     masaBerlakuPaspor: get("MASA BERLAKU PASPOR", "BERLAKU PASPOR", "EXPIRED PASPOR"),
     memilikiSim: get("APAKAH MEMILIKI SIM", "MEMILIKI SIM", "SIM"),
-    jenisSim: get("JENIS SIM", "TIPE SIM", "SIM TYPE") || (() => {
-      const simVal = get("SIM");
-      if (simVal) {
-        const upper = simVal.toUpperCase();
-        if (upper.includes("B2")) return "SIM B2";
-        if (upper.includes("B1")) return "SIM B1";
-        if (upper.includes("A")) return "SIM A";
-        if (upper.includes("C")) return "SIM C";
-      }
-      return "";
+    simA: (() => {
+      const jenis = get("JENIS SIM", "TIPE SIM", "SIM TYPE") || get("SIM") || "";
+      return jenis.toUpperCase().includes("A") ? "YA" : "TIDAK";
     })(),
-    nomorSim: get("NOMOR SIM", "NO SIM", "NO. SIM"),
+    nomorSimA: get("NOMOR SIM A", "NO SIM A") || "",
+    dokumenSimA: "",
+    simB: (() => {
+      const jenis = get("JENIS SIM", "TIPE SIM", "SIM TYPE") || get("SIM") || "";
+      return (jenis.toUpperCase().includes("B1") || jenis.toUpperCase().includes("B2") || jenis.toUpperCase().includes("B")) ? "YA" : "TIDAK";
+    })(),
+    nomorSimB: get("NOMOR SIM B", "NO SIM B") || "",
+    dokumenSimB: "",
+    simC: (() => {
+      const jenis = get("JENIS SIM", "TIPE SIM", "SIM TYPE") || get("SIM") || "";
+      return jenis.toUpperCase().includes("C") ? "YA" : "TIDAK";
+    })(),
+    nomorSimC: get("NOMOR SIM C", "NO SIM C") || "",
+    dokumenSimC: "",
     keluarga: [
       { nama: get("DATA KELUARGA 1 : NAMA LENGKAP", "DAFTAR KELUARGA 1 :  ISI NAMA LENGKAP", "DAFTAR KELUARGA 1 : NAMA LENGKAP", "KELUARGA 1 NAMA"), hubungan: get("DATA KELUARGA 1 : HUBUNGAN", "DAFTAR KELUARGA 1 :  STATUS HUBUNGAN", "DAFTAR KELUARGA 1 : HUBUNGAN", "KELUARGA 1 HUBUNGAN"), usia: get("DATA KELUARGA 1 : USIA", "DAFTAR KELUARGA 1 : USIA", "KELUARGA 1 USIA"), pekerjaan: get("DATA KELUARGA 1 : PEKERJAAN", "DAFTAR KELUARGA 1 : PEKERJAAN", "KELUARGA 1 PEKERJAAN"), gaji: get("DATA KELUARGA 1 : GAJI", "DAFTAR KELUARGA 1 : PENDAPATAN", "KELUARGA 1 GAJI", "KELUARGA 1 PENDAPATAN"), tinggalBersama: get("DATA KELUARGA 1 : APAKAH TINGGAL", "DAFTAR KELUARGA 1 : APAKAH TINGGAL", "KELUARGA 1 TINGGAL") },
       { nama: get("DATA KELUARGA 2 : NAMA LENGKAP", "DAFTAR KELUARGA 2 :  ISI NAMA LENGKAP", "DAFTAR KELUARGA 2 : NAMA LENGKAP", "KELUARGA 2 NAMA"), hubungan: get("DATA KELUARGA 2 : HUBUNGAN", "DAFTAR KELUARGA 2 :  STATUS HUBUNGAN", "DAFTAR KELUARGA 2 : HUBUNGAN", "KELUARGA 2 HUBUNGAN"), usia: get("DATA KELUARGA 2 : USIA", "DAFTAR KELUARGA 2 : USIA", "KELUARGA 2 USIA"), pekerjaan: get("DATA KELUARGA 2 : PEKERJAAN", "DAFTAR KELUARGA 2 : PEKERJAAN", "KELUARGA 2 PEKERJAAN"), gaji: get("DATA KELUARGA 2 : GAJI", "DAFTAR KELUARGA 2 : PENDAPATAN", "KELUARGA 2 GAJI", "KELUARGA 2 PENDAPATAN"), tinggalBersama: get("DATA KELUARGA 2 : APAKAH TINGGAL", "DAFTAR KELUARGA 2 : APAKAH TINGGAL", "KELUARGA 2 TINGGAL") },

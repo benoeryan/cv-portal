@@ -235,12 +235,28 @@ export default function EditCandidatePage() {
                   <input className="input-field" value={data.memilikiSim || ""} onChange={(e) => handleChange("memilikiSim", e.target.value)} />
                 </div>
                 <div>
-                  <label className="form-label">Jenis SIM</label>
-                  <input className="input-field" value={data.jenisSim || ""} onChange={(e) => handleChange("jenisSim", e.target.value)} />
+                  <label className="form-label">SIM A</label>
+                  <input className="input-field" value={data.simA || ""} onChange={(e) => handleChange("simA", e.target.value)} />
                 </div>
                 <div>
-                  <label className="form-label">Nomor SIM</label>
-                  <input className="input-field" value={data.nomorSim || ""} onChange={(e) => handleChange("nomorSim", e.target.value)} />
+                  <label className="form-label">Nomor SIM A</label>
+                  <input className="input-field" value={data.nomorSimA || ""} onChange={(e) => handleChange("nomorSimA", e.target.value)} />
+                </div>
+                <div>
+                  <label className="form-label">SIM B</label>
+                  <input className="input-field" value={data.simB || ""} onChange={(e) => handleChange("simB", e.target.value)} />
+                </div>
+                <div>
+                  <label className="form-label">Nomor SIM B</label>
+                  <input className="input-field" value={data.nomorSimB || ""} onChange={(e) => handleChange("nomorSimB", e.target.value)} />
+                </div>
+                <div>
+                  <label className="form-label">SIM C</label>
+                  <input className="input-field" value={data.simC || ""} onChange={(e) => handleChange("simC", e.target.value)} />
+                </div>
+                <div>
+                  <label className="form-label">Nomor SIM C</label>
+                  <input className="input-field" value={data.nomorSimC || ""} onChange={(e) => handleChange("nomorSimC", e.target.value)} />
                 </div>
               </div>
             </div>
