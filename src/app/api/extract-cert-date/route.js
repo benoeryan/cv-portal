@@ -91,6 +91,12 @@ async function performOcrWithGoogleDrive(fileId) {
     const ocrText = exportResponse.data;
     return { text: ocrText };
   } catch (driveErr) {
+    const status = driveErr?.code || driveErr?.response?.status;
+    if (status === 403 || status === 404) {
+      return {
+        error: `File tidak dapat diakses oleh service account. Pastikan file di-share dengan email service account (lihat field "client_email" di GOOGLE_SERVICE_ACCOUNT_JSON). Error: ${driveErr.message}`,
+      };
+    }
     return {
       error: `Gagal melakukan OCR via Google Drive: ${driveErr.message}`,
     };
@@ -100,7 +106,9 @@ async function performOcrWithGoogleDrive(fileId) {
       try {
         await drive.files.delete({ fileId: newDocId });
       } catch (deleteErr) {
-        // Ignore delete errors - the temp file will remain but OCR result is still valid
+        console.warn(
+          `Failed to delete temporary Google Doc (ID: ${newDocId}). It may remain as an orphaned file. Error: ${deleteErr.message}`
+        );
       }
     }
   }
@@ -207,6 +215,7 @@ export async function POST(request) {
         return NextResponse.json({
           success: true,
           ...dateResult,
+          method: "text",
         });
       }
       return NextResponse.json(
