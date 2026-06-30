@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, getDocs, updateDoc } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 
 const SPREADSHEET_ID = "1ZBpJyZasfXfWGZY1F88wddtIEQpzCkF1tRbDJoappqY";
@@ -360,31 +360,140 @@ export default function ImportPage() {
   const handleImport = async () => {
     if (preview.length === 0) return;
     setImporting(true);
-    setStatus("Mengimport data...");
-    let success = 0;
+    setStatus("Mengambil data existing dari Firestore...");
+
+    // Fetch all existing candidates and build a map keyed by normalized namaLengkap
+    let existingMap = {}; // normalized name -> { docId, data }
+    try {
+      const snapshot = await getDocs(collection(db, "candidates"));
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.namaLengkap) {
+          const normalizedName = data.namaLengkap.trim().toLowerCase();
+          existingMap[normalizedName] = { docId: docSnap.id, data };
+        }
+      });
+    } catch (err) {
+      console.error("Error fetching existing candidates:", err);
+      setStatus("Error: Gagal mengambil data existing dari Firestore.");
+      setImporting(false);
+      return;
+    }
+
+    let newCount = 0;
+    let updatedCount = 0;
+    let processed = 0;
 
     for (const candidate of preview) {
       try {
-        const docId = (candidate.namaLengkap || "unknown")
-          .replace(/[^a-zA-Z0-9]/g, "_")
-          .toLowerCase()
-          .substring(0, 30) + "_" + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
-        
-        await setDoc(doc(db, "candidates", docId), {
-          ...candidate,
-          userId: "imported",
-          source: "spreadsheet_import",
-        });
-        success++;
-        setStatus(`Mengimport... ${success}/${preview.length}`);
+        const normalizedName = (candidate.namaLengkap || "").trim().toLowerCase();
+        const existing = existingMap[normalizedName];
+
+        if (existing) {
+          // Merge: only fill in fields that are empty/missing in existing record
+          const updateData = buildMergeUpdate(existing.data, candidate);
+          if (Object.keys(updateData).length > 0) {
+            await updateDoc(doc(db, "candidates", existing.docId), updateData);
+            updatedCount++;
+          }
+        } else {
+          // New candidate: create with generated docId
+          const docId = (candidate.namaLengkap || "unknown")
+            .replace(/[^a-zA-Z0-9]/g, "_")
+            .toLowerCase()
+            .substring(0, 30) + "_" + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+
+          await setDoc(doc(db, "candidates", docId), {
+            ...candidate,
+            userId: "imported",
+            source: "spreadsheet_import",
+          });
+          newCount++;
+          // Add to existing map so subsequent duplicates in same batch are caught
+          existingMap[normalizedName] = { docId, data: { ...candidate, userId: "imported", source: "spreadsheet_import" } };
+        }
+
+        processed++;
+        setStatus(`Mengimport... ${processed}/${preview.length}`);
       } catch (err) {
         console.error("Import error:", err);
+        processed++;
       }
     }
 
-    setStatus(`Selesai! ${success} data berhasil diimport ke Firestore.`);
+    setStatus(`Selesai! ${newCount} baru ditambahkan, ${updatedCount} data di-update (field kosong diisi).`);
     setImporting(false);
   };
+
+  // Build an update object with only fields that are non-empty in new data AND empty/missing in existing data
+  function buildMergeUpdate(existingData, newCandidate) {
+    const update = {};
+    const ARRAY_FIELDS = ["keluarga", "pekerjaan"];
+    const SKIP_FIELDS = ["importedAt", "submittedAt"];
+
+    for (const [key, newValue] of Object.entries(newCandidate)) {
+      if (SKIP_FIELDS.includes(key)) continue;
+
+      if (ARRAY_FIELDS.includes(key)) {
+        // Merge array fields at item level
+        const existingArr = existingData[key] || [];
+        const newArr = newValue || [];
+        if (!Array.isArray(newArr) || newArr.length === 0) continue;
+
+        const mergedArr = [...existingArr];
+        let arrayChanged = false;
+
+        for (let i = 0; i < newArr.length; i++) {
+          const newItem = newArr[i];
+          if (!newItem || typeof newItem !== "object") continue;
+
+          // Check if new item has any non-empty values
+          const hasNewData = Object.values(newItem).some((v) => v && String(v).trim() !== "");
+          if (!hasNewData) continue;
+
+          if (i < mergedArr.length) {
+            // Existing item at this index - fill in empty sub-fields
+            const existingItem = mergedArr[i] || {};
+            let itemChanged = false;
+            const mergedItem = { ...existingItem };
+
+            for (const [subKey, subValue] of Object.entries(newItem)) {
+              if (subValue && String(subValue).trim() !== "") {
+                const existingSubValue = existingItem[subKey];
+                if (!existingSubValue || String(existingSubValue).trim() === "") {
+                  mergedItem[subKey] = subValue;
+                  itemChanged = true;
+                }
+              }
+            }
+
+            if (itemChanged) {
+              mergedArr[i] = mergedItem;
+              arrayChanged = true;
+            }
+          } else {
+            // New item beyond existing array length - append
+            mergedArr.push(newItem);
+            arrayChanged = true;
+          }
+        }
+
+        if (arrayChanged) {
+          update[key] = mergedArr;
+        }
+      } else {
+        // Scalar fields: only fill if existing is empty/missing and new has data
+        if (newValue && String(newValue).trim() !== "") {
+          const existingValue = existingData[key];
+          if (!existingValue || String(existingValue).trim() === "") {
+            update[key] = newValue;
+          }
+        }
+      }
+    }
+
+    return update;
+  }
 
   return (
     <>
