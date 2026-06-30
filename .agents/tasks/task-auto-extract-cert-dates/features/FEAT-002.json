@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "fix",
   "description": "Fix CVTemplate to always show individual date fields as primary display and show sertifikat array as additional entries. Also improve error message for image-based/scanned PDFs.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "In src/components/CVTemplate.js, change the certificate section to ALWAYS show individual fields (tanggalJFT, tanggalSSW, tanggalSSWKaigo, tanggalJLPT, tanggalShuryoShomei) as primary rows, then show data.sertifikat array entries as additional rows below",
     "In src/app/api/extract-cert-date/route.js, change the empty text error message to 'PDF berupa gambar/scan, tanggal tidak dapat diekstrak otomatis. Silakan isi manual.'"
@@ -17,5 +17,5 @@
     "Run 'npm run build' in /projects/sandbox/cv-portal to verify the project builds without errors"
   ],
   "blocked_reason": null,
-  "findings": null
+  "findings": "Build passes cleanly. CVTemplate now always shows individual date fields first, with sertifikat array entries only shown as additional rows when both nama and tanggal are non-empty. Error message for scanned PDFs updated to guide users to fill dates manually."
 }
