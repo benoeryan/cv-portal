@@ -35,6 +35,7 @@ export default function EditCandidatePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState("");
   const [activeTab, setActiveTab] = useState("data"); // data | certs | japanese
@@ -211,36 +212,85 @@ export default function EditCandidatePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-blue-700">Auto-detect dari Link Sertifikat</p>
-                    <p className="text-xs text-blue-500">Ambil nama file dari Google Drive untuk identifikasi sertifikat</p>
+                    <p className="text-xs text-blue-500">Ekstrak tanggal ujian secara otomatis dari PDF sertifikat yang tersimpan di Google Drive</p>
                   </div>
                   <button
                     onClick={async () => {
-                      const urls = [data.sertifikatBahasaJepang, data.sertifikatSSW, data.sertifikatSenmonkyuu, data.sertifikatSelesaiMagang].filter(Boolean);
-                      if (urls.length === 0) { setMessage("Tidak ada link sertifikat. Isi link di bagian 'Link Dokumen' terlebih dahulu."); return; }
+                      // Check if any certificate links exist
+                      const hasJFT = data.sertifikatBahasaJepang && data.sertifikatBahasaJepang.includes("http");
+                      const hasSSW = data.sertifikatSSW && data.sertifikatSSW.includes("http");
                       
-                      // Generate cert list based on available links
-                      const certs = [];
-                      if (data.sertifikatBahasaJepang) {
-                        certs.push({ nama: "国際交流基金日本語基礎テスト", tanggal: data.tanggalJFT || "" });
+                      if (!hasJFT && !hasSSW) {
+                        setMessage("Tidak ada link sertifikat. Isi link di bagian 'Link Dokumen' terlebih dahulu.");
+                        return;
                       }
-                      if (data.sertifikatSSW) {
-                        certs.push({ nama: "介護日本語評価試験結果通知書", tanggal: data.tanggalSSW || "" });
-                        if (data.bidangKerja === "KAIGO") {
-                          certs.push({ nama: "介護日本語評価試験結果通知書 (Kaigo)", tanggal: data.tanggalSSWKaigo || "" });
+
+                      setExtracting(true);
+                      setMessage("");
+                      const results = [];
+                      let successCount = 0;
+                      let failCount = 0;
+
+                      // Extract from sertifikatBahasaJepang -> tanggalJFT
+                      if (hasJFT) {
+                        try {
+                          const res = await fetch("/api/extract-cert-date", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ url: data.sertifikatBahasaJepang }),
+                          });
+                          const result = await res.json();
+                          if (result.success) {
+                            handleChange("tanggalJFT", result.date);
+                            results.push(`JFT: ${result.date}`);
+                            successCount++;
+                          } else {
+                            results.push(`JFT: Gagal - ${result.error}`);
+                            failCount++;
+                          }
+                        } catch (err) {
+                          results.push(`JFT: Error - ${err.message}`);
+                          failCount++;
                         }
                       }
-                      if (data.sertifikatSenmonkyuu) {
-                        certs.push({ nama: "技能実習修了証明書", tanggal: data.tanggalShuryoShomei || "" });
+
+                      // Extract from sertifikatSSW -> tanggalSSW
+                      if (hasSSW) {
+                        try {
+                          const res = await fetch("/api/extract-cert-date", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ url: data.sertifikatSSW }),
+                          });
+                          const result = await res.json();
+                          if (result.success) {
+                            handleChange("tanggalSSW", result.date);
+                            results.push(`SSW: ${result.date}`);
+                            successCount++;
+
+                            // If bidangKerja is KAIGO, also fill tanggalSSWKaigo
+                            if (data.bidangKerja === "KAIGO") {
+                              handleChange("tanggalSSWKaigo", result.date);
+                              results.push(`SSW Kaigo: ${result.date}`);
+                            }
+                          } else {
+                            results.push(`SSW: Gagal - ${result.error}`);
+                            failCount++;
+                          }
+                        } catch (err) {
+                          results.push(`SSW: Error - ${err.message}`);
+                          failCount++;
+                        }
                       }
-                      if (data.sertifikatSelesaiMagang) {
-                        certs.push({ nama: "技能実習修了証明書 (JITCO)", tanggal: "" });
-                      }
-                      handleChange("sertifikat", certs);
-                      setMessage(`${certs.length} sertifikat terdeteksi. Silakan isi tanggal ujian masing-masing.`);
+
+                      setExtracting(false);
+                      const summary = `Ekstraksi selesai: ${successCount} berhasil${failCount > 0 ? `, ${failCount} gagal` : ""}. ${results.join(" | ")}`;
+                      setMessage(summary);
                     }}
-                    className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700"
+                    className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={extracting}
                   >
-                    Fetch dari Link
+                    {extracting ? "Mengekstrak..." : "Fetch dari Link"}
                   </button>
                 </div>
               </div>
