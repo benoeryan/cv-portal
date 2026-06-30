@@ -27,15 +27,80 @@ body {
 /* CV Print Styles */
 @media print {
   @page {
-    size: A4;
+    size: A4 portrait;
+    margin: 5mm;
   }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   .no-print {
     display: none !important;
   }
+
   .cv-container {
     margin: 0;
-    padding: 10mm;
-    font-size: 10pt;
+    padding: 3mm;
+    font-size: 8pt;
+    line-height: 1.2;
+    max-width: 200mm;
+    max-height: 277mm;
+    overflow: hidden;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+  }
+
+  .cv-container h2 {
+    font-size: 11pt;
+    margin-bottom: 2mm;
+    padding-bottom: 1mm;
+  }
+
+  .cv-container h3 {
+    font-size: 9pt;
+    margin-bottom: 1mm;
+    margin-top: 1mm;
+  }
+
+  .cv-container img {
+    width: 70px !important;
+    height: 91px !important;
+  }
+
+  .cv-container .flex.gap-4 {
+    gap: 2mm;
+    margin-bottom: 2mm;
+  }
+
+  .cv-table {
+    margin-bottom: 2mm !important;
+  }
+
+  .cv-table td,
+  .cv-table th {
+    padding: 1px 3px;
+    font-size: 7pt;
+    line-height: 1.2;
+  }
+
+  .cv-container .mb-4 {
+    margin-bottom: 2mm !important;
+  }
+
+  .cv-container .mb-2 {
+    margin-bottom: 1mm !important;
+  }
+
+  .cv-container .p-6 {
+    padding: 3mm !important;
+  }
+
+  .cv-container .whitespace-pre-wrap {
+    white-space: pre-wrap;
+    font-size: 7pt;
+    line-height: 1.2;
   }
 }
 
