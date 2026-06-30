@@ -1,0 +1,18 @@
+{
+  "project_type": "Next.js 15 web app with Firebase Firestore, Google Sheets import feature",
+  "language": "JavaScript (React, client components)",
+  "build_system": "npm with next build",
+  "test_framework": "No test framework configured",
+  "build_command": "npm run build",
+  "test_command": "No test command available",
+  "verification_instructions": "Run npm run build to verify no compilation errors. Manual verification requires checking the import page functionality with real spreadsheet data.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "npm install (already done based on node_modules presence)",
+  "environment_constraints": "No test framework. Verification is via build success only.",
+  "contribution_requirements": "None documented",
+  "key_patterns": "The import/page.js uses a parseRow() function with a 'get' helper that does keyword/fuzzy matching on spreadsheet headers. Education, family, and work data are stored in structured fields (sdNama, sdMasuk, etc for education; keluarga[] array for family; pekerjaan[] array for work). Form Responses 1 stores these as multi-line concatenated text in single cells, while Form Responses 3 has separate columns for each field.",
+  "relevant_files": [
+    "src/app/admin/import/page.js"
+  ],
+  "directory_structure": "src/app/admin/import/page.js - the import page with parseRow(), fetchFromSheets(), handleFileUpload(), handleImport()"
+}

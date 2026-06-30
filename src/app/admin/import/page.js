@@ -134,6 +134,275 @@ function getFieldDefinitions() {
   };
 }
 
+// Parse multi-line education text into structured fields
+// Each line format: "masuk - nama_sekolah - lulus" (e.g. "07/2005 - SD MELONG MANDIRI 4 - 06/2011")
+function parseMultilineEducation(text) {
+  if (!text || typeof text !== "string") return {};
+  const lines = text.split(/\n/).map((l) => l.trim()).filter((l) => l && l !== "-");
+  const result = {};
+
+  const SD_KEYWORDS = ["SD"];
+  const SMP_KEYWORDS = ["SMP", "MTS", "MTSN"];
+  const SMA_KEYWORDS = ["SMA", "SMK", "SMKN", "SMAN", "MA", "MAN", "MAK"];
+  const UNIV_KEYWORDS = ["UNIVERSITAS", "UNIV", "POLITEKNIK", "AKADEMI", "STIKES", "INSTITUT", "SEKOLAH TINGGI", "STT", "STMIK", "STTD"];
+
+  function detectLevel(nama) {
+    const upper = nama.toUpperCase();
+    for (const kw of UNIV_KEYWORDS) {
+      if (upper.includes(kw)) return "univ";
+    }
+    for (const kw of SMA_KEYWORDS) {
+      if (upper.includes(kw)) return "sma";
+    }
+    for (const kw of SMP_KEYWORDS) {
+      if (upper.includes(kw)) return "smp";
+    }
+    for (const kw of SD_KEYWORDS) {
+      if (upper.includes(kw)) return "sd";
+    }
+    return null;
+  }
+
+  const parsed = [];
+  for (const line of lines) {
+    // Remove leading "- " prefix
+    const cleanLine = line.replace(/^-\s*/, "").trim();
+    if (!cleanLine) continue;
+    // Split by " - " separator
+    const parts = cleanLine.split(/\s*-\s*/);
+    if (parts.length >= 2) {
+      // Format: masuk - nama_sekolah - lulus OR nama_sekolah - masuk - lulus
+      // Try to detect: if first part looks like a date (MM/YYYY or YYYY), treat as masuk - nama - lulus
+      const firstIsDate = /^\d{2}\/\d{4}$/.test(parts[0]) || /^\d{4}$/.test(parts[0]);
+      if (firstIsDate && parts.length >= 2) {
+        const masuk = parts[0].trim();
+        // Rejoin middle parts as nama (in case nama contains " - " internally)
+        const lulus = parts.length >= 3 && (/^\d{2}\/\d{4}$/.test(parts[parts.length - 1]) || /^\d{4}$/.test(parts[parts.length - 1]))
+          ? parts[parts.length - 1].trim()
+          : "";
+        const namaEnd = lulus ? parts.length - 1 : parts.length;
+        const nama = parts.slice(1, namaEnd).join(" - ").trim();
+        parsed.push({ masuk, nama, lulus });
+      } else {
+        // Fallback: treat first part as nama
+        const nama = parts[0].trim();
+        const masuk = parts.length >= 2 ? parts[1].trim() : "";
+        const lulus = parts.length >= 3 ? parts[2].trim() : "";
+        parsed.push({ masuk, nama, lulus });
+      }
+    } else {
+      // Single part - treat as nama
+      parsed.push({ masuk: "", nama: cleanLine, lulus: "" });
+    }
+  }
+
+  // Assign to levels by keyword detection first
+  const assigned = { sd: null, smp: null, sma: null, univ: null };
+  const unassigned = [];
+
+  for (const entry of parsed) {
+    const level = detectLevel(entry.nama);
+    if (level && !assigned[level]) {
+      assigned[level] = entry;
+    } else {
+      unassigned.push(entry);
+    }
+  }
+
+  // Fill remaining by order (1st=SD, 2nd=SMP, 3rd=SMA, 4th=UNIV)
+  const orderLevels = ["sd", "smp", "sma", "univ"];
+  let unassignedIdx = 0;
+  for (const level of orderLevels) {
+    if (!assigned[level] && unassignedIdx < unassigned.length) {
+      assigned[level] = unassigned[unassignedIdx];
+      unassignedIdx++;
+    }
+  }
+
+  if (assigned.sd) {
+    result.sdNama = assigned.sd.nama;
+    result.sdMasuk = assigned.sd.masuk;
+    result.sdLulus = assigned.sd.lulus;
+  }
+  if (assigned.smp) {
+    result.smpNama = assigned.smp.nama;
+    result.smpMasuk = assigned.smp.masuk;
+    result.smpLulus = assigned.smp.lulus;
+  }
+  if (assigned.sma) {
+    result.smaNama = assigned.sma.nama;
+    result.smaMasuk = assigned.sma.masuk;
+    result.smaLulus = assigned.sma.lulus;
+  }
+  if (assigned.univ) {
+    result.univNama = assigned.univ.nama;
+    result.univMasuk = assigned.univ.masuk;
+    result.univLulus = assigned.univ.lulus;
+  }
+
+  return result;
+}
+
+// Parse multi-line family text into array of family members
+// Each line format: "nama - usia - pekerjaan - gaji" or "nama - hubungan - usia - pekerjaan - gaji"
+// Lines may be prefixed with "- "
+function parseMultilineFamily(text) {
+  if (!text || typeof text !== "string") return [];
+  const lines = text.split(/\n/).map((l) => l.trim()).filter((l) => l && l !== "-");
+  const result = [];
+
+  for (const line of lines) {
+    if (result.length >= 4) break;
+    // Remove leading "- " prefix
+    const cleanLine = line.replace(/^-\s*/, "").trim();
+    if (!cleanLine) continue;
+    // Remove trailing "..." (truncated text)
+    const trimmedLine = cleanLine.replace(/\.{2,}$/, "").trim();
+    // Split by " - " separator
+    const parts = trimmedLine.split(/\s*-\s*/);
+    if (parts.length === 0) continue;
+
+    const entry = { nama: "", hubungan: "", usia: "", pekerjaan: "", gaji: "", tinggalBersama: "" };
+
+    // Detect if a part looks like an age (number with optional THN/th suffix)
+    function isAge(val) {
+      return /^\d{1,3}\s*(THN|th|thn|tahun)?$/i.test(val.trim());
+    }
+    // Detect if a part looks like salary (contains Rp or JT/jt or a number pattern)
+    function isSalary(val) {
+      return /rp\s*/i.test(val) || /jt|juta/i.test(val);
+    }
+
+    if (parts.length === 1) {
+      entry.nama = parts[0].trim();
+    } else if (parts.length === 2) {
+      entry.nama = parts[0].trim();
+      if (isAge(parts[1])) {
+        entry.usia = parts[1].replace(/\s*(THN|th|thn|tahun)\s*/gi, "").trim();
+      } else {
+        entry.hubungan = parts[1].trim();
+      }
+    } else if (parts.length === 3) {
+      entry.nama = parts[0].trim();
+      if (isAge(parts[1])) {
+        entry.usia = parts[1].replace(/\s*(THN|th|thn|tahun)\s*/gi, "").trim();
+        entry.pekerjaan = parts[2].trim();
+      } else {
+        entry.hubungan = parts[1].trim();
+        if (isAge(parts[2])) {
+          entry.usia = parts[2].replace(/\s*(THN|th|thn|tahun)\s*/gi, "").trim();
+        } else {
+          entry.pekerjaan = parts[2].trim();
+        }
+      }
+    } else if (parts.length === 4) {
+      entry.nama = parts[0].trim();
+      // Check if second part is age or hubungan
+      if (isAge(parts[1])) {
+        // Format: nama - usia - pekerjaan - gaji
+        entry.usia = parts[1].replace(/\s*(THN|th|thn|tahun)\s*/gi, "").trim();
+        entry.pekerjaan = parts[2].trim();
+        entry.gaji = parts[3].trim();
+      } else {
+        // Format: nama - hubungan - usia/pekerjaan - gaji/pekerjaan
+        entry.hubungan = parts[1].trim();
+        if (isAge(parts[2])) {
+          entry.usia = parts[2].replace(/\s*(THN|th|thn|tahun)\s*/gi, "").trim();
+          entry.pekerjaan = parts[3].trim();
+        } else {
+          entry.pekerjaan = parts[2].trim();
+          entry.gaji = parts[3].trim();
+        }
+      }
+    } else if (parts.length >= 5) {
+      // Format: nama - hubungan - usia - pekerjaan - gaji (or more parts)
+      entry.nama = parts[0].trim();
+      // Detect hubungan vs usia for second part
+      if (isAge(parts[1])) {
+        entry.usia = parts[1].replace(/\s*(THN|th|thn|tahun)\s*/gi, "").trim();
+        entry.pekerjaan = parts[2].trim();
+        entry.gaji = parts.slice(3).join(" - ").trim();
+      } else {
+        entry.hubungan = parts[1].trim();
+        if (isAge(parts[2])) {
+          entry.usia = parts[2].replace(/\s*(THN|th|thn|tahun)\s*/gi, "").trim();
+          entry.pekerjaan = parts[3].trim();
+          entry.gaji = parts.length >= 5 ? parts.slice(4).join(" - ").trim() : "";
+        } else {
+          entry.usia = parts[2].trim();
+          entry.pekerjaan = parts[3].trim();
+          entry.gaji = parts.slice(4).join(" - ").trim();
+        }
+      }
+    }
+
+    result.push(entry);
+  }
+
+  return result;
+}
+
+// Parse multi-line work history text into array of work entries
+// Each line format: "tanggal - nama_perusahaan - optional_details"
+function parseMultilineWork(text) {
+  if (!text || typeof text !== "string") return [];
+  const lines = text.split(/\n/).map((l) => l.trim()).filter((l) => l && l !== "-");
+  const result = [];
+
+  for (const line of lines) {
+    if (result.length >= 4) break;
+    // Remove leading "- " prefix
+    const cleanLine = line.replace(/^-\s*/, "").trim();
+    if (!cleanLine) continue;
+    // Remove trailing "..." (truncated text)
+    const trimmedLine = cleanLine.replace(/\.{2,}$/, "").trim();
+    // Split by " - " separator
+    const parts = trimmedLine.split(/\s*-\s*/);
+    if (parts.length === 0) continue;
+
+    const entry = { perusahaan: "", masuk: "", keluar: "", bidang: "", status: "", uraian: "" };
+
+    // Check if first part looks like a date (MM/YYYY or YYYY)
+    const firstIsDate = /^\d{2}\/\d{4}$/.test(parts[0]) || /^\d{4}$/.test(parts[0]);
+
+    if (firstIsDate && parts.length >= 2) {
+      entry.masuk = parts[0].trim();
+      entry.perusahaan = parts[1].trim();
+      // If there are more parts, check if any is a date (keluar) or details
+      if (parts.length >= 3) {
+        const thirdIsDate = /^\d{2}\/\d{4}$/.test(parts[2]) || /^\d{4}$/.test(parts[2]);
+        if (thirdIsDate) {
+          entry.keluar = parts[2].trim();
+          if (parts.length >= 4) {
+            entry.bidang = parts.slice(3).join(" - ").trim();
+          }
+        } else {
+          entry.bidang = parts.slice(2).join(" - ").trim();
+        }
+      }
+    } else if (parts.length === 1) {
+      entry.perusahaan = parts[0].trim();
+    } else {
+      // First part is not a date - treat as perusahaan
+      entry.perusahaan = parts[0].trim();
+      // Look for date in remaining parts
+      for (let i = 1; i < parts.length; i++) {
+        if (/^\d{2}\/\d{4}$/.test(parts[i]) || /^\d{4}$/.test(parts[i])) {
+          if (!entry.masuk) entry.masuk = parts[i].trim();
+          else if (!entry.keluar) entry.keluar = parts[i].trim();
+        } else {
+          if (!entry.bidang) entry.bidang = parts[i].trim();
+          else entry.bidang += " - " + parts[i].trim();
+        }
+      }
+    }
+
+    result.push(entry);
+  }
+
+  return result;
+}
+
 function parseRow(headers, values) {
   // Normalize all headers for better matching
   const normalizedHeaders = headers.map(normalizeHeader);
@@ -179,7 +448,7 @@ function parseRow(headers, values) {
   const nama = get("NAMA LENGKAP", "NAMA LENGKAP SESUAI PASPOR", "NAMA SESUAI PASPOR", "NAMA LENGKAP ANDA");
   if (!nama) return null;
 
-  return {
+  const result = {
     kodeReferensi: get("Kode Referensi", "KODE REFERENSI", "REFERENSI"),
     kodeJob: get("Kode Job", "KODE JOB", "KODE PEKERJAAN"),
     kategoriKandidat: get("KATEGORI KANDIDAT", "KANDIDAT", "KATEGORI"),
@@ -262,6 +531,82 @@ function parseRow(headers, values) {
     importedAt: new Date().toISOString(),
     submittedAt: get("Timestamp") || new Date().toISOString(),
   };
+
+  // Post-processing: auto-detect and parse multi-line combined cells
+  // 1. Education: if individual fields are empty, try combined column
+  if (!result.sdNama && !result.smpNama && !result.smaNama) {
+    const combinedEdu = get(
+      "RIWAYAT PENDIDIKAN (SD-Pendidikan terakhir)",
+      "RIWAYAT PENDIDIKAN (SD-PENDIDIKAN TERAKHIR)",
+      "RIWAYAT PENDIDIKAN",
+      "PENDIDIKAN (SD-Pendidikan terakhir)"
+    );
+    if (combinedEdu && combinedEdu.includes("\n")) {
+      const eduParsed = parseMultilineEducation(combinedEdu);
+      if (eduParsed.sdNama && !result.sdNama) result.sdNama = eduParsed.sdNama;
+      if (eduParsed.sdMasuk && !result.sdMasuk) result.sdMasuk = eduParsed.sdMasuk;
+      if (eduParsed.sdLulus && !result.sdLulus) result.sdLulus = eduParsed.sdLulus;
+      if (eduParsed.smpNama && !result.smpNama) result.smpNama = eduParsed.smpNama;
+      if (eduParsed.smpMasuk && !result.smpMasuk) result.smpMasuk = eduParsed.smpMasuk;
+      if (eduParsed.smpLulus && !result.smpLulus) result.smpLulus = eduParsed.smpLulus;
+      if (eduParsed.smaNama && !result.smaNama) result.smaNama = eduParsed.smaNama;
+      if (eduParsed.smaMasuk && !result.smaMasuk) result.smaMasuk = eduParsed.smaMasuk;
+      if (eduParsed.smaLulus && !result.smaLulus) result.smaLulus = eduParsed.smaLulus;
+      if (eduParsed.smaJurusan && !result.smaJurusan) result.smaJurusan = eduParsed.smaJurusan;
+      if (eduParsed.univNama && !result.univNama) result.univNama = eduParsed.univNama;
+      if (eduParsed.univMasuk && !result.univMasuk) result.univMasuk = eduParsed.univMasuk;
+      if (eduParsed.univLulus && !result.univLulus) result.univLulus = eduParsed.univLulus;
+      if (eduParsed.univJurusan && !result.univJurusan) result.univJurusan = eduParsed.univJurusan;
+    }
+  }
+
+  // 2. Family: if first family member is empty, try combined column
+  if (!result.keluarga[0].nama) {
+    const combinedFamily = get(
+      "DAFTAR KELUARGA 1 : ISI NAMA LENGKAP KELUARGA ANDA",
+      "DAFTAR KELUARGA 1 :  ISI NAMA LENGKAP KELUARGA ANDA",
+      "DAFTAR KELUARGA",
+      "KELUARGA ANDA",
+      "DATA KELUARGA"
+    );
+    if (combinedFamily && combinedFamily.includes("\n")) {
+      const familyParsed = parseMultilineFamily(combinedFamily);
+      for (let i = 0; i < familyParsed.length && i < 4; i++) {
+        if (!result.keluarga[i].nama) {
+          if (familyParsed[i].nama) result.keluarga[i].nama = familyParsed[i].nama;
+          if (familyParsed[i].hubungan) result.keluarga[i].hubungan = familyParsed[i].hubungan;
+          if (familyParsed[i].usia) result.keluarga[i].usia = familyParsed[i].usia;
+          if (familyParsed[i].pekerjaan) result.keluarga[i].pekerjaan = familyParsed[i].pekerjaan;
+          if (familyParsed[i].gaji) result.keluarga[i].gaji = familyParsed[i].gaji;
+          if (familyParsed[i].tinggalBersama) result.keluarga[i].tinggalBersama = familyParsed[i].tinggalBersama;
+        }
+      }
+    }
+  }
+
+  // 3. Work: if first work entry is empty, try combined column
+  if (!result.pekerjaan[0].perusahaan) {
+    const combinedWork = get(
+      "RIWAYAT BEKERJA",
+      "RIWAYAT PEKERJAAN",
+      "RIWAYAT BEKERJA (TERBARU)"
+    );
+    if (combinedWork && combinedWork.includes("\n")) {
+      const workParsed = parseMultilineWork(combinedWork);
+      for (let i = 0; i < workParsed.length && i < 4; i++) {
+        if (!result.pekerjaan[i].perusahaan) {
+          if (workParsed[i].perusahaan) result.pekerjaan[i].perusahaan = workParsed[i].perusahaan;
+          if (workParsed[i].masuk) result.pekerjaan[i].masuk = workParsed[i].masuk;
+          if (workParsed[i].keluar) result.pekerjaan[i].keluar = workParsed[i].keluar;
+          if (workParsed[i].bidang) result.pekerjaan[i].bidang = workParsed[i].bidang;
+          if (workParsed[i].status) result.pekerjaan[i].status = workParsed[i].status;
+          if (workParsed[i].uraian) result.pekerjaan[i].uraian = workParsed[i].uraian;
+        }
+      }
+    }
+  }
+
+  return result;
 }
 
 export default function ImportPage() {

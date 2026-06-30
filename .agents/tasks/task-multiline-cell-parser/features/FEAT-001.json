@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Add multi-line cell parsing to parseRow() so that when Form Responses 1 has concatenated education/family/work data in single cells, the system auto-detects and splits them into the structured fields matching Form Responses 3 format.",
+  "status": "in_progress",
+  "steps": [
+    "Add helper function parseMultilineEducation(text) that takes a multi-line string like '07/2005 - SD MELONG MANDIRI 4 - 06/2011\\n07/2011 - SMP PASULINGAN 1 - 06/2014\\n07/2014 - SMAN 4 CIMAHI - 05/2017' and parses each line into {masuk, nama, lulus}. It should detect SD/SMP/SMA/university lines by keywords (SD, SMP, SMA, SMK, UNIVERSITAS, UNIV, POLITEKNIK, AKADEMI, STIKES, etc) or by order (1st=SD, 2nd=SMP, 3rd=SMA, 4th=UNIV). Format per line: 'masuk - nama_sekolah - lulus'. Return object with {sdNama, sdMasuk, sdLulus, smpNama, smpMasuk, smpLulus, smaNama, smaMasuk, smaLulus, univNama, univMasuk, univLulus}.",
+    "Add helper function parseMultilineFamily(text) that takes a multi-line string like 'FAROJI - 45 THN - Karyawan Pabrik - Rp 3.5 JT\\nRENI - 47 - Pengabit - Rp 3 JT' and parses each line into {nama, usia, pekerjaan, gaji}. Lines may be prefixed with '- '. Format per line: 'nama - usia - pekerjaan - gaji'. The usia field may contain 'THN' or 'th' suffix. The gaji field may contain 'Rp' prefix. Return array of up to 4 family members. Also handle format with hubungan field: 'nama - hubungan - usia - pekerjaan - gaji'.",
+    "Add helper function parseMultilineWork(text) that takes a multi-line string like '06/2025 - KERUN KELAI - details\\n08/2022 - KOGA SIREN' and parses each line into {perusahaan, masuk, keluar, bidang}. Format per line: 'tanggal - nama_perusahaan - optional_details'. Return array of up to 4 work entries.",
+    "In parseRow(), after the existing field extraction, add post-processing logic: (1) Check if education fields (sdNama, smpNama, smaNama) are all empty. If so, look for a combined education column using get() with keywords like 'RIWAYAT PENDIDIKAN (SD-Pendidikan terakhir)', 'RIWAYAT PENDIDIKAN', 'RIWAYAT PENDIDIKAN (SD-PENDIDIKAN TERAKHIR)'. If found and contains newlines, call parseMultilineEducation() and fill in the empty fields. (2) Check if keluarga[0].nama is empty. If so, look for combined family column using get() with keywords like 'DAFTAR KELUARGA 1 : ISI NAMA LENGKAP KELUARGA ANDA', 'DAFTAR KELUARGA', 'KELUARGA ANDA'. If found and contains newlines, call parseMultilineFamily() and fill in the keluarga array. (3) Check if pekerjaan[0].perusahaan is empty. If so, look for combined work column using get() with keywords like 'RIWAYAT BEKERJA', 'RIWAYAT PEKERJAAN'. If found and contains newlines, call parseMultilineWork() and fill in the pekerjaan array.",
+    "Place the helper functions above parseRow() in the file. They should be module-level functions (not inside a component).",
+    "Handle edge cases: lines starting with '- ' prefix, extra whitespace, truncated text (ending with '...'), empty lines between entries, single-line values that should not be split."
+  ],
+  "acceptance_criteria": [
+    "parseMultilineEducation correctly splits '07/2005 - SD MELONG MANDIRI 4 - 06/2011\\n07/2011 - SMP PASULINGAN 1 - 06/2014\\n07/2014 - SMAN 4 CIMAHI - 05/2017' into sdNama='SD MELONG MANDIRI 4', sdMasuk='07/2005', sdLulus='06/2011', smpNama='SMP PASULINGAN 1', smpMasuk='07/2011', smpLulus='06/2014', smaNama='SMAN 4 CIMAHI', smaMasuk='07/2014', smaLulus='05/2017'",
+    "parseMultilineFamily correctly splits 'FAROJI - 45 THN - Karyawan Pabrik - Rp 3.5 JT\\nRENI - 47 - Pengabit - Rp 3 JT' into keluarga[0]={nama:'FAROJI', usia:'45', pekerjaan:'Karyawan Pabrik', gaji:'Rp 3.5 JT'} and keluarga[1]={nama:'RENI', usia:'47', pekerjaan:'Pengabit', gaji:'Rp 3 JT'}",
+    "parseMultilineWork correctly splits '06/2025 - KERUN KELAI\\n08/2022 - KOGA SIREN' into pekerjaan[0]={perusahaan:'KERUN KELAI', masuk:'06/2025'} and pekerjaan[1]={perusahaan:'KOGA SIREN', masuk:'08/2022'}",
+    "When individual education/family/work fields already have values (from Form Responses 3 format), the multi-line parser does NOT override them",
+    "npm run build succeeds without errors"
+  ],
+  "verification": [
+    "Run 'npm run build' in /projects/sandbox/cv-portal and confirm it succeeds with exit code 0"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
