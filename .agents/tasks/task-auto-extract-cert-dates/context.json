@@ -1,0 +1,25 @@
+{
+  "project_type": "Next.js 15 App Router with Tailwind CSS and Firebase Firestore",
+  "language": "JavaScript (ES Modules, React 19)",
+  "build_system": "npm with next build, deployed on Netlify with @netlify/plugin-nextjs",
+  "test_framework": "None configured (no test runner in package.json)",
+  "build_command": "cd /projects/sandbox/cv-portal && npm run build",
+  "test_command": "No test command available - verify with build only",
+  "verification_instructions": "Run npm run build to verify no compile errors. Manually verify the API route logic and client integration are correct.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "npm install in /projects/sandbox/cv-portal (already done, node_modules exists)",
+  "environment_constraints": "Network access available for npm installs. No test framework configured. Firebase credentials are in the code. Google Drive API requires a service account key for server-side access to PDFs.",
+  "contribution_requirements": "Branch is fix/sertifikat-date-picker. Code uses 'use client' directives for client components. API routes go in src/app/api/.",
+  "key_patterns": "Client components use 'use client' directive. Data fetching via Firebase Firestore (getDoc/updateDoc). Translation uses client-side fetch to free APIs (src/lib/translateHelper.js). Google Drive file IDs are extracted from URLs using regex /id=([a-zA-Z0-9_-]+)/. Dates stored in Japanese format YYYY年MM月DD日. The DriveImage component already has file ID extraction logic.",
+  "relevant_files": [
+    "src/app/admin/edit/[id]/page.js",
+    "src/lib/translateHelper.js",
+    "src/lib/cvHelpers.js",
+    "src/lib/firebase.js",
+    "src/components/JapaneseDatePicker.js",
+    "src/components/DriveImage.js",
+    "next.config.js",
+    "package.json"
+  ],
+  "directory_structure": "src/app/ - Next.js app router pages; src/app/admin/edit/[id]/ - edit candidate page with certs tab; src/lib/ - helper modules (firebase, translate, cvHelpers); src/components/ - reusable components (Navbar, CVTemplate, DriveImage, JapaneseDatePicker); No src/app/api/ directory yet - needs to be created for the new API route"
+}

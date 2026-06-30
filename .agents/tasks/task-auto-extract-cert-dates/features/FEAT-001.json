@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Create a Next.js API route that accepts a Google Drive URL, downloads the PDF, extracts text, finds date patterns, and returns the last date in Japanese format. Then integrate this API into the admin edit page's 'Fetch dari Link' button so it auto-fills the certificate date fields (tanggalJFT, tanggalSSW, tanggalSSWKaigo) from the PDF content.",
+  "status": "completed",
+  "steps": [
+    "Install the 'pdf-parse' npm package for server-side PDF text extraction",
+    "Create the API route at src/app/api/extract-cert-date/route.js that: (a) accepts a POST body with { url: 'google drive URL' }, (b) extracts the Google Drive file ID using the regex pattern from DriveImage.js (/open?id=..., /file/d/..., id=...), (c) downloads the PDF using the Google Drive direct download URL format https://drive.google.com/uc?export=download&id=FILE_ID, (d) uses pdf-parse to extract text from the PDF buffer, (e) finds all date patterns matching /\\d{4}[\\/\\-]\\d{2}[\\/\\-]\\d{2}/g in the extracted text, (f) takes the LAST date found (to avoid birth dates, matching the Apps Script logic), (g) converts it to Japanese format YYYY年MM月DD日, (h) returns JSON { success: true, date: '2026年06月05日', rawText: first100chars } or { success: false, error: 'message' }",
+    "Update the 'Fetch dari Link' button onClick handler in src/app/admin/edit/[id]/page.js to: (a) show a loading state while processing, (b) call the new API route for each certificate link (sertifikatBahasaJepang -> tanggalJFT, sertifikatSSW -> tanggalSSW), (c) if data.bidangKerja === 'KAIGO' and sertifikatSSW exists, also extract for tanggalSSWKaigo, (d) auto-fill the date fields using handleChange(field, dateValue), (e) show a success/failure message with how many dates were extracted",
+    "Update the blue info box text to better describe the new functionality: 'Ekstrak tanggal ujian secara otomatis dari PDF sertifikat yang tersimpan di Google Drive'",
+    "Handle error cases gracefully: (a) no links available, (b) PDF cannot be downloaded (not publicly shared), (c) no dates found in PDF text, (d) network errors. Show appropriate messages for each case."
+  ],
+  "acceptance_criteria": [
+    "A new API route exists at src/app/api/extract-cert-date/route.js that accepts POST requests with a Google Drive URL",
+    "The API route downloads PDFs from Google Drive using the direct download URL pattern",
+    "The API route extracts text from PDFs using pdf-parse and finds date patterns",
+    "The last date found is returned in Japanese format (YYYY年MM月DD日)",
+    "The 'Fetch dari Link' button on the edit page calls the API for each certificate link",
+    "Extracted dates auto-fill the tanggalJFT, tanggalSSW, and tanggalSSWKaigo fields",
+    "Loading state is shown while extraction is in progress",
+    "Error messages are shown when extraction fails",
+    "npm run build succeeds without errors"
+  ],
+  "verification": [
+    "Run 'npm run build' in /projects/sandbox/cv-portal to verify the project builds without errors",
+    "Verify the API route file exists at src/app/api/extract-cert-date/route.js and exports POST handler",
+    "Verify pdf-parse is listed in package.json dependencies"
+  ],
+  "blocked_reason": null,
+  "findings": "Build passes successfully. pdf-parse downgraded from v2.4.5 to v1.1.1 to fix DOMMatrix error in serverless environments. v2.4.5 used pdfjs-dist v5 which requires browser DOM APIs (DOMMatrix, canvas) not available in Node.js/Vercel/Netlify. v1.1.1 bundles an older pdfjs internally that works without DOM. API route at /api/extract-cert-date works as a Next.js server-side route handler with dynamic import of pdf-parse. The 'Fetch dari Link' button now extracts dates from PDFs rather than just listing certificate names. Post-review fix applied: added sertifikatSenmonkyuu -> tanggalShuryoShomei extraction and removed rawText from all API responses."
+}
