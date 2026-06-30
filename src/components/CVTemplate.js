@@ -264,7 +264,7 @@ export default function CVTemplate({ data }) {
       <table className="cv-table mb-4">
         <tbody>
           <tr>
-            <td className="font-bold bg-gray-100 w-[14%]">渡航歴</td>
+            <td className="font-bold bg-gray-100 w-[14%]">入国歴</td>
             <td className="w-[36%]">{data.pernahKeJepang === "YA" ? `有 (${data.keperluanApa || ""})` : "無"}</td>
             <td className="font-bold bg-gray-100 w-[14%]">趣味</td>
             <td>{data.hobi}</td>
