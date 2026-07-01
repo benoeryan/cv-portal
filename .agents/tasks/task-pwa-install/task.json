@@ -1,0 +1,7 @@
+{
+  "task_id": "task-pwa-install",
+  "task_description": "Make CV Portal installable as a PWA with manifest, service worker, icons, and create a download/install page with QR code, platform instructions, and share buttons",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}

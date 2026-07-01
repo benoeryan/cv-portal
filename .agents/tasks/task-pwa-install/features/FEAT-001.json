@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Set up PWA infrastructure: manifest.json, service worker, app icons, and meta tags in layout.js for installability",
+  "status": "in_progress",
+  "steps": [
+    "Create public/ directory at project root",
+    "Create public/manifest.json with: name 'CV Portal IJEF', short_name 'CV Portal', start_url '/', display 'standalone', theme_color '#2563EB' (blue-600 matching the app), background_color '#F9FAFB' (gray-50 bg), icons array referencing /icons/icon-192x192.png and /icons/icon-512x512.png",
+    "Create public/icons/ directory with SVG-based PNG icons (192x192 and 512x512) - use inline SVG with text 'CV' on blue background rendered to static SVG files that Next.js can serve",
+    "Create public/sw.js service worker with: install event (cache app shell), activate event (clean old caches), fetch event (network-first strategy with cache fallback for navigations)",
+    "Update src/app/layout.js metadata export to include: manifest link '/manifest.json', themeColor '#2563EB', appleWebApp meta (capable, status-bar-style, title), viewport meta for mobile, and icons. Also add a Script or head element to register the service worker on load",
+    "Since Next.js App Router uses metadata export for head tags, add the appropriate fields: metadataBase, manifest, themeColor, appleWebApp, viewport, icons, other (for mobile-web-app-capable)",
+    "Verify: run npm run build and confirm no errors"
+  ],
+  "acceptance_criteria": [
+    "public/manifest.json exists with correct app name, icons, display mode, and colors",
+    "public/icons/ contains icon-192x192.png (or .svg) and icon-512x512.png (or .svg) files",
+    "public/sw.js exists with basic offline caching strategy",
+    "src/app/layout.js includes PWA-related metadata (manifest link, theme-color, apple-mobile-web-app-capable)",
+    "npm run build completes without errors"
+  ],
+  "verification": [
+    "Run 'npm run build' in /projects/sandbox/cv-portal and confirm exit code 0"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

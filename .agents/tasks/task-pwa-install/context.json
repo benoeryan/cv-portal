@@ -1,0 +1,24 @@
+{
+  "project_type": "Next.js 15.5.18 app with Firebase, Tailwind CSS",
+  "language": "JavaScript (React, no TypeScript)",
+  "build_system": "npm with Next.js CLI",
+  "test_framework": "No test framework configured",
+  "build_command": "npm run build",
+  "test_command": "No test command configured",
+  "verification_instructions": "Run 'npm run build' to verify the app builds successfully without errors",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "npm install (already done, node_modules present)",
+  "environment_constraints": "OPEN_INTERNET - can install npm packages. No public/ directory exists yet, needs to be created.",
+  "contribution_requirements": "No CONTRIBUTING.md found. Follow existing patterns: use Tailwind CSS utility classes plus custom component classes (btn-primary, btn-secondary, card, input-field), use 'use client' directive for client components, use AuthContext for auth state.",
+  "key_patterns": "Pages use 'use client' directive, import Navbar component, use AuthContext for role-based access. Admin pages check userData.role === 'admin'. Styling uses Tailwind with custom @layer components in globals.css. No public/ directory exists - needs creation for manifest and icons.",
+  "relevant_files": [
+    "src/app/layout.js",
+    "src/app/page.js",
+    "src/components/Navbar.js",
+    "src/app/admin/settings/page.js",
+    "src/styles/globals.css",
+    "next.config.js",
+    "package.json"
+  ],
+  "directory_structure": "src/app/ - pages (admin/, auth/, candidate/), src/components/ - shared components, src/context/ - AuthContext, src/lib/ - firebase config and helpers, src/styles/ - globals.css"
+}

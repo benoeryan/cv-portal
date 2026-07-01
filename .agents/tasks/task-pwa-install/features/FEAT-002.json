@@ -1,0 +1,34 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Create the /admin/download page with QR code, install instructions per platform, copy/share buttons, and 'Cara Install' section - matching IMS-style layout",
+  "status": "pending",
+  "steps": [
+    "Install qrcode.react package (npm install qrcode.react) for generating QR codes as React components",
+    "Create src/app/admin/download/page.js as a 'use client' component with the following layout sections:",
+    "  - Page header: 'Download Aplikasi CV Portal' with subtitle",
+    "  - Left column: QR Code (large, ~200px) generated from URL 'https://cv-portal-six.vercel.app' using qrcode.react, with the URL text displayed below it",
+    "  - Right column: Install instructions with tabs/sections for Android, iOS, Windows, macOS. Each with step-by-step numbered instructions specific to that platform (e.g., Android: Chrome > menu > 'Add to Home screen'; iOS: Safari > Share > 'Add to Home Screen'; Windows: Chrome > menu > 'Install CV Portal'; macOS: Chrome > menu > 'Install CV Portal')",
+    "  - Bottom section: Share buttons row with 'Copy Link' button (copies URL to clipboard with toast feedback) and 'Share via WhatsApp' button (opens wa.me link with pre-filled message)",
+    "  - 'Cara Install' section/card: Explain PWA benefits - 'Aplikasi muncul di home screen / desktop seperti app native. Bisa dibuka tanpa browser. Akses lebih cepat dan mendukung notifikasi.'",
+    "  - Include Install App button that triggers the browser's native PWA install prompt (using beforeinstallprompt event) with fallback text if not available",
+    "Style the page using existing Tailwind patterns (card class, rounded-xl, shadow-md) to match the rest of the admin UI. Use blue-600 as primary color.",
+    "Add a link to the download page in src/components/Navbar.js - add 'Download App' link visible to admin role users, placed near the Settings link",
+    "Verify: run npm run build and confirm no errors"
+  ],
+  "acceptance_criteria": [
+    "src/app/admin/download/page.js exists with QR code, platform install instructions, share buttons, and Cara Install section",
+    "QR Code points to https://cv-portal-six.vercel.app",
+    "Install instructions cover Android, iOS, Windows, and macOS with platform-specific steps",
+    "Copy Link button copies the app URL to clipboard",
+    "Share via WhatsApp button opens WhatsApp share with app URL",
+    "Page includes the exact note text: 'Aplikasi muncul di home screen / desktop seperti app native. Bisa dibuka tanpa browser. Akses lebih cepat dan mendukung notifikasi.'",
+    "Navbar.js includes a 'Download App' link for admin users",
+    "npm run build completes without errors"
+  ],
+  "verification": [
+    "Run 'npm run build' in /projects/sandbox/cv-portal and confirm exit code 0"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
