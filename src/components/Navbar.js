@@ -33,6 +33,9 @@ export default function Navbar() {
                 <Link href="/admin/settings" className="text-sm text-gray-600 hover:text-blue-600">
                   Settings
                 </Link>
+                <Link href="/admin/download" className="text-sm text-gray-600 hover:text-blue-600">
+                  Download App
+                </Link>
               </>
             )}
             {userData?.role === "candidate" && (

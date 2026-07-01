@@ -13,6 +13,7 @@
     "jspdf": "^2.5.1",
     "next": "15.5.18",
     "pdf-parse": "1.1.1",
+    "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.51.0"

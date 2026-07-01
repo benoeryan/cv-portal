@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Create the /admin/download page with QR code, install instructions per platform, copy/share buttons, and 'Cara Install' section - matching IMS-style layout",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Install qrcode.react package (npm install qrcode.react) for generating QR codes as React components",
     "Create src/app/admin/download/page.js as a 'use client' component with the following layout sections:",
