@@ -23,5 +23,5 @@
     "Run 'npm run build' in /projects/sandbox/cv-portal and confirm exit code 0"
   ],
   "blocked_reason": null,
-  "findings": "In Next.js 15, themeColor must be in the viewport export (not metadata export) to avoid build warnings. Used SVG icons which are supported by modern browsers and avoid the need for image generation tools. Service worker uses network-first strategy suitable for a dynamic app. Build completes cleanly with zero warnings."
+  "findings": "In Next.js 15, themeColor must be in the viewport export (not metadata export) to avoid build warnings. Used SVG icons which are supported by modern browsers and avoid the need for image generation tools. Service worker uses network-first strategy suitable for a dynamic app. Build completes cleanly with zero warnings. Post-review fixes: bounded SW cache to static assets only, added controllerchange reload prompt, changed icon purpose to 'any' only, fixed statusBarStyle typo."
 }

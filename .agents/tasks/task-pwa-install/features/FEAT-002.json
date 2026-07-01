@@ -30,5 +30,5 @@
     "Run 'npm run build' in /projects/sandbox/cv-portal and confirm exit code 0"
   ],
   "blocked_reason": null,
-  "findings": "qrcode.react installed successfully. Page builds at 9.01 kB. Used QRCodeSVG component. beforeinstallprompt event captured for native install prompt with fallback text. Download App link added to admin section of Navbar. Build passes cleanly with no errors."
+  "findings": "qrcode.react installed successfully. Page builds at 9.01 kB. Used QRCodeSVG component. beforeinstallprompt event captured for native install prompt with fallback text. Download App link added to admin section of Navbar. Build passes cleanly with no errors. Post-review fix: added auth guard useEffect to redirect non-admin users, matching the pattern from /admin/settings/page.js."
 }
