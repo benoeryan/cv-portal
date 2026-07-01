@@ -28,7 +28,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 5mm;
+    margin: 4mm;
   }
 
   body {
@@ -42,49 +42,47 @@ body {
 
   .cv-container {
     margin: 0;
-    padding: 2mm;
-    font-size: 8pt;
-    line-height: 1.25;
-    max-width: 200mm;
-    transform: scale(0.92);
-    transform-origin: top center;
+    padding: 1mm;
+    font-size: 7.5pt;
+    line-height: 1.15;
+    max-width: 202mm;
   }
 
   .cv-container h2 {
-    font-size: 10pt;
-    margin-bottom: 1.5mm;
-    padding-bottom: 0.5mm;
+    font-size: 9pt;
+    margin-bottom: 1mm;
+    padding-bottom: 0;
   }
 
   .cv-container h3 {
-    font-size: 8pt;
-    margin-bottom: 0.5mm;
+    font-size: 7.5pt;
+    margin-bottom: 0;
     margin-top: 0.5mm;
   }
 
   .cv-container img {
-    width: 75px !important;
-    height: 97px !important;
+    width: 68px !important;
+    height: 88px !important;
   }
 
   .cv-container .flex.gap-4 {
-    gap: 1.5mm;
-    margin-bottom: 1.5mm;
+    gap: 1mm;
+    margin-bottom: 1mm;
   }
 
   .cv-table {
-    margin-bottom: 1.5mm !important;
+    margin-bottom: 1mm !important;
   }
 
   .cv-table td,
   .cv-table th {
-    padding: 0.5px 3px;
-    font-size: 7pt;
-    line-height: 1.2;
+    padding: 0.3px 2px;
+    font-size: 6.5pt;
+    line-height: 1.1;
   }
 
   .cv-container .mb-4 {
-    margin-bottom: 1.5mm !important;
+    margin-bottom: 1mm !important;
   }
 
   .cv-container .mb-2 {
@@ -92,13 +90,19 @@ body {
   }
 
   .cv-container .p-6 {
-    padding: 2mm !important;
+    padding: 1mm !important;
   }
 
   .cv-container .whitespace-pre-wrap {
     white-space: pre-wrap;
-    font-size: 7pt;
-    line-height: 1.2;
+    font-size: 6.5pt;
+    line-height: 1.1;
+  }
+
+  .cv-container .border-b-2 {
+    border-bottom-width: 1px;
+    margin-bottom: 1mm;
+    padding-bottom: 0.5mm;
   }
 }
 
