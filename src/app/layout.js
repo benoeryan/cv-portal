@@ -8,7 +8,7 @@ export const metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default-black",
+    statusBarStyle: "default",
     title: "CV Portal IJEF",
   },
   icons: {
@@ -52,6 +52,11 @@ export default function RootLayout({ children }) {
                       console.log('Service Worker registration failed:', err);
                     }
                   );
+                  navigator.serviceWorker.addEventListener('controllerchange', function() {
+                    if (confirm('Versi baru tersedia. Muat ulang halaman?')) {
+                      window.location.reload();
+                    }
+                  });
                 });
               }
             `,

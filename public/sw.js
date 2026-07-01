@@ -6,6 +6,18 @@ const STATIC_ASSETS = [
   "/icons/icon-512x512.svg",
 ];
 
+// Paths that are allowed to be cached
+const CACHEABLE_PATHS = [
+  "/_next/static/",
+  "/icons/",
+  "/manifest.json",
+];
+
+function isCacheablePath(url) {
+  const path = new URL(url).pathname;
+  return CACHEABLE_PATHS.some((prefix) => path.startsWith(prefix));
+}
+
 // Install event - cache app shell
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -38,14 +50,22 @@ self.addEventListener("fetch", (event) => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
 
+  const isNavigation = event.request.mode === "navigate";
+  const isCacheable = isCacheablePath(event.request.url);
+
+  // Only cache static assets and navigation requests
+  if (!isNavigation && !isCacheable) return;
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone the response before caching
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
+        // Only cache static assets and navigation requests
+        if (isCacheable || isNavigation) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
         return response;
       })
       .catch(() => {
@@ -55,7 +75,7 @@ self.addEventListener("fetch", (event) => {
             return cachedResponse;
           }
           // If navigation request, return cached home page
-          if (event.request.mode === "navigate") {
+          if (isNavigation) {
             return caches.match("/");
           }
           return new Response("Offline", {

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { QRCodeSVG } from "qrcode.react";
@@ -56,11 +57,19 @@ const platforms = [
 ];
 
 export default function DownloadPage() {
-  const { user } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("android");
   const [copied, setCopied] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installable, setInstallable] = useState(false);
+
+  // Auth guard - redirect non-admin users
+  useEffect(() => {
+    if (!authLoading && (!user || userData?.role !== "admin")) {
+      router.push("/");
+    }
+  }, [user, userData, authLoading, router]);
 
   useEffect(() => {
     const handler = (e) => {
