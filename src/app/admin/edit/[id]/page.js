@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
-import { translateToJapanese } from "@/lib/translateHelper";
+import { translateToJapanese, translateToIndonesian } from "@/lib/translateHelper";
 import JapaneseDatePicker from "@/components/JapaneseDatePicker";
 
 // Fields that should be translated to Japanese
@@ -32,6 +32,7 @@ export default function EditCandidatePage() {
   const params = useParams();
   const [data, setData] = useState(null);
   const [translations, setTranslations] = useState({});
+  const [fieldTranslating, setFieldTranslating] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
@@ -81,6 +82,55 @@ export default function EditCandidatePage() {
 
   const handleTranslationChange = (key, value) => {
     setTranslations((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const translateSingleField = async (fieldKey, targetLang) => {
+    const loadingKey = `${fieldKey}_${targetLang}`;
+    setFieldTranslating((prev) => ({ ...prev, [loadingKey]: true }));
+    try {
+      if (targetLang === "ja") {
+        const text = data[fieldKey];
+        if (text && text.trim()) {
+          const result = await translateToJapanese(text);
+          handleTranslationChange(fieldKey, result);
+        }
+      } else {
+        const text = translations[fieldKey];
+        if (text && text.trim()) {
+          const result = await translateToIndonesian(text);
+          handleChange(fieldKey, result);
+        }
+      }
+    } catch (err) {
+      console.error(`Translation error for ${fieldKey} to ${targetLang}:`, err);
+    } finally {
+      setFieldTranslating((prev) => ({ ...prev, [loadingKey]: false }));
+    }
+  };
+
+  const translateJobField = async (index, targetLang) => {
+    const fieldKey = `pekerjaan_${index}_uraian`;
+    const loadingKey = `${fieldKey}_${targetLang}`;
+    setFieldTranslating((prev) => ({ ...prev, [loadingKey]: true }));
+    try {
+      if (targetLang === "ja") {
+        const text = data.pekerjaan?.[index]?.uraian;
+        if (text && text.trim()) {
+          const result = await translateToJapanese(text);
+          handleTranslationChange(fieldKey, result);
+        }
+      } else {
+        const text = translations[fieldKey];
+        if (text && text.trim()) {
+          const result = await translateToIndonesian(text);
+          handlePekerjaanChange(index, "uraian", result);
+        }
+      }
+    } catch (err) {
+      console.error(`Translation error for ${fieldKey} to ${targetLang}:`, err);
+    } finally {
+      setFieldTranslating((prev) => ({ ...prev, [loadingKey]: false }));
+    }
   };
 
   // Auto translate all translatable fields
@@ -669,7 +719,14 @@ export default function EditCandidatePage() {
                 ].map((f) => (
                   <div key={f.key}>
                     <label className="form-label">{f.label}</label>
-                    <input className="input-field text-xs" value={data[f.key] || ""} onChange={(e) => handleChange(f.key, e.target.value)} placeholder="https://drive.google.com/..." />
+                    <div className="flex gap-2">
+                      <input className="input-field text-xs flex-grow" value={data[f.key] || ""} onChange={(e) => handleChange(f.key, e.target.value)} placeholder="https://drive.google.com/..." />
+                      {data[f.key] && data[f.key].match(/^https?:\/\//) && (
+                        <a href={data[f.key]} target="_blank" rel="noopener noreferrer" className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors" title="View Document">
+                          View
+                        </a>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -846,22 +903,24 @@ export default function EditCandidatePage() {
               <div className="mt-4 border-t pt-4">
                 <h4 className="font-medium text-gray-700 mb-3">Link Dokumen</h4>
                 <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="form-label">Pas Photo (URL)</label>
-                    <input className="input-field text-xs" value={data.pasPhoto || ""} onChange={(e) => handleChange("pasPhoto", e.target.value)} placeholder="https://drive.google.com/..." />
-                  </div>
-                  <div>
-                    <label className="form-label">Sertifikat Bahasa Jepang (URL)</label>
-                    <input className="input-field text-xs" value={data.sertifikatBahasaJepang || ""} onChange={(e) => handleChange("sertifikatBahasaJepang", e.target.value)} placeholder="https://drive.google.com/..." />
-                  </div>
-                  <div>
-                    <label className="form-label">Sertifikat SSW (URL)</label>
-                    <input className="input-field text-xs" value={data.sertifikatSSW || ""} onChange={(e) => handleChange("sertifikatSSW", e.target.value)} placeholder="https://drive.google.com/..." />
-                  </div>
-                  <div>
-                    <label className="form-label">CV/Rirekisho (URL)</label>
-                    <input className="input-field text-xs" value={data.cvRirekisho || ""} onChange={(e) => handleChange("cvRirekisho", e.target.value)} placeholder="https://drive.google.com/..." />
-                  </div>
+                  {[
+                    { key: "pasPhoto", label: "Pas Photo (URL)" },
+                    { key: "sertifikatBahasaJepang", label: "Sertifikat Bahasa Jepang (URL)" },
+                    { key: "sertifikatSSW", label: "Sertifikat SSW (URL)" },
+                    { key: "cvRirekisho", label: "CV/Rirekisho (URL)" },
+                  ].map((f) => (
+                    <div key={f.key}>
+                      <label className="form-label">{f.label}</label>
+                      <div className="flex gap-2">
+                        <input className="input-field text-xs flex-grow" value={data[f.key] || ""} onChange={(e) => handleChange(f.key, e.target.value)} placeholder="https://drive.google.com/..." />
+                        {data[f.key] && data[f.key].match(/^https?:\/\//) && (
+                          <a href={data[f.key]} target="_blank" rel="noopener noreferrer" className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors" title="View Document">
+                            View
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -875,34 +934,64 @@ export default function EditCandidatePage() {
           <div className="space-y-4">
             <div className="card">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-gray-700">Terjemahan Bahasa Jepang</h3>
-                <button onClick={handleAutoTranslate} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700" disabled={translating}>
+                <h3 className="font-semibold text-gray-700">Terjemahan Bahasa Jepang (Versi Terintegrasi)</h3>
+                <button onClick={handleAutoTranslate} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 font-medium" disabled={translating}>
                   {translating ? "Menerjemahkan..." : "Auto Translate Semua"}
                 </button>
               </div>
               <p className="text-xs text-gray-500 mb-4">
-                Klik "Auto Translate" untuk terjemahan otomatis, lalu edit manual jika perlu. Hasil terjemahan akan muncul di CV.
+                Versi Indonesia dan Jepang kini saling terintegrasi. Anda bisa langsung mengedit kedua bahasa di bawah ini secara bersamaan. Gunakan tombol terjemahan per-kolom untuk sinkronisasi instan arah bolak-balik (ID <span className="text-blue-600 font-bold font-mono">⇌</span> JP).
               </p>
 
               <div className="space-y-6">
                 {TRANSLATABLE_FIELDS.map((f) => (
-                  <div key={f.key} className="border border-gray-200 rounded-lg p-4">
-                    <label className="form-label text-blue-600">{f.label}</label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                      <div>
-                        <span className="text-xs text-gray-400 block mb-1">Indonesia (asli)</span>
-                        <div className="bg-gray-50 p-2 rounded text-xs text-gray-600 min-h-[60px]">
-                          {data[f.key] || <span className="text-gray-300 italic">kosong</span>}
+                  <div key={f.key} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                    <label className="form-label text-blue-600 font-semibold mb-2 block">{f.label}</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Indonesia input (bisa diedit!) */}
+                      <div className="flex flex-col justify-between h-full">
+                        <div>
+                          <span className="text-xs text-gray-500 block mb-1 font-medium font-mono">Bahasa Indonesia</span>
+                          <textarea
+                            className="input-field min-h-[85px] text-sm bg-white"
+                            value={data[f.key] || ""}
+                            onChange={(e) => handleChange(f.key, e.target.value)}
+                            placeholder="Ketik deskripsi dalam bahasa Indonesia..."
+                          />
+                        </div>
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => translateSingleField(f.key, "ja")}
+                            className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50"
+                            disabled={fieldTranslating[`${f.key}_ja`]}
+                          >
+                            {fieldTranslating[`${f.key}_ja`] ? "Menerjemahkan..." : "Terjemahkan ke Jepang ➜"}
+                          </button>
                         </div>
                       </div>
-                      <div>
-                        <span className="text-xs text-gray-400 block mb-1">日本語 (Jepang) — bisa diedit</span>
-                        <textarea
-                          className="input-field min-h-[60px] text-sm"
-                          value={translations[f.key] || ""}
-                          onChange={(e) => handleTranslationChange(f.key, e.target.value)}
-                          placeholder="Terjemahan bahasa Jepang..."
-                        />
+
+                      {/* Japanese input */}
+                      <div className="flex flex-col justify-between h-full">
+                        <div>
+                          <span className="text-xs text-gray-500 block mb-1 font-medium font-mono">日本語 (Bahasa Jepang)</span>
+                          <textarea
+                            className="input-field min-h-[85px] text-sm bg-white"
+                            value={translations[f.key] || ""}
+                            onChange={(e) => handleTranslationChange(f.key, e.target.value)}
+                            placeholder="Terjemahan bahasa Jepang..."
+                          />
+                        </div>
+                        <div className="mt-2 flex justify-start">
+                          <button
+                            type="button"
+                            onClick={() => translateSingleField(f.key, "id")}
+                            className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-medium bg-purple-50 hover:bg-purple-100 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50"
+                            disabled={fieldTranslating[`${f.key}_id`]}
+                          >
+                            {fieldTranslating[`${f.key}_id`] ? "Menerjemahkan..." : "⬅ Terjemahkan ke Indonesia"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -917,25 +1006,55 @@ export default function EditCandidatePage() {
                         if (!p?.uraian || !p.uraian.trim()) return null;
                         const key = `pekerjaan_${index}_uraian`;
                         return (
-                          <div key={key} className="border border-gray-200 rounded-lg p-4">
-                            <label className="form-label text-blue-600">
+                          <div key={key} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                            <label className="form-label text-blue-600 font-semibold mb-2 block">
                               Pekerjaan {index + 1}: {p.perusahaan || `Entry ${index + 1}`}
                             </label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                              <div>
-                                <span className="text-xs text-gray-400 block mb-1">Indonesia (asli)</span>
-                                <div className="bg-gray-50 p-2 rounded text-xs text-gray-600 min-h-[60px]">
-                                  {p.uraian}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Indonesia input (bisa diedit!) */}
+                              <div className="flex flex-col justify-between h-full">
+                                <div>
+                                  <span className="text-xs text-gray-500 block mb-1 font-medium font-mono">Bahasa Indonesia</span>
+                                  <textarea
+                                    className="input-field min-h-[85px] text-sm bg-white"
+                                    value={p.uraian || ""}
+                                    onChange={(e) => handlePekerjaanChange(index, "uraian", e.target.value)}
+                                    placeholder="Deskripsi pekerjaan dalam bahasa Indonesia..."
+                                  />
+                                </div>
+                                <div className="mt-2 flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => translateJobField(index, "ja")}
+                                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50"
+                                    disabled={fieldTranslating[`${key}_ja`]}
+                                  >
+                                    {fieldTranslating[`${key}_ja`] ? "Menerjemahkan..." : "Terjemahkan ke Jepang ➜"}
+                                  </button>
                                 </div>
                               </div>
-                              <div>
-                                <span className="text-xs text-gray-400 block mb-1">日本語 (Jepang) — bisa diedit</span>
-                                <textarea
-                                  className="input-field min-h-[60px] text-sm"
-                                  value={translations[key] || ""}
-                                  onChange={(e) => handleTranslationChange(key, e.target.value)}
-                                  placeholder="Terjemahan bahasa Jepang..."
-                                />
+
+                              {/* Japanese input */}
+                              <div className="flex flex-col justify-between h-full">
+                                <div>
+                                  <span className="text-xs text-gray-500 block mb-1 font-medium font-mono">日本語 (Bahasa Jepang)</span>
+                                  <textarea
+                                    className="input-field min-h-[85px] text-sm bg-white"
+                                    value={translations[key] || ""}
+                                    onChange={(e) => handleTranslationChange(key, e.target.value)}
+                                    placeholder="Terjemahan bahasa Jepang..."
+                                  />
+                                </div>
+                                <div className="mt-2 flex justify-start">
+                                  <button
+                                    type="button"
+                                    onClick={() => translateJobField(index, "id")}
+                                    className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-medium bg-purple-50 hover:bg-purple-100 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50"
+                                    disabled={fieldTranslating[`${key}_id`]}
+                                  >
+                                    {fieldTranslating[`${key}_id`] ? "Menerjemahkan..." : "⬅ Terjemahkan ke Indonesia"}
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
