@@ -40,6 +40,27 @@ export default function EditCandidatePage() {
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState("");
   const [activeTab, setActiveTab] = useState("data"); // data | certs | japanese
+  const [viewerUrl, setViewerUrl] = useState("");
+  const [viewerTitle, setViewerTitle] = useState("");
+
+  const handleOpenViewer = (url, title) => {
+    if (!url) return;
+    let embedUrl = url;
+    const patterns = [
+      /\/open\?id=([a-zA-Z0-9_-]+)/,
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,
+      /id=([a-zA-Z0-9_-]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        embedUrl = `https://drive.google.com/file/d/${match[1]}/preview`;
+        break;
+      }
+    }
+    setViewerUrl(embedUrl);
+    setViewerTitle(title);
+  };
 
   useEffect(() => {
     if (!authLoading && (!user || userData?.role !== "admin")) {
@@ -223,6 +244,9 @@ export default function EditCandidatePage() {
           <button onClick={() => setActiveTab("data")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "data" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             Data Kandidat
           </button>
+          <button onClick={() => setActiveTab("progres")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "progres" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+            Status Progres
+          </button>
           <button onClick={() => setActiveTab("certs")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "certs" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             Sertifikat
           </button>
@@ -230,6 +254,83 @@ export default function EditCandidatePage() {
             Terjemahan Jepang
           </button>
         </div>
+
+        {activeTab === "progres" && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="card">
+              <h3 className="font-semibold text-gray-700 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                Manajemen Status Progres Kandidat
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="form-label">Status Progres</label>
+                  <select 
+                    className="input-field" 
+                    value={data.statusProgres || ""} 
+                    onChange={(e) => handleChange("statusProgres", e.target.value)}
+                  >
+                    <option value="">-- Pilih Status --</option>
+                    <option value="On Proses">On Proses</option>
+                    <option value="Pending Nunggu Job">Pending Nunggu Job</option>
+                    <option value="Cancel">Cancel</option>
+                    <option value="Status On Job (Selesai)">Status On Job (Selesai)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Nama TSK</label>
+                  <input 
+                    className="input-field" 
+                    value={data.namaTsk || ""} 
+                    onChange={(e) => handleChange("namaTsk", e.target.value)}
+                    placeholder="Masukkan Nama TSK..."
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Nama Perusahaan</label>
+                  <input 
+                    className="input-field" 
+                    value={data.namaPerusahaanProgres || ""} 
+                    onChange={(e) => handleChange("namaPerusahaanProgres", e.target.value)}
+                    placeholder="Masukkan Nama Perusahaan..."
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Lokasi Perusahaan</label>
+                  <input 
+                    className="input-field" 
+                    value={data.lokasiPerusahaan || ""} 
+                    onChange={(e) => handleChange("lokasiPerusahaan", e.target.value)}
+                    placeholder="Masukkan lokasi di Jepang..."
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Jadwal Keberangkatan</label>
+                  <input 
+                    className="input-field" 
+                    value={data.jadwalKeberangkatan || ""} 
+                    onChange={(e) => handleChange("jadwalKeberangkatan", e.target.value)}
+                    placeholder="Contoh: April 2026 atau tanggal keberangkatan..."
+                  />
+                </div>
+                <div>
+                  <label className="form-label">COE Terbit</label>
+                  <input 
+                    className="input-field" 
+                    value={data.coeTerbit || ""} 
+                    onChange={(e) => handleChange("coeTerbit", e.target.value)}
+                    placeholder="Contoh: Terbit / Diproses / Belum Terbit..."
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button onClick={handleSave} className="btn-primary" disabled={saving}>
+                {saving ? "Menyimpan..." : "Simpan Progres"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {activeTab === "data" && (
           <div className="space-y-4">
@@ -373,7 +474,14 @@ export default function EditCandidatePage() {
                           </div>
                           <div>
                             <label className="form-label">Dokumen SIM A (URL)</label>
-                            <input className="input-field text-xs" value={data.dokumenSimA || ""} onChange={(e) => handleChange("dokumenSimA", e.target.value)} placeholder="https://..." />
+                            <div className="flex gap-2">
+                              <input className="input-field text-xs flex-grow" value={data.dokumenSimA || ""} onChange={(e) => handleChange("dokumenSimA", e.target.value)} placeholder="https://..." />
+                              {data.dokumenSimA && data.dokumenSimA.match(/^https?:\/\//) && (
+                                <button type="button" onClick={() => handleOpenViewer(data.dokumenSimA, "Dokumen SIM A")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
+                                  View
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </>
                       )}
@@ -397,7 +505,14 @@ export default function EditCandidatePage() {
                           </div>
                           <div>
                             <label className="form-label">Dokumen SIM B (URL)</label>
-                            <input className="input-field text-xs" value={data.dokumenSimB || ""} onChange={(e) => handleChange("dokumenSimB", e.target.value)} placeholder="https://..." />
+                            <div className="flex gap-2">
+                              <input className="input-field text-xs flex-grow" value={data.dokumenSimB || ""} onChange={(e) => handleChange("dokumenSimB", e.target.value)} placeholder="https://..." />
+                              {data.dokumenSimB && data.dokumenSimB.match(/^https?:\/\//) && (
+                                <button type="button" onClick={() => handleOpenViewer(data.dokumenSimB, "Dokumen SIM B")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
+                                  View
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </>
                       )}
@@ -421,7 +536,14 @@ export default function EditCandidatePage() {
                           </div>
                           <div>
                             <label className="form-label">Dokumen SIM C (URL)</label>
-                            <input className="input-field text-xs" value={data.dokumenSimC || ""} onChange={(e) => handleChange("dokumenSimC", e.target.value)} placeholder="https://..." />
+                            <div className="flex gap-2">
+                              <input className="input-field text-xs flex-grow" value={data.dokumenSimC || ""} onChange={(e) => handleChange("dokumenSimC", e.target.value)} placeholder="https://..." />
+                              {data.dokumenSimC && data.dokumenSimC.match(/^https?:\/\//) && (
+                                <button type="button" onClick={() => handleOpenViewer(data.dokumenSimC, "Dokumen SIM C")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
+                                  View
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </>
                       )}
@@ -485,11 +607,25 @@ export default function EditCandidatePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="form-label">Sertifikat Senmonkyuu/Hyoukachosho (URL)</label>
-                    <input className="input-field text-xs" value={data.sertifikatSenmonkyuu || ""} onChange={(e) => handleChange("sertifikatSenmonkyuu", e.target.value)} placeholder="https://..." />
+                    <div className="flex gap-2">
+                      <input className="input-field text-xs flex-grow" value={data.sertifikatSenmonkyuu || ""} onChange={(e) => handleChange("sertifikatSenmonkyuu", e.target.value)} placeholder="https://..." />
+                      {data.sertifikatSenmonkyuu && data.sertifikatSenmonkyuu.match(/^https?:\/\//) && (
+                        <button type="button" onClick={() => handleOpenViewer(data.sertifikatSenmonkyuu, "Sertifikat Senmonkyuu")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
+                          View
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="form-label">Sertifikat Selesai Magang/JITCO (URL)</label>
-                    <input className="input-field text-xs" value={data.sertifikatSelesaiMagang || ""} onChange={(e) => handleChange("sertifikatSelesaiMagang", e.target.value)} placeholder="https://..." />
+                    <div className="flex gap-2">
+                      <input className="input-field text-xs flex-grow" value={data.sertifikatSelesaiMagang || ""} onChange={(e) => handleChange("sertifikatSelesaiMagang", e.target.value)} placeholder="https://..." />
+                      {data.sertifikatSelesaiMagang && data.sertifikatSelesaiMagang.match(/^https?:\/\//) && (
+                        <button type="button" onClick={() => handleOpenViewer(data.sertifikatSelesaiMagang, "Sertifikat Selesai Magang")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
+                          View
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="md:col-span-2">
                     <label className="form-label">Deskripsi Pekerjaan Magang/TG</label>
@@ -510,11 +646,25 @@ export default function EditCandidatePage() {
                   </div>
                   <div>
                     <label className="form-label">Scan Ijazah (URL)</label>
-                    <input className="input-field text-xs" value={data.scanIjazah || ""} onChange={(e) => handleChange("scanIjazah", e.target.value)} placeholder="https://..." />
+                    <div className="flex gap-2">
+                      <input className="input-field text-xs flex-grow" value={data.scanIjazah || ""} onChange={(e) => handleChange("scanIjazah", e.target.value)} placeholder="https://..." />
+                      {data.scanIjazah && data.scanIjazah.match(/^https?:\/\//) && (
+                        <button type="button" onClick={() => handleOpenViewer(data.scanIjazah, "Scan Ijazah")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
+                          View
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="form-label">Transkrip Nilai D3/S1 (URL)</label>
-                    <input className="input-field text-xs" value={data.transkripNilai || ""} onChange={(e) => handleChange("transkripNilai", e.target.value)} placeholder="https://..." />
+                    <div className="flex gap-2">
+                      <input className="input-field text-xs flex-grow" value={data.transkripNilai || ""} onChange={(e) => handleChange("transkripNilai", e.target.value)} placeholder="https://..." />
+                      {data.transkripNilai && data.transkripNilai.match(/^https?:\/\//) && (
+                        <button type="button" onClick={() => handleOpenViewer(data.transkripNilai, "Transkrip Nilai")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
+                          View
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="md:col-span-2">
                     <label className="form-label">Riwayat Pekerjaan yang Relevan</label>
@@ -722,9 +872,14 @@ export default function EditCandidatePage() {
                     <div className="flex gap-2">
                       <input className="input-field text-xs flex-grow" value={data[f.key] || ""} onChange={(e) => handleChange(f.key, e.target.value)} placeholder="https://drive.google.com/..." />
                       {data[f.key] && data[f.key].match(/^https?:\/\//) && (
-                        <a href={data[f.key]} target="_blank" rel="noopener noreferrer" className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors" title="View Document">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenViewer(data[f.key], f.label)}
+                          className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors"
+                          title="View Document"
+                        >
                           View
-                        </a>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -914,9 +1069,14 @@ export default function EditCandidatePage() {
                       <div className="flex gap-2">
                         <input className="input-field text-xs flex-grow" value={data[f.key] || ""} onChange={(e) => handleChange(f.key, e.target.value)} placeholder="https://drive.google.com/..." />
                         {data[f.key] && data[f.key].match(/^https?:\/\//) && (
-                          <a href={data[f.key]} target="_blank" rel="noopener noreferrer" className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors" title="View Document">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenViewer(data[f.key], f.label)}
+                            className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors"
+                            title="View Document"
+                          >
                             View
-                          </a>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -1074,6 +1234,60 @@ export default function EditCandidatePage() {
           </div>
         )}
       </div>
+
+      {/* Document Viewer Modal */}
+      {viewerUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-2xl w-[95vw] max-w-5xl h-[88vh] flex flex-col overflow-hidden border border-gray-100">
+            {/* Modal Header */}
+            <div className="bg-gray-50 px-5 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <h3 className="font-semibold text-gray-800 text-sm md:text-base">Document Viewer - {viewerTitle}</h3>
+              </div>
+              <div className="flex items-center gap-3">
+                <a
+                  href={viewerUrl.replace("/preview", "/view")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded transition-transform"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Buka Tab Baru
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewerUrl("");
+                    setViewerTitle("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 p-1.5 rounded-lg transition-colors focus:outline-none"
+                  aria-label="Close Viewer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body (Iframe) */}
+            <div className="flex-grow bg-gray-100 relative">
+              <iframe
+                src={viewerUrl}
+                className="absolute inset-0 w-full h-full border-0"
+                allow="autoplay"
+                title={viewerTitle}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

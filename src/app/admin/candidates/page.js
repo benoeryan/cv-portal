@@ -17,6 +17,7 @@ export default function AdminCandidatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBidang, setFilterBidang] = useState("");
   const [filterKategori, setFilterKategori] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [selected, setSelected] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null); // single delete
@@ -54,10 +55,13 @@ export default function AdminCandidatesPage() {
     const matchSearch = !searchTerm ||
       c.namaLengkap?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.kodeJob?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.namaPanggilan?.toLowerCase().includes(searchTerm.toLowerCase());
+      c.namaPanggilan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.namaTsk?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.namaPerusahaanProgres?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchBidang = !filterBidang || c.bidangKerja === filterBidang;
     const matchKategori = !filterKategori || c.kategoriKandidat === filterKategori;
-    return matchSearch && matchBidang && matchKategori;
+    const matchStatus = !filterStatus || c.statusProgres === filterStatus;
+    return matchSearch && matchBidang && matchKategori && matchStatus;
   });
 
   const uniqueBidang = [...new Set(candidates.map((c) => c.bidangKerja).filter(Boolean))];
@@ -371,10 +375,10 @@ export default function AdminCandidatesPage() {
 
         {/* Filters */}
         <div className="card mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="form-label">Cari</label>
-              <input className="input-field" placeholder="Nama / Kode Job..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input className="input-field" placeholder="Nama / Kode Job / TSK..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <div>
               <label className="form-label">Kategori</label>
@@ -390,8 +394,18 @@ export default function AdminCandidatesPage() {
                 {uniqueBidang.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
+            <div>
+              <label className="form-label font-medium text-gray-600">Status Progres</label>
+              <select className="input-field" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                <option value="">Semua</option>
+                <option value="On Proses">On Proses</option>
+                <option value="Pending Nunggu Job">Pending Nunggu Job</option>
+                <option value="Cancel">Cancel</option>
+                <option value="Status On Job (Selesai)">Status On Job (Selesai)</option>
+              </select>
+            </div>
             <div className="flex items-end">
-              <span className="text-sm text-gray-500">{filtered.length} hasil</span>
+              <span className="text-sm text-gray-500 font-medium">{filtered.length} hasil</span>
             </div>
           </div>
         </div>
@@ -406,9 +420,11 @@ export default function AdminCandidatesPage() {
                 </th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Foto</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Nama Lengkap</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Bidang</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Kategori</th>
+                <th className="text-left py-3 px-1 font-medium text-gray-600">Bidang</th>
+                <th className="text-left py-3 px-1 font-medium text-gray-600">Kategori</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Kode Job</th>
+                <th className="text-left py-3 px-2 font-medium text-gray-600">Status Progres</th>
+                <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Aksi</th>
               </tr>
@@ -426,17 +442,44 @@ export default function AdminCandidatesPage() {
                     <div className="font-medium text-gray-800">{c.namaLengkap}</div>
                     <div className="text-xs text-gray-400">{c.namaPanggilan}</div>
                   </td>
-                  <td className="py-3 px-2">
+                  <td className="py-3 px-1">
                     <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">{c.bidangKerja}</span>
                   </td>
-                  <td className="py-3 px-2">
-                    <span className={`px-2 py-0.5 rounded text-xs ${
+                  <td className="py-3 px-1">
+                    <span className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
                       c.kategoriKandidat === "NEW COMER" ? "bg-green-100 text-green-700" :
                       c.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" ? "bg-purple-100 text-purple-700" :
                       "bg-orange-100 text-orange-700"
                     }`}>{c.kategoriKandidat}</span>
                   </td>
-                  <td className="py-3 px-2 text-gray-600">{c.kodeJob}</td>
+                  <td className="py-3 px-2 text-gray-600">{c.kodeJob || "-"}</td>
+                  <td className="py-3 px-2">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                      c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700 border border-sky-200" :
+                      c.statusProgres === "Pending Nunggu Job" ? "bg-amber-100 text-amber-700 border border-amber-200" :
+                      c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700 border border-rose-200" :
+                      c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" :
+                      "bg-gray-100 text-gray-600 border border-gray-200"
+                    }`}>
+                      {c.statusProgres || "Belum Ada"}
+                    </span>
+                  </td>
+                  <td className="py-3 px-2 text-xs text-gray-600 min-w-[200px]">
+                    {c.statusProgres ? (
+                      <div className="space-y-1">
+                        {c.namaTsk && <div><span className="font-medium text-gray-400">TSK:</span> <span className="font-medium text-gray-700">{c.namaTsk}</span></div>}
+                        {c.namaPerusahaanProgres && <div><span className="font-medium text-gray-400">Perusahaan:</span> <span className="font-medium text-gray-700">{c.namaPerusahaanProgres}</span></div>}
+                        {c.lokasiPerusahaan && <div><span className="font-medium text-gray-400">Lokasi:</span> <span className="font-medium text-gray-700">{c.lokasiPerusahaan}</span></div>}
+                        {c.jadwalKeberangkatan && <div><span className="font-medium text-gray-400">Keberangkatan:</span> <span className="font-medium text-gray-700">{c.jadwalKeberangkatan}</span></div>}
+                        {c.coeTerbit && <div><span className="font-medium text-gray-400">COE:</span> <span className="font-medium text-gray-700">{c.coeTerbit}</span></div>}
+                        {!c.namaTsk && !c.namaPerusahaanProgres && !c.lokasiPerusahaan && !c.jadwalKeberangkatan && !c.coeTerbit && (
+                          <span className="text-gray-400 italic">Data progres kosong</span>
+                        )}
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
                   <td className="py-3 px-2 text-gray-600 text-xs">{c.noHp}</td>
                   <td className="py-3 px-2">
                     <div className="flex space-x-2">
