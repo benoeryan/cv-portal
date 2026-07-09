@@ -376,6 +376,7 @@ export default function EditCandidatePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   { key: "namaLengkap", label: "Nama Lengkap" },
+                  { key: "namaTangan", label: "Nama (Tulis Tangan - Optional)" },
                   { key: "namaPanggilan", label: "Nama Panggilan" },
                   { key: "noHp", label: "No HP" },
                   { key: "email", label: "Email" },

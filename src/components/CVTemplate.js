@@ -46,8 +46,8 @@ export default function CVTemplate({ data }) {
               {data.kategoriKandidat?.toUpperCase() === "NEW COMER" && (
                 <tr>
                   <td className="font-bold bg-gray-100 w-[14%] text-xs">氏名 (手書き)</td>
-                  <td colSpan="5" className="h-[45px] bg-white text-gray-300 text-[10px] text-center italic align-middle select-none">
-                    (Tulis nama lengkap dengan tangan di sini setelah dicetak / Please write your full name here by hand after printing)
+                  <td colSpan="5" className={`h-[45px] bg-white text-center align-middle select-none ${data.namaTangan ? "text-base font-bold" : "text-gray-300 text-[10px] italic"}`}>
+                    {data.namaTangan || "(Tulis nama lengkap dengan tangan di sini setelah dicetak / Please write your full name here by hand after printing)"}
                   </td>
                 </tr>
               )}
