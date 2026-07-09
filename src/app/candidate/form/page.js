@@ -20,6 +20,7 @@ const YA_TIDAK = ["YA", "TIDAK"];
 const DOMINAN_TANGAN_OPTIONS = ["KANAN", "KIRI"];
 const HUBUNGAN_KELUARGA = ["AYAH", "IBU", "KAKAK LAKI-LAKI", "KAKAK PEREMPUAN", "ADIK LAKI-LAKI", "ADIK PEREMPUAN", "SUAMI", "ISTRI", "ANAK LAKI-LAKI", "ANAK PEREMPUAN", "KAKEK", "NENEK", "PAMAN", "BIBI"];
 const STATUS_PEKERJA_OPTIONS = ["Pegawai Tetap", "Pegawai Kontrak", "Magang/Internship", "Ginou jisshuusei", "Membantu Orang Tua", "Usaha Pribadi"];
+const DOC_ACCEPT = "image/*,application/pdf,.doc,.docx,.xls,.xlsx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 function FormSection({ title, children }) {
   return (
@@ -351,7 +352,7 @@ export default function CandidateFormPage() {
                       {formData.simA === "YA" && (
                         <>
                           <InputField label="Nomor SIM A" name="nomorSimA" value={formData.nomorSimA} onChange={handleChange} required placeholder="Masukkan nomor SIM A" />
-                          <UploadField label="Upload SIM A" name="dokumenSimA" value={formData.dokumenSimA} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} />
+                          <UploadField label="Upload SIM A" name="dokumenSimA" value={formData.dokumenSimA} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} />
                         </>
                       )}
                     </div>
@@ -363,7 +364,7 @@ export default function CandidateFormPage() {
                       {formData.simB === "YA" && (
                         <>
                           <InputField label="Nomor SIM B" name="nomorSimB" value={formData.nomorSimB} onChange={handleChange} required placeholder="Masukkan nomor SIM B" />
-                          <UploadField label="Upload SIM B" name="dokumenSimB" value={formData.dokumenSimB} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} />
+                          <UploadField label="Upload SIM B" name="dokumenSimB" value={formData.dokumenSimB} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} />
                         </>
                       )}
                     </div>
@@ -375,7 +376,7 @@ export default function CandidateFormPage() {
                       {formData.simC === "YA" && (
                         <>
                           <InputField label="Nomor SIM C" name="nomorSimC" value={formData.nomorSimC} onChange={handleChange} required placeholder="Masukkan nomor SIM C" />
-                          <UploadField label="Upload SIM C" name="dokumenSimC" value={formData.dokumenSimC} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} />
+                          <UploadField label="Upload SIM C" name="dokumenSimC" value={formData.dokumenSimC} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} />
                         </>
                       )}
                     </div>
@@ -406,8 +407,8 @@ export default function CandidateFormPage() {
           {/* KHUSUS EX-MAGANG: Sertifikat Tambahan */}
           {formData.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" && (
             <FormSection title="Dokumen Khusus Ex-Magang/Ex-Traineer">
-              <UploadField label="Sertifikat Senmonkyuu/Hyoukachosho" name="sertifikatSenmonkyuu" value={formData.sertifikatSenmonkyuu} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
-              <UploadField label="Sertifikat Selesai Magang/JITCO" name="sertifikatSelesaiMagang" value={formData.sertifikatSelesaiMagang} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
+              <UploadField label="Sertifikat Senmonkyuu/Hyoukachosho" name="sertifikatSenmonkyuu" value={formData.sertifikatSenmonkyuu} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
+              <UploadField label="Sertifikat Selesai Magang/JITCO" name="sertifikatSelesaiMagang" value={formData.sertifikatSelesaiMagang} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
               <InputField label="Deskripsi Pekerjaan Magang/TG" name="deskripsiMagang" value={formData.deskripsiMagang} onChange={handleChange} type="textarea" fullWidth />
             </FormSection>
           )}
@@ -416,8 +417,8 @@ export default function CandidateFormPage() {
           {formData.kategoriKandidat === "ENGINEERING/GIJINKOKU" && (
             <FormSection title="Dokumen Khusus Engineering/Gijinkoku">
               <InputField label="Jurusan D3/S1" name="jurusanUniv" value={formData.jurusanUniv} onChange={handleChange} required />
-              <UploadField label="Scan Ijazah" name="scanIjazah" value={formData.scanIjazah} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
-              <UploadField label="Transkrip Nilai D3/S1" name="transkripNilai" value={formData.transkripNilai} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
+              <UploadField label="Scan Ijazah" name="scanIjazah" value={formData.scanIjazah} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
+              <UploadField label="Transkrip Nilai D3/S1" name="transkripNilai" value={formData.transkripNilai} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
               <InputField label="Riwayat Pekerjaan yang Relevan" name="riwayatRelevan" value={formData.riwayatRelevan} onChange={handleChange} type="textarea" fullWidth />
             </FormSection>
           )}
@@ -548,11 +549,11 @@ export default function CandidateFormPage() {
           {/* DOKUMEN / SERTIFIKAT */}
           <FormSection title="Upload Dokumen">
             <UploadField label="Pas Photo 3x4" name="pasPhoto" value={formData.pasPhoto} onChange={handleChange} accept="image/*" userId={user?.uid} fullWidth />
-            <UploadField label="Sertifikat Bahasa Jepang JFT/JLPT" name="sertifikatBahasaJepang" value={formData.sertifikatBahasaJepang} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
+            <UploadField label="Sertifikat Bahasa Jepang JFT/JLPT" name="sertifikatBahasaJepang" value={formData.sertifikatBahasaJepang} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
             <UploadField label="Video Screen Recording JFT" name="videoJFT" value={formData.videoJFT} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
-            <UploadField label="Sertifikat SSW" name="sertifikatSSW" value={formData.sertifikatSSW} onChange={handleChange} accept="image/*,application/pdf" userId={user?.uid} fullWidth />
+            <UploadField label="Sertifikat SSW" name="sertifikatSSW" value={formData.sertifikatSSW} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
             <UploadField label="Video Screen Recording SSW" name="videoSSW" value={formData.videoSSW} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
-            <UploadField label="CV/Rirekisho" name="cvRirekisho" value={formData.cvRirekisho} onChange={handleChange} accept="application/pdf,image/*" userId={user?.uid} fullWidth />
+            <UploadField label="CV/Rirekisho" name="cvRirekisho" value={formData.cvRirekisho} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
           </FormSection>
 
           <div className="flex justify-end space-x-3 mb-12">
