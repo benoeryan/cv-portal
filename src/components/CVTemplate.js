@@ -125,7 +125,9 @@ export default function CVTemplate({ data }) {
           </tr>
           <tr>
             <td className="font-bold bg-gray-100">アレルギー</td>
-            <td colSpan="7">{boolToJP(data.alergi)}{data.alergi === "YA" ? ` (${data.namaAlergi})` : ""}</td>
+            <td colSpan="3">{boolToJP(data.alergi)}{data.alergi === "YA" ? ` (${data.namaAlergi})` : ""}</td>
+            <td className="font-bold bg-gray-100">趣味</td>
+            <td colSpan="3">{data.hobi}</td>
           </tr>
         </tbody>
       </table>
@@ -273,9 +275,7 @@ export default function CVTemplate({ data }) {
         <tbody>
           <tr>
             <td className="font-bold bg-gray-100 w-[14%]">入国歴</td>
-            <td className="w-[36%]">{data.pernahKeJepang === "YA" ? `有 (${data.keperluanApa || ""})` : "無"}</td>
-            <td className="font-bold bg-gray-100 w-[14%]">趣味</td>
-            <td>{data.hobi}</td>
+            <td colSpan="5">{data.pernahKeJepang === "YA" ? `有 (${data.keperluanApa || ""})` : "無"}</td>
           </tr>
         </tbody>
       </table>
