@@ -102,8 +102,8 @@ export default function CVTemplate({ data }) {
           <tr>
             <td className="font-bold bg-gray-100">パスポート</td>
             <td>{data.memilikiPaspor === "YA" || data.nomorPaspor ? `有 (${data.nomorPaspor || ""})` : "無"}</td>
-            <td className="font-bold bg-gray-100">有効期限</td>
-            <td>{data.masaBerlakuPaspor ? formatDateJP(data.masaBerlakuPaspor) : "-"}</td>
+            <td className="font-bold bg-gray-100">入国歴</td>
+            <td>{data.pernahKeJepang === "YA" ? "有" : "無"}</td>
             <td className="font-bold bg-gray-100">利き手</td>
             <td>{data.dominanTangan === "KANAN" ? "右" : data.dominanTangan === "KIRI" ? "左" : "-"}</td>
           </tr>
