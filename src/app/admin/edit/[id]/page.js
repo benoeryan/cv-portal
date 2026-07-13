@@ -17,6 +17,11 @@ const TRANSLATABLE_FIELDS = [
   { key: "alasanKaigofukushishi", label: "Alasan Kaigofukushishi" },
   { key: "impianMasaDepan", label: "Impian Masa Depan" },
   { key: "hobi", label: "Hobi" },
+  { key: "promosiDiri", label: "Promosi Diri" },
+  { key: "deskripsiMagang", label: "Deskripsi Magang" },
+  { key: "riwayatRelevan", label: "Riwayat Relevan" },
+  { key: "tempatLahir", label: "Tempat Lahir" },
+  { key: "alamatLengkap", label: "Alamat Lengkap" },
 ];
 
 const CERT_TEMPLATES = [
@@ -155,6 +160,31 @@ export default function EditCandidatePage() {
     }
   };
 
+  const translateFamilyField = async (index, targetLang) => {
+    const fieldKey = `keluarga_${index}_pekerjaan`;
+    const loadingKey = `${fieldKey}_${targetLang}`;
+    setFieldTranslating((prev) => ({ ...prev, [loadingKey]: true }));
+    try {
+      if (targetLang === "ja") {
+        const text = data.keluarga?.[index]?.pekerjaan;
+        if (text && text.trim()) {
+          const result = await translateToJapanese(text);
+          handleTranslationChange(fieldKey, result);
+        }
+      } else {
+        const text = translations[fieldKey];
+        if (text && text.trim()) {
+          const result = await translateToIndonesian(text);
+          handleKeluargaChange(index, "pekerjaan", result);
+        }
+      }
+    } catch (err) {
+      console.error(`Translation error for ${fieldKey} to ${targetLang}:`, err);
+    } finally {
+      setFieldTranslating((prev) => ({ ...prev, [loadingKey]: false }));
+    }
+  };
+
   // Auto translate all translatable fields
   const handleAutoTranslate = async () => {
     setTranslating(true);
@@ -184,8 +214,136 @@ export default function EditCandidatePage() {
       }
     }
 
+    // Translate keluarga pekerjaan fields
+    const keluarga = data.keluarga || [];
+    for (let i = 0; i < keluarga.length; i++) {
+      if (keluarga[i]?.pekerjaan && keluarga[i].pekerjaan.trim()) {
+        try {
+          const result = await translateToJapanese(keluarga[i].pekerjaan);
+          newTranslations[`keluarga_${i}_pekerjaan`] = result;
+        } catch (err) {
+          console.error(`Translation error for keluarga_${i}_pekerjaan:`, err);
+        }
+      }
+    }
+
     setTranslations(newTranslations);
     setTranslating(false);
+  };
+
+  const handleFetchCertDates = async () => {
+    // Check if any certificate links exist
+    const hasJFT = data.sertifikatBahasaJepang && data.sertifikatBahasaJepang.includes("http");
+    const hasSSW = data.sertifikatSSW && data.sertifikatSSW.includes("http");
+    const hasSenmonkyuu = data.sertifikatSenmonkyuu && data.sertifikatSenmonkyuu.includes("http");
+    const hasMagang = data.sertifikatSelesaiMagang && data.sertifikatSelesaiMagang.includes("http");
+
+    if (!hasJFT && !hasSSW && !hasSenmonkyuu && !hasMagang) {
+      setMessage("Tidak ada link sertifikat. Isi link di bagian 'Link Dokumen' terlebih dahulu.");
+      return;
+    }
+
+    setExtracting(true);
+    setMessage("");
+    const results = [];
+    let successCount = 0;
+    let failCount = 0;
+
+    // Extract from sertifikatBahasaJepang -> tanggalJFT & tanggalJLPT
+    if (hasJFT) {
+      try {
+        const res = await fetch("/api/extract-cert-date", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: data.sertifikatBahasaJepang }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          handleChange("tanggalJFT", result.date);
+          handleChange("tanggalJLPT", result.date);
+          results.push(`JFT/JLPT: ${result.date}`);
+          successCount++;
+        } else {
+          results.push(`JFT/JLPT: Gagal - ${result.error}`);
+          failCount++;
+        }
+      } catch (err) {
+        results.push(`JFT/JLPT: Error - ${err.message}`);
+        failCount++;
+      }
+    }
+
+    // Extract from sertifikatSSW -> tanggalSSW
+    if (hasSSW) {
+      try {
+        const res = await fetch("/api/extract-cert-date", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: data.sertifikatSSW }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          handleChange("tanggalSSW", result.date);
+          results.push(`SSW: ${result.date}`);
+          successCount++;
+
+          if (data.bidangKerja === "KAIGO") {
+            handleChange("tanggalSSWKaigo", result.date);
+            results.push(`SSW Kaigo: ${result.date}`);
+          }
+        } else {
+          results.push(`SSW: Gagal - ${result.error}`);
+          failCount++;
+        }
+      } catch (err) {
+        results.push(`SSW: Error - ${err.message}`);
+        failCount++;
+      }
+    }
+
+    // Extract from sertifikatSenmonkyuu -> tanggalShuryoShomei
+    if (hasSenmonkyuu) {
+      try {
+        const res = await fetch("/api/extract-cert-date", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: data.sertifikatSenmonkyuu }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          handleChange("tanggalShuryoShomei", result.date);
+          results.push(`Senmonkyuu: ${result.date}`);
+          successCount++;
+        } else {
+          results.push(`Senmonkyuu: Gagal - ${result.error}`);
+          failCount++;
+        }
+      } catch (err) {
+        results.push(`Senmonkyuu: Error - ${err.message}`);
+        failCount++;
+      }
+    }
+
+    // Extract from sertifikatSelesaiMagang -> tanggalShuryoShomei (alternative)
+    if (hasMagang && !data.tanggalShuryoShomei) {
+      try {
+        const res = await fetch("/api/extract-cert-date", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: data.sertifikatSelesaiMagang }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          handleChange("tanggalShuryoShomei", result.date);
+          results.push(`Selesai Magang: ${result.date}`);
+          successCount++;
+        }
+      } catch (err) {}
+    }
+
+    setExtracting(false);
+    const summary = `Ekstraksi selesai: ${successCount} berhasil${failCount > 0 ? `, ${failCount} gagal` : ""}. ${results.join(" | ")}`;
+    setMessage(summary);
   };
 
   const handleSave = async () => {
@@ -922,102 +1080,7 @@ export default function EditCandidatePage() {
                     <p className="text-xs text-blue-500">Ekstrak tanggal ujian secara otomatis dari PDF sertifikat yang tersimpan di Google Drive</p>
                   </div>
                   <button
-                    onClick={async () => {
-                      // Check if any certificate links exist
-                      const hasJFT = data.sertifikatBahasaJepang && data.sertifikatBahasaJepang.includes("http");
-                      const hasSSW = data.sertifikatSSW && data.sertifikatSSW.includes("http");
-                      const hasSenmonkyuu = data.sertifikatSenmonkyuu && data.sertifikatSenmonkyuu.includes("http");
-                      
-                      if (!hasJFT && !hasSSW && !hasSenmonkyuu) {
-                        setMessage("Tidak ada link sertifikat. Isi link di bagian 'Link Dokumen' terlebih dahulu.");
-                        return;
-                      }
-
-                      setExtracting(true);
-                      setMessage("");
-                      const results = [];
-                      let successCount = 0;
-                      let failCount = 0;
-
-                      // Extract from sertifikatBahasaJepang -> tanggalJFT
-                      if (hasJFT) {
-                        try {
-                          const res = await fetch("/api/extract-cert-date", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ url: data.sertifikatBahasaJepang }),
-                          });
-                          const result = await res.json();
-                          if (result.success) {
-                            handleChange("tanggalJFT", result.date);
-                            results.push(`JFT: ${result.date}`);
-                            successCount++;
-                          } else {
-                            results.push(`JFT: Gagal - ${result.error}`);
-                            failCount++;
-                          }
-                        } catch (err) {
-                          results.push(`JFT: Error - ${err.message}`);
-                          failCount++;
-                        }
-                      }
-
-                      // Extract from sertifikatSSW -> tanggalSSW
-                      if (hasSSW) {
-                        try {
-                          const res = await fetch("/api/extract-cert-date", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ url: data.sertifikatSSW }),
-                          });
-                          const result = await res.json();
-                          if (result.success) {
-                            handleChange("tanggalSSW", result.date);
-                            results.push(`SSW: ${result.date}`);
-                            successCount++;
-
-                            // If bidangKerja is KAIGO, also fill tanggalSSWKaigo
-                            if (data.bidangKerja === "KAIGO") {
-                              handleChange("tanggalSSWKaigo", result.date);
-                              results.push(`SSW Kaigo: ${result.date}`);
-                            }
-                          } else {
-                            results.push(`SSW: Gagal - ${result.error}`);
-                            failCount++;
-                          }
-                        } catch (err) {
-                          results.push(`SSW: Error - ${err.message}`);
-                          failCount++;
-                        }
-                      }
-
-                      // Extract from sertifikatSenmonkyuu -> tanggalShuryoShomei
-                      if (hasSenmonkyuu) {
-                        try {
-                          const res = await fetch("/api/extract-cert-date", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ url: data.sertifikatSenmonkyuu }),
-                          });
-                          const result = await res.json();
-                          if (result.success) {
-                            handleChange("tanggalShuryoShomei", result.date);
-                            results.push(`Senmonkyuu: ${result.date}`);
-                            successCount++;
-                          } else {
-                            results.push(`Senmonkyuu: Gagal - ${result.error}`);
-                            failCount++;
-                          }
-                        } catch (err) {
-                          results.push(`Senmonkyuu: Error - ${err.message}`);
-                          failCount++;
-                        }
-                      }
-
-                      setExtracting(false);
-                      const summary = `Ekstraksi selesai: ${successCount} berhasil${failCount > 0 ? `, ${failCount} gagal` : ""}. ${results.join(" | ")}`;
-                      setMessage(summary);
-                    }}
+                    onClick={handleFetchCertDates}
                     className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={extracting}
                   >
@@ -1097,9 +1160,21 @@ export default function EditCandidatePage() {
             <div className="card">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold text-gray-700">Terjemahan Bahasa Jepang (Versi Terintegrasi)</h3>
-                <button onClick={handleAutoTranslate} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 font-medium" disabled={translating}>
-                  {translating ? "Menerjemahkan..." : "Auto Translate Semua"}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      await handleFetchCertDates();
+                      await handleAutoTranslate();
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 font-medium disabled:opacity-50"
+                    disabled={translating || extracting}
+                  >
+                    {translating || extracting ? "Memproses..." : "Generate & Terjemahkan Semua"}
+                  </button>
+                  <button onClick={handleAutoTranslate} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 font-medium" disabled={translating}>
+                    {translating ? "Menerjemahkan..." : "Auto Translate Semua"}
+                  </button>
+                </div>
               </div>
               <p className="text-xs text-gray-500 mb-4">
                 Versi Indonesia dan Jepang kini saling terintegrasi. Anda bisa langsung mengedit kedua bahasa di bawah ini secara bersamaan. Gunakan tombol terjemahan per-kolom untuk sinkronisasi instan arah bolak-balik (ID <span className="text-blue-600 font-bold font-mono">⇌</span> JP).
@@ -1211,6 +1286,68 @@ export default function EditCandidatePage() {
                                   <button
                                     type="button"
                                     onClick={() => translateJobField(index, "id")}
+                                    className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-medium bg-purple-50 hover:bg-purple-100 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50"
+                                    disabled={fieldTranslating[`${key}_id`]}
+                                  >
+                                    {fieldTranslating[`${key}_id`] ? "Menerjemahkan..." : "⬅ Terjemahkan ke Indonesia"}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Keluarga Pekerjaan Translations */}
+                {(data.keluarga || []).some((k) => k?.pekerjaan && k.pekerjaan.trim()) && (
+                  <div className="border-t border-gray-200 pt-6">
+                    <h4 className="font-semibold text-gray-700 mb-4">Pekerjaan Keluarga</h4>
+                    <div className="space-y-4">
+                      {(data.keluarga || []).map((k, index) => {
+                        if (!k?.pekerjaan || !k.pekerjaan.trim()) return null;
+                        const key = `keluarga_${index}_pekerjaan`;
+                        return (
+                          <div key={key} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                            <label className="form-label text-blue-600 font-semibold mb-2 block">
+                              Keluarga {index + 1}: {k.nama || `Entry ${index + 1}`} ({k.hubungan || "?"})
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="flex flex-col justify-between h-full">
+                                <div>
+                                  <span className="text-xs text-gray-500 block mb-1 font-medium font-mono">Bahasa Indonesia</span>
+                                  <input
+                                    className="input-field text-sm bg-white"
+                                    value={k.pekerjaan || ""}
+                                    onChange={(e) => handleKeluargaChange(index, "pekerjaan", e.target.value)}
+                                  />
+                                </div>
+                                <div className="mt-2 flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => translateFamilyField(index, "ja")}
+                                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50"
+                                    disabled={fieldTranslating[`${key}_ja`]}
+                                  >
+                                    {fieldTranslating[`${key}_ja`] ? "Menerjemahkan..." : "Terjemahkan ke Jepang ➜"}
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="flex flex-col justify-between h-full">
+                                <div>
+                                  <span className="text-xs text-gray-500 block mb-1 font-medium font-mono">日本語 (Bahasa Jepang)</span>
+                                  <input
+                                    className="input-field text-sm bg-white"
+                                    value={translations[key] || ""}
+                                    onChange={(e) => handleTranslationChange(key, e.target.value)}
+                                  />
+                                </div>
+                                <div className="mt-2 flex justify-start">
+                                  <button
+                                    type="button"
+                                    onClick={() => translateFamilyField(index, "id")}
                                     className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-medium bg-purple-50 hover:bg-purple-100 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50"
                                     disabled={fieldTranslating[`${key}_id`]}
                                   >

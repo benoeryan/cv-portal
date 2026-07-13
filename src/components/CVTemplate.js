@@ -59,7 +59,7 @@ export default function CVTemplate({ data }) {
               </tr>
               <tr>
                 <td className="font-bold bg-gray-100">出身地</td>
-                <td>{data.tempatLahir}</td>
+                <td>{data.translations?.tempatLahir || data.tempatLahir}</td>
                 <td className="font-bold bg-gray-100 w-[12%]">生年月日</td>
                 <td>{formatDateJP(data.tanggalLahir)}</td>
                 <td className="font-bold bg-gray-100">年齢</td>
@@ -97,7 +97,7 @@ export default function CVTemplate({ data }) {
           </tr>
           <tr>
             <td className="font-bold bg-gray-100">住所</td>
-            <td colSpan="5" className="text-xs">{data.alamatLengkap}</td>
+            <td colSpan="5" className="text-xs">{data.translations?.alamatLengkap || data.alamatLengkap}</td>
           </tr>
           <tr>
             <td className="font-bold bg-gray-100">パスポート</td>
@@ -233,7 +233,7 @@ export default function CVTemplate({ data }) {
               <td className="text-xs">{relationToJP(k.hubungan)}</td>
               <td className="text-xs">{k.nama}</td>
               <td className="text-xs">{k.usia}</td>
-              <td className="text-xs">{k.pekerjaan}</td>
+              <td className="text-xs">{data.translations?.[`keluarga_${idx}_pekerjaan`] || k.pekerjaan}</td>
               <td className="text-xs">{k.gaji}</td>
               <td className="text-center text-xs">{livingToJP(k.tinggalBersama)}</td>
             </tr>
@@ -265,6 +265,12 @@ export default function CVTemplate({ data }) {
             <tr>
               <td className="font-bold bg-gray-100 align-top">介護福祉士志望理由</td>
               <td className="whitespace-pre-wrap text-xs">{data.translations?.alasanKaigofukushishi || data.alasanKaigofukushishi}</td>
+            </tr>
+          )}
+          {(data.promosiDiri || data.translations?.promosiDiri) && (
+            <tr>
+              <td className="font-bold bg-gray-100 align-top">自己PR (Promosi Diri)</td>
+              <td className="whitespace-pre-wrap text-xs">{data.translations?.promosiDiri || data.promosiDiri}</td>
             </tr>
           )}
         </tbody>
