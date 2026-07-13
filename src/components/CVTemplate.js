@@ -54,7 +54,7 @@ export default function CVTemplate({ data }) {
               <tr>
                 <td className="font-bold bg-gray-100 w-[14%]">氏名</td>
                 <td colSpan="3" className="text-base font-bold">{data.namaLengkap}</td>
-                <td className="font-bold bg-gray-100 w-[10%]">読み方</td>
+                <td className="font-bold bg-gray-100 w-[10%]">呼び名</td>
                 <td>{data.namaPanggilan}</td>
               </tr>
               <tr>
