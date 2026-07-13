@@ -270,16 +270,6 @@ export default function CVTemplate({ data }) {
         </tbody>
       </table>
 
-      {/* Additional */}
-      <table className="cv-table mb-4">
-        <tbody>
-          <tr>
-            <td className="font-bold bg-gray-100 w-[14%]">入国歴</td>
-            <td colSpan="5">{data.pernahKeJepang === "YA" ? `有 (${data.keperluanApa || ""})` : "無"}</td>
-          </tr>
-        </tbody>
-      </table>
-
       {/* Certificates Section - 免許・資格・受験日 */}
       <h3 className="font-bold text-sm mb-2">免許・資格・受験日</h3>
       <table className="cv-table">
