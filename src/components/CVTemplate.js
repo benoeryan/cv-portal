@@ -127,7 +127,7 @@ export default function CVTemplate({ data }) {
             <td className="font-bold bg-gray-100">アレルギー</td>
             <td colSpan="3">{boolToJP(data.alergi)}{data.alergi === "YA" ? ` (${data.namaAlergi})` : ""}</td>
             <td className="font-bold bg-gray-100">趣味</td>
-            <td colSpan="3">{data.hobi}</td>
+            <td colSpan="3">{data.translations?.hobi || data.hobi}</td>
           </tr>
         </tbody>
       </table>

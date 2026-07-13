@@ -16,6 +16,7 @@ const TRANSLATABLE_FIELDS = [
   { key: "alasanMelamarBidang", label: "Alasan Melamar Bidang" },
   { key: "alasanKaigofukushishi", label: "Alasan Kaigofukushishi" },
   { key: "impianMasaDepan", label: "Impian Masa Depan" },
+  { key: "hobi", label: "Hobi" },
 ];
 
 const CERT_TEMPLATES = [
