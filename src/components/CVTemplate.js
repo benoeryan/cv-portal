@@ -68,7 +68,7 @@ export default function CVTemplate({ data }) {
               <tr>
                 <td className="font-bold bg-gray-100">性別</td>
                 <td>{genderToJP(data.jenisKelamin)}</td>
-                <td className="font-bold bg-gray-100">婚姻</td>
+                <td className="font-bold bg-gray-100">婚姻状況</td>
                 <td>{maritalStatusToJP(data.statusPernikahan)}</td>
                 <td className="font-bold bg-gray-100">血液型</td>
                 <td>{data.golonganDarah}</td>
