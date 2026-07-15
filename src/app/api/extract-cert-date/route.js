@@ -66,15 +66,13 @@ function findDatesInText(text) {
 }
 
 // Perform OCR using OCR.space API (free tier: 25,000 requests/month)
-async function performOcrWithOcrSpace(fileId) {
+async function performOcrWithOcrSpace(downloadUrl) {
   if (!process.env.OCR_SPACE_API_KEY) {
     return {
       error:
         "OCR_SPACE_API_KEY belum dikonfigurasi. Dapatkan API key gratis di https://ocr.space/ocrapi/freekey lalu set sebagai environment variable.",
     };
   }
-
-  const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
 
   try {
     const formData = new FormData();
@@ -137,15 +135,15 @@ export async function POST(request) {
     }
 
     const fileId = extractFileId(url);
-    if (!fileId) {
-      return NextResponse.json(
-        { success: false, error: "Tidak dapat mengekstrak file ID dari URL" },
-        { status: 400 }
-      );
-    }
+    const isGoogleDrive = url.includes("drive.google.com");
 
-    // Download PDF from Google Drive using direct download URL
-    const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    // Determine download URL
+    // If it's Google Drive, use the direct download proxy
+    // If it's a direct link (like Firebase), use the URL as-is
+    const downloadUrl = (isGoogleDrive && fileId)
+      ? `https://drive.google.com/uc?export=download&id=${fileId}`
+      : url;
+
     let pdfBuffer;
 
     try {
@@ -166,7 +164,7 @@ export async function POST(request) {
       const contentType = response.headers.get("content-type") || "";
 
       // Handle Google Drive virus scan warning page for large files
-      if (contentType.includes("text/html")) {
+      if (isGoogleDrive && contentType.includes("text/html")) {
         const html = await response.text();
 
         // Try to find the confirm download link
@@ -238,7 +236,7 @@ export async function POST(request) {
     }
 
     // Fallback: PDF is image/scanned - try OCR via OCR.space API
-    const ocrResult = await performOcrWithOcrSpace(fileId);
+    const ocrResult = await performOcrWithOcrSpace(downloadUrl);
 
     if (ocrResult.error) {
       return NextResponse.json(
