@@ -44,21 +44,25 @@ export default function AdminCandidatesPage() {
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      // Advanced sorting: Newest first (Submission or Update), Invalid/Missing dates at the bottom
+      // Ultra-robust sorting:
+      // 1. Valid dates (Update or Submit) come first, sorted NEWEST to OLDEST.
+      // 2. Invalid/Missing dates always go to the BOTTOM.
       data.sort((a, b) => {
-        // Use the latest between updatedAt and submittedAt
-        const timeA = new Date(a.updatedAt || a.submittedAt || 0).getTime();
-        const timeB = new Date(b.updatedAt || b.submittedAt || 0).getTime();
+        const getTimestamp = (item) => {
+          if (!item) return 0;
+          const dateStr = item.updatedAt || item.submittedAt;
+          if (!dateStr) return 0;
+          const t = new Date(dateStr).getTime();
+          return isNaN(t) ? 0 : t;
+        };
 
-        const isValidA = (a.updatedAt || a.submittedAt) && !isNaN(timeA) && timeA > 0;
-        const isValidB = (b.updatedAt || b.submittedAt) && !isNaN(timeB) && timeB > 0;
+        const timeA = getTimestamp(a);
+        const timeB = getTimestamp(b);
 
-        if (isValidA && isValidB) {
-          return timeB - timeA; // Newest activity first
-        }
-        if (isValidA && !isValidB) return -1;
-        if (!isValidA && isValidB) return 1;
-        return 0;
+        if (timeA > 0 && timeB > 0) return timeB - timeA; // Newest first
+        if (timeA > 0 && timeB === 0) return -1; // A is valid, B is not -> A first
+        if (timeA === 0 && timeB > 0) return 1;  // B is valid, A is not -> B first
+        return 0; // Both invalid
       });
 
       setCandidates(data);
@@ -455,7 +459,7 @@ export default function AdminCandidatesPage() {
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Status</th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600 whitespace-nowrap">Tgl Submit</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600 whitespace-nowrap min-w-[120px]">Tgl Submit</th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Aksi</th>
                 </tr>
               </thead>
