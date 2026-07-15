@@ -44,20 +44,21 @@ export default function AdminCandidatesPage() {
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      // Advanced sorting: Newest first, Invalid/Missing dates at the bottom
+      // Advanced sorting: Newest first (Submission or Update), Invalid/Missing dates at the bottom
       data.sort((a, b) => {
-        const dateA = a.submittedAt ? new Date(a.submittedAt) : null;
-        const dateB = b.submittedAt ? new Date(b.submittedAt) : null;
+        // Use the latest between updatedAt and submittedAt
+        const timeA = new Date(a.updatedAt || a.submittedAt || 0).getTime();
+        const timeB = new Date(b.updatedAt || b.submittedAt || 0).getTime();
 
-        const isValidA = dateA instanceof Date && !isNaN(dateA);
-        const isValidB = dateB instanceof Date && !isNaN(dateB);
+        const isValidA = (a.updatedAt || a.submittedAt) && !isNaN(timeA) && timeA > 0;
+        const isValidB = (b.updatedAt || b.submittedAt) && !isNaN(timeB) && timeB > 0;
 
         if (isValidA && isValidB) {
-          return dateB - dateA; // Newest first
+          return timeB - timeA; // Newest activity first
         }
-        if (isValidA && !isValidB) return -1; // A comes first
-        if (!isValidA && isValidB) return 1;  // B comes first
-        return 0; // Both invalid
+        if (isValidA && !isValidB) return -1;
+        if (!isValidA && isValidB) return 1;
+        return 0;
       });
 
       setCandidates(data);
