@@ -523,6 +523,9 @@ export default function AdminCandidatesPage() {
                           {(userData?.role === "admin" || userData?.role === "approval") && (
                             <Link href={`/admin/edit/${c.id}`} className="text-green-600 hover:underline text-xs">Edit</Link>
                           )}
+                          {userData?.role === "admin" && (
+                            <button onClick={() => handleDeleteSingle(c)} className="text-red-500 hover:underline text-xs">Hapus</button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -603,7 +606,10 @@ export default function AdminCandidatesPage() {
                 <div className="mt-4 flex gap-2">
                   <Link href={`/admin/cv/${c.id}`} className="flex-1 bg-blue-50 text-blue-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors">Lihat CV</Link>
                   {(userData?.role === "admin" || userData?.role === "approval") && (
-                    <Link href={`/admin/edit/${c.id}`} className="flex-1 bg-green-50 text-green-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-green-100 transition-colors">Edit Data</Link>
+                    <Link href={`/admin/edit/${c.id}`} className="flex-1 bg-green-50 text-green-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-green-100 transition-colors">Edit</Link>
+                  )}
+                  {userData?.role === "admin" && (
+                    <button onClick={() => handleDeleteSingle(c)} className="flex-1 bg-red-50 text-red-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-red-100 transition-colors">Hapus</button>
                   )}
                 </div>
               </div>

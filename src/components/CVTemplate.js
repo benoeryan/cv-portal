@@ -189,10 +189,10 @@ export default function CVTemplate({ data }) {
           <tr className="bg-gray-100">
             <th className="w-[5%]">No</th>
             <th>会社名</th>
-            <th className="w-[11%]">入社</th>
-            <th className="w-[11%]">退社</th>
+            <th className="w-[14%]">入社</th>
+            <th className="w-[14%]">退社</th>
             <th className="w-[11%]">雇用形態</th>
-            <th className="w-[30%]">業務内容</th>
+            <th className="w-[20%]">職類</th>
           </tr>
         </thead>
         <tbody>
@@ -203,7 +203,7 @@ export default function CVTemplate({ data }) {
               <td className="text-xs">{formatDateShortJP(p.masuk)}</td>
               <td className="text-xs">{formatDateShortJP(p.keluar)}</td>
               <td className="text-xs">{jobStatusToJP(p.status)}</td>
-              <td className="text-xs">{data.translations?.[`pekerjaan_${idx}_uraian`] || p.uraian}</td>
+              <td className="text-xs">{p.bidang || "-"}</td>
             </tr>
           ))}
           {(!data.pekerjaan || data.pekerjaan.filter((p) => p.perusahaan).length === 0) && (
