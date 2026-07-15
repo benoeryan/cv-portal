@@ -43,14 +43,12 @@ export default function CVTemplate({ data }) {
         <div className="flex-grow">
           <table className="cv-table">
             <tbody>
-              {data.kategoriKandidat?.toUpperCase() === "NEW COMER" && (
-                <tr>
-                  <td className="font-bold bg-gray-100 w-[14%] text-xs">フリガナ</td>
-                  <td colSpan="5" className={`h-[45px] bg-white text-center align-middle select-none ${data.namaTangan ? "text-base font-bold" : "text-gray-300 text-[10px] italic"}`}>
-                    {data.namaTangan || "(Tulis nama lengkap dengan tangan di sini setelah dicetak / Please write your full name here by hand after printing)"}
-                  </td>
-                </tr>
-              )}
+              <tr>
+                <td className="font-bold bg-gray-100 w-[14%] text-xs">フリガナ</td>
+                <td colSpan="5" className={`h-[45px] bg-white text-center align-middle select-none ${data.namaTangan ? "text-base font-bold" : "text-gray-300 text-[10px] italic"}`}>
+                  {data.namaTangan || "(Tulis nama lengkap dengan tangan di sini setelah dicetak / Please write your full name here by hand after printing)"}
+                </td>
+              </tr>
               <tr>
                 <td className="font-bold bg-gray-100 w-[14%]">氏名</td>
                 <td colSpan="3" className="text-base font-bold">{data.namaLengkap}</td>

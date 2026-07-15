@@ -18,6 +18,7 @@ export default function AdminCandidatesPage() {
   const [filterBidang, setFilterBidang] = useState("");
   const [filterKategori, setFilterKategori] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterDate, setFilterDate] = useState("");
   const [selected, setSelected] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null); // single delete
@@ -61,7 +62,8 @@ export default function AdminCandidatesPage() {
     const matchBidang = !filterBidang || c.bidangKerja === filterBidang;
     const matchKategori = !filterKategori || c.kategoriKandidat === filterKategori;
     const matchStatus = !filterStatus || c.statusProgres === filterStatus;
-    return matchSearch && matchBidang && matchKategori && matchStatus;
+    const matchDate = !filterDate || (c.submittedAt && c.submittedAt.startsWith(filterDate));
+    return matchSearch && matchBidang && matchKategori && matchStatus && matchDate;
   });
 
   const uniqueBidang = [...new Set(candidates.map((c) => c.bidangKerja).filter(Boolean))];
@@ -375,10 +377,14 @@ export default function AdminCandidatesPage() {
 
         {/* Filters */}
         <div className="card mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div>
               <label className="form-label">Cari</label>
               <input className="input-field" placeholder="Nama / Kode Job / TSK..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+            <div>
+              <label className="form-label">Tanggal Submit</label>
+              <input type="date" className="input-field" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
             </div>
             <div>
               <label className="form-label">Kategori</label>
@@ -404,8 +410,20 @@ export default function AdminCandidatesPage() {
                 <option value="Status On Job (Selesai)">Status On Job (Selesai)</option>
               </select>
             </div>
-            <div className="flex items-end">
-              <span className="text-sm text-gray-500 font-medium">{filtered.length} hasil</span>
+            <div className="flex items-end space-x-2">
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterDate("");
+                  setFilterKategori("");
+                  setFilterBidang("");
+                  setFilterStatus("");
+                }}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium mb-3"
+              >
+                Reset Filter
+              </button>
+              <span className="text-sm text-gray-500 font-medium mb-3">{filtered.length} hasil</span>
             </div>
           </div>
         </div>
