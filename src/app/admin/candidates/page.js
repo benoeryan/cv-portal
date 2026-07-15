@@ -43,8 +43,12 @@ export default function AdminCandidatesPage() {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Sort by submittedAt desc
-      data.sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+      // Sort by submittedAt desc explicitly
+      data.sort((a, b) => {
+        const dateA = a.submittedAt || "";
+        const dateB = b.submittedAt || "";
+        return dateB.localeCompare(dateA);
+      });
       setCandidates(data);
     } catch (err) {
       console.error("Error loading candidates:", err);
@@ -501,13 +505,26 @@ export default function AdminCandidatesPage() {
                   </td>
                   <td className="py-3 px-2 text-gray-600 text-xs">{c.noHp}</td>
                   <td className="py-3 px-2 text-xs text-gray-500 whitespace-nowrap">
-                    {c.submittedAt ? new Date(c.submittedAt).toLocaleDateString('id-ID', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }) : "-"}
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-700">
+                        {c.submittedAt ? new Date(c.submittedAt).toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        }) : "-"}
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        {c.submittedAt ? new Date(c.submittedAt).toLocaleTimeString('id-ID', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) : ""}
+                      </span>
+                      {c.submittedAt && (new Date() - new Date(c.submittedAt)) < 24 * 60 * 60 * 1000 && (
+                        <span className="mt-1 w-fit bg-red-100 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold animate-pulse">
+                          BARU
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-2">
                     <div className="flex space-x-2">
