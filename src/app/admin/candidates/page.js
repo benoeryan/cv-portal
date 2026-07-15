@@ -444,6 +444,7 @@ export default function AdminCandidatesPage() {
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Status Progres</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
+                <th className="text-left py-3 px-2 font-medium text-gray-600 whitespace-nowrap">Tgl Submit</th>
                 <th className="text-left py-3 px-2 font-medium text-gray-600">Aksi</th>
               </tr>
             </thead>
@@ -499,6 +500,15 @@ export default function AdminCandidatesPage() {
                     )}
                   </td>
                   <td className="py-3 px-2 text-gray-600 text-xs">{c.noHp}</td>
+                  <td className="py-3 px-2 text-xs text-gray-500 whitespace-nowrap">
+                    {c.submittedAt ? new Date(c.submittedAt).toLocaleDateString('id-ID', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : "-"}
+                  </td>
                   <td className="py-3 px-2">
                     <div className="flex space-x-2">
                       <Link href={`/admin/cv/${c.id}`} className="text-blue-600 hover:text-blue-800 text-xs font-medium">
