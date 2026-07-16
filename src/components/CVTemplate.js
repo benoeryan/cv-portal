@@ -230,7 +230,7 @@ export default function CVTemplate({ data }) {
             <tr key={idx}>
               <td className="text-xs">{relationToJP(k.hubungan)}</td>
               <td className="text-xs">{k.nama}</td>
-              <td className="text-xs">{k.usia}</td>
+              <td className="text-xs">{k.usia} 歳</td>
               <td className="text-xs">{data.translations?.[`keluarga_${idx}_pekerjaan`] || k.pekerjaan}</td>
               <td className="text-xs">{k.gaji}</td>
               <td className="text-center text-xs">{livingToJP(k.tinggalBersama)}</td>
