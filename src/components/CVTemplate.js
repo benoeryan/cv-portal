@@ -33,7 +33,7 @@ export default function CVTemplate({ data }) {
           {photoUrl ? (
             <img src={photoUrl} alt="Pas Photo" className="w-[100px] h-[130px] object-cover border border-gray-300" />
           ) : (
-            <div className="w-[100px] h-[130px] border border-gray-300 flex items-center justify-center bg-gray-100 text-gray-400 text-xs text-center">
+            <div className="w-[100px] h-[130px] border border-gray-300 flex items-center justify-center bg-[#FFF2CC] text-gray-400 text-xs text-center">
               Pas Photo<br/>3x4
             </div>
           )}
@@ -44,31 +44,31 @@ export default function CVTemplate({ data }) {
           <table className="cv-table">
             <tbody>
               <tr>
-                <td className="font-bold bg-gray-100 w-[14%] text-xs">フリガナ</td>
+                <td className="font-bold bg-[#FFF2CC] w-[14%] text-xs">フリガナ</td>
                 <td colSpan="5" className={`h-[45px] bg-white text-center align-middle select-none ${data.namaTangan ? "text-base font-bold" : "text-gray-300 text-[10px] italic"}`}>
                   {data.namaTangan || "(Tulis nama lengkap dengan tangan di sini setelah dicetak / Please write your full name here by hand after printing)"}
                 </td>
               </tr>
               <tr>
-                <td className="font-bold bg-gray-100 w-[14%]">氏名</td>
+                <td className="font-bold bg-[#FFF2CC] w-[14%]">氏名</td>
                 <td colSpan="3" className="text-base font-bold">{data.namaLengkap}</td>
-                <td className="font-bold bg-gray-100 w-[10%]">呼び名</td>
+                <td className="font-bold bg-[#FFF2CC] w-[10%]">呼び名</td>
                 <td>{data.namaPanggilan}</td>
               </tr>
               <tr>
-                <td className="font-bold bg-gray-100">出身地</td>
+                <td className="font-bold bg-[#FFF2CC]">出身地</td>
                 <td>{data.translations?.tempatLahir || data.tempatLahir}</td>
-                <td className="font-bold bg-gray-100 w-[12%]">生年月日</td>
+                <td className="font-bold bg-[#FFF2CC] w-[12%]">生年月日</td>
                 <td>{formatDateJP(data.tanggalLahir)}</td>
-                <td className="font-bold bg-gray-100">年齢</td>
+                <td className="font-bold bg-[#FFF2CC]">年齢</td>
                 <td>{age || "-"} 歳</td>
               </tr>
               <tr>
-                <td className="font-bold bg-gray-100">性別</td>
+                <td className="font-bold bg-[#FFF2CC]">性別</td>
                 <td>{genderToJP(data.jenisKelamin)}</td>
-                <td className="font-bold bg-gray-100">婚姻状況</td>
+                <td className="font-bold bg-[#FFF2CC]">婚姻状況</td>
                 <td>{maritalStatusToJP(data.statusPernikahan)}</td>
-                <td className="font-bold bg-gray-100">血液型</td>
+                <td className="font-bold bg-[#FFF2CC]">血液型</td>
                 <td>{data.golonganDarah}</td>
               </tr>
             </tbody>
@@ -80,29 +80,29 @@ export default function CVTemplate({ data }) {
       <table className="cv-table mb-4">
         <tbody>
           <tr>
-            <td className="font-bold bg-gray-100 w-[14%]">宗教</td>
+            <td className="font-bold bg-[#FFF2CC] w-[14%]">宗教</td>
             <td className="w-[14%]">{religionToJP(data.agama)}</td>
-            <td className="font-bold bg-gray-100 w-[10%]">身長</td>
+            <td className="font-bold bg-[#FFF2CC] w-[10%]">身長</td>
             <td className="w-[14%]">{data.tinggiBadan} cm</td>
-            <td className="font-bold bg-gray-100 w-[10%]">体重</td>
+            <td className="font-bold bg-[#FFF2CC] w-[10%]">体重</td>
             <td>{data.beratBadan} kg</td>
           </tr>
           <tr>
-            <td className="font-bold bg-gray-100">電話番号</td>
+            <td className="font-bold bg-[#FFF2CC]">電話番号</td>
             <td colSpan="2">{data.noHp}</td>
-            <td className="font-bold bg-gray-100">メールアドレス</td>
+            <td className="font-bold bg-[#FFF2CC]">メールアドレス</td>
             <td colSpan="2" className="text-xs">{data.email}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-gray-100">住所</td>
+            <td className="font-bold bg-[#FFF2CC]">住所</td>
             <td colSpan="5" className="text-xs">{data.translations?.alamatLengkap || data.alamatLengkap}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-gray-100">パスポート</td>
+            <td className="font-bold bg-[#FFF2CC]">パスポート</td>
             <td>{data.memilikiPaspor === "YA" || data.nomorPaspor ? `有 (${data.nomorPaspor || ""})` : "無"}</td>
-            <td className="font-bold bg-gray-100">入国歴</td>
+            <td className="font-bold bg-[#FFF2CC]">入国歴</td>
             <td>{data.pernahKeJepang === "YA" ? "有" : "無"}</td>
-            <td className="font-bold bg-gray-100">利き手</td>
+            <td className="font-bold bg-[#FFF2CC]">利き手</td>
             <td>{data.dominanTangan === "KANAN" ? "右" : data.dominanTangan === "KIRI" ? "左" : "-"}</td>
           </tr>
         </tbody>
@@ -112,19 +112,19 @@ export default function CVTemplate({ data }) {
       <table className="cv-table mb-4">
         <tbody>
           <tr>
-            <td className="font-bold bg-gray-100 w-[12%]">喫煙</td>
+            <td className="font-bold bg-[#FFF2CC] w-[12%]">喫煙</td>
             <td className="w-[13%]">{boolToJP(data.merokok)}{data.merokok === "YA" && data.jumlahRokok ? ` (${data.jumlahRokok}本)` : ""}</td>
-            <td className="font-bold bg-gray-100 w-[10%]">飲酒</td>
+            <td className="font-bold bg-[#FFF2CC] w-[10%]">飲酒</td>
             <td className="w-[10%]">{boolToJP(data.minumAlkohol)}</td>
-            <td className="font-bold bg-gray-100 w-[12%]">タトゥー</td>
+            <td className="font-bold bg-[#FFF2CC] w-[12%]">タトゥー</td>
             <td className="w-[10%]">{boolToJP(data.tato)}</td>
-            <td className="font-bold bg-gray-100 w-[10%]">重病</td>
+            <td className="font-bold bg-[#FFF2CC] w-[10%]">重病</td>
             <td>{boolToJP(data.penyakitBerat)}{data.penyakitBerat === "YA" ? ` (${data.namaPenyakit})` : ""}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-gray-100">アレルギー</td>
+            <td className="font-bold bg-[#FFF2CC]">アレルギー</td>
             <td colSpan="3">{boolToJP(data.alergi)}{data.alergi === "YA" ? ` (${data.namaAlergi})` : ""}</td>
-            <td className="font-bold bg-gray-100">趣味</td>
+            <td className="font-bold bg-[#FFF2CC]">趣味</td>
             <td colSpan="3">{data.translations?.hobi || data.hobi}</td>
           </tr>
         </tbody>
@@ -134,7 +134,7 @@ export default function CVTemplate({ data }) {
       <h3 className="font-bold text-sm mb-2">学歴 (Riwayat Pendidikan)</h3>
       <table className="cv-table mb-4">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="bg-[#FFF2CC]">
             <th className="w-[5%]">No</th>
             <th>学校名</th>
             <th className="w-[12%]">入学</th>
@@ -186,7 +186,7 @@ export default function CVTemplate({ data }) {
       <h3 className="font-bold text-sm mb-2">職歴 (Riwayat Pekerjaan)</h3>
       <table className="cv-table mb-4">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="bg-[#FFF2CC]">
             <th className="w-[5%]">No</th>
             <th>会社名</th>
             <th className="w-[14%]">入社</th>
@@ -216,7 +216,7 @@ export default function CVTemplate({ data }) {
       <h3 className="font-bold text-sm mb-2">家族構成 (Data Keluarga)</h3>
       <table className="cv-table mb-4">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="bg-[#FFF2CC]">
             <th className="w-[12%]">続柄</th>
             <th>氏名</th>
             <th className="w-[8%]">年齢</th>
@@ -244,30 +244,30 @@ export default function CVTemplate({ data }) {
       <table className="cv-table mb-4">
         <tbody>
           <tr>
-            <td className="font-bold bg-gray-100 w-[18%] align-top">長所 (kelebihan)</td>
+            <td className="font-bold bg-[#FFF2CC] w-[18%] align-top">長所 (kelebihan)</td>
             <td className="whitespace-pre-wrap text-xs">{data.translations?.kelebihan || data.kelebihan}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-gray-100 align-top">短所 (kekurangan)</td>
+            <td className="font-bold bg-[#FFF2CC] align-top">短所 (kekurangan)</td>
             <td className="whitespace-pre-wrap text-xs">{data.translations?.kekurangan || data.kekurangan}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-gray-100 align-top">来日理由</td>
+            <td className="font-bold bg-[#FFF2CC] align-top">来日理由</td>
             <td className="whitespace-pre-wrap text-xs">{data.translations?.alasanKeJepang || data.alasanKeJepang}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-gray-100 align-top">職業希望理由</td>
+            <td className="font-bold bg-[#FFF2CC] align-top">職業希望理由</td>
             <td className="whitespace-pre-wrap text-xs">{data.translations?.alasanMelamarBidang || data.alasanMelamarBidang}</td>
           </tr>
           {(data.alasanKaigofukushishi || data.translations?.alasanKaigofukushishi) && (
             <tr>
-              <td className="font-bold bg-gray-100 align-top">介護福祉士志望理由</td>
+              <td className="font-bold bg-[#FFF2CC] align-top">介護福祉士志望理由</td>
               <td className="whitespace-pre-wrap text-xs">{data.translations?.alasanKaigofukushishi || data.alasanKaigofukushishi}</td>
             </tr>
           )}
           {(data.promosiDiri || data.translations?.promosiDiri) && (
             <tr>
-              <td className="font-bold bg-gray-100 align-top">自己PR (Promosi Diri)</td>
+              <td className="font-bold bg-[#FFF2CC] align-top">自己PR (Promosi Diri)</td>
               <td className="whitespace-pre-wrap text-xs">{data.translations?.promosiDiri || data.promosiDiri}</td>
             </tr>
           )}
