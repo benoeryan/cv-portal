@@ -71,50 +71,16 @@ export default function EditCandidatePage() {
   const handleDownload = async (url, filename = "document") => {
     if (!url) return;
 
-    try {
-      let downloadUrl = url;
-      const isGoogleDrive = url.includes("drive.google.com");
+    // Construct proxy download URL
+    const nameSlug = data.namaLengkap.replace(/\s+/g, '_');
+    const proxyUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(`${nameSlug}_${filename}`)}`;
 
-      // Handle Google Drive links specifically
-      if (isGoogleDrive) {
-        const patterns = [
-          /\/open\?id=([a-zA-Z0-9_-]+)/,
-          /\/file\/d\/([a-zA-Z0-9_-]+)/,
-          /id=([a-zA-Z0-9_-]+)/,
-        ];
-        for (const pattern of patterns) {
-          const match = url.match(pattern);
-          if (match) {
-            downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
-            break;
-          }
-        }
-        // For Google Drive, we still use window.open as proxying the download via fetch might hit CORS
-        window.open(downloadUrl, '_blank');
-        return;
-      }
-
-      // For direct links (Firebase Storage), try to force download via fetch
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-      link.href = blobUrl;
-
-      // Extract extension from URL or fallback
-      let extension = url.split(/[#?]/)[0].split('.').pop().trim().toLowerCase();
-      if (extension.length > 4 || !extension) extension = "file";
-
-      link.download = `${data.namaLengkap.replace(/\s+/g, '_')}_${filename}.${extension}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error("Direct download failed, falling back to window.open", err);
-      window.open(url, '_blank');
-    }
+    // Use a hidden anchor to trigger download from the proxy
+    const link = document.createElement('a');
+    link.href = proxyUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
