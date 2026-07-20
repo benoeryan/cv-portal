@@ -68,6 +68,27 @@ export default function EditCandidatePage() {
     setViewerTitle(title);
   };
 
+  const handleDownload = (url) => {
+    if (!url) return;
+
+    // If it's a Google Drive link, use the export=download endpoint
+    let downloadUrl = url;
+    const patterns = [
+      /\/open\?id=([a-zA-Z0-9_-]+)/,
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,
+      /id=([a-zA-Z0-9_-]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+        break;
+      }
+    }
+
+    window.open(downloadUrl, '_blank');
+  };
+
   useEffect(() => {
     if (!authLoading && (!user || userData?.role !== "admin")) {
       router.push("/");
@@ -637,9 +658,14 @@ export default function EditCandidatePage() {
                             <div className="flex gap-2">
                               <input className="input-field text-xs flex-grow" value={data.dokumenSimA || ""} onChange={(e) => handleChange("dokumenSimA", e.target.value)} placeholder="https://..." />
                               {data.dokumenSimA && data.dokumenSimA.match(/^https?:\/\//) && (
-                                <button type="button" onClick={() => handleOpenViewer(data.dokumenSimA, "Dokumen SIM A")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
-                                  View
-                                </button>
+                                <div className="flex gap-2 shrink-0">
+                                  <button type="button" onClick={() => handleOpenViewer(data.dokumenSimA, "Dokumen SIM A")} className="btn-secondary text-xs px-3 font-medium transition-colors">
+                                    View
+                                  </button>
+                                  <button type="button" onClick={() => handleDownload(data.dokumenSimA)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                                    Save
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -668,9 +694,14 @@ export default function EditCandidatePage() {
                             <div className="flex gap-2">
                               <input className="input-field text-xs flex-grow" value={data.dokumenSimB || ""} onChange={(e) => handleChange("dokumenSimB", e.target.value)} placeholder="https://..." />
                               {data.dokumenSimB && data.dokumenSimB.match(/^https?:\/\//) && (
-                                <button type="button" onClick={() => handleOpenViewer(data.dokumenSimB, "Dokumen SIM B")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
-                                  View
-                                </button>
+                                <div className="flex gap-2 shrink-0">
+                                  <button type="button" onClick={() => handleOpenViewer(data.dokumenSimB, "Dokumen SIM B")} className="btn-secondary text-xs px-3 font-medium transition-colors">
+                                    View
+                                  </button>
+                                  <button type="button" onClick={() => handleDownload(data.dokumenSimB)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                                    Save
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -699,9 +730,14 @@ export default function EditCandidatePage() {
                             <div className="flex gap-2">
                               <input className="input-field text-xs flex-grow" value={data.dokumenSimC || ""} onChange={(e) => handleChange("dokumenSimC", e.target.value)} placeholder="https://..." />
                               {data.dokumenSimC && data.dokumenSimC.match(/^https?:\/\//) && (
-                                <button type="button" onClick={() => handleOpenViewer(data.dokumenSimC, "Dokumen SIM C")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
-                                  View
-                                </button>
+                                <div className="flex gap-2 shrink-0">
+                                  <button type="button" onClick={() => handleOpenViewer(data.dokumenSimC, "Dokumen SIM C")} className="btn-secondary text-xs px-3 font-medium transition-colors">
+                                    View
+                                  </button>
+                                  <button type="button" onClick={() => handleDownload(data.dokumenSimC)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                                    Save
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1032,14 +1068,24 @@ export default function EditCandidatePage() {
                     <div className="flex gap-2">
                       <input className="input-field text-xs flex-grow" value={data[f.key] || ""} onChange={(e) => handleChange(f.key, e.target.value)} placeholder="https://drive.google.com/..." />
                       {data[f.key] && data[f.key].match(/^https?:\/\//) && (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenViewer(data[f.key], f.label)}
-                          className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors"
-                          title="View Document"
-                        >
-                          View
-                        </button>
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenViewer(data[f.key], f.label)}
+                            className="btn-secondary text-xs px-4 font-medium transition-colors"
+                            title="View Document"
+                          >
+                            View
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(data[f.key])}
+                            className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-4 rounded-lg font-medium transition-colors"
+                            title="Download Document"
+                          >
+                            Save
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
