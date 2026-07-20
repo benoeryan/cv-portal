@@ -68,25 +68,53 @@ export default function EditCandidatePage() {
     setViewerTitle(title);
   };
 
-  const handleDownload = (url) => {
+  const handleDownload = async (url, filename = "document") => {
     if (!url) return;
 
-    // If it's a Google Drive link, use the export=download endpoint
-    let downloadUrl = url;
-    const patterns = [
-      /\/open\?id=([a-zA-Z0-9_-]+)/,
-      /\/file\/d\/([a-zA-Z0-9_-]+)/,
-      /id=([a-zA-Z0-9_-]+)/,
-    ];
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) {
-        downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
-        break;
-      }
-    }
+    try {
+      let downloadUrl = url;
+      const isGoogleDrive = url.includes("drive.google.com");
 
-    window.open(downloadUrl, '_blank');
+      // Handle Google Drive links specifically
+      if (isGoogleDrive) {
+        const patterns = [
+          /\/open\?id=([a-zA-Z0-9_-]+)/,
+          /\/file\/d\/([a-zA-Z0-9_-]+)/,
+          /id=([a-zA-Z0-9_-]+)/,
+        ];
+        for (const pattern of patterns) {
+          const match = url.match(pattern);
+          if (match) {
+            downloadUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+            break;
+          }
+        }
+        // For Google Drive, we still use window.open as proxying the download via fetch might hit CORS
+        window.open(downloadUrl, '_blank');
+        return;
+      }
+
+      // For direct links (Firebase Storage), try to force download via fetch
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+
+      // Extract extension from URL or fallback
+      let extension = url.split(/[#?]/)[0].split('.').pop().trim().toLowerCase();
+      if (extension.length > 4 || !extension) extension = "file";
+
+      link.download = `${data.namaLengkap.replace(/\s+/g, '_')}_${filename}.${extension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Direct download failed, falling back to window.open", err);
+      window.open(url, '_blank');
+    }
   };
 
   useEffect(() => {
@@ -662,7 +690,7 @@ export default function EditCandidatePage() {
                                   <button type="button" onClick={() => handleOpenViewer(data.dokumenSimA, "Dokumen SIM A")} className="btn-secondary text-xs px-3 font-medium transition-colors">
                                     View
                                   </button>
-                                  <button type="button" onClick={() => handleDownload(data.dokumenSimA)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                                  <button type="button" onClick={() => handleDownload(data.dokumenSimA, "SIM_A")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
                                     Save
                                   </button>
                                 </div>
@@ -698,7 +726,7 @@ export default function EditCandidatePage() {
                                   <button type="button" onClick={() => handleOpenViewer(data.dokumenSimB, "Dokumen SIM B")} className="btn-secondary text-xs px-3 font-medium transition-colors">
                                     View
                                   </button>
-                                  <button type="button" onClick={() => handleDownload(data.dokumenSimB)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                                  <button type="button" onClick={() => handleDownload(data.dokumenSimB, "SIM_B")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
                                     Save
                                   </button>
                                 </div>
@@ -734,7 +762,7 @@ export default function EditCandidatePage() {
                                   <button type="button" onClick={() => handleOpenViewer(data.dokumenSimC, "Dokumen SIM C")} className="btn-secondary text-xs px-3 font-medium transition-colors">
                                     View
                                   </button>
-                                  <button type="button" onClick={() => handleDownload(data.dokumenSimC)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                                  <button type="button" onClick={() => handleDownload(data.dokumenSimC, "SIM_C")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
                                     Save
                                   </button>
                                 </div>
@@ -1079,7 +1107,7 @@ export default function EditCandidatePage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDownload(data[f.key])}
+                            onClick={() => handleDownload(data[f.key], f.key)}
                             className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-4 rounded-lg font-medium transition-colors"
                             title="Download Document"
                           >
