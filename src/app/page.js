@@ -13,7 +13,7 @@ export default function HomePage() {
       if (userData?.role === "admin" || userData?.role === "viewer" || userData?.role === "approval") {
         router.push("/admin/candidates");
       } else {
-        router.push("/candidate/form");
+        router.push("/candidate/status");
       }
     }
   }, [user, userData, loading, router]);

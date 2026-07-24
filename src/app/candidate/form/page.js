@@ -266,7 +266,10 @@ export default function CandidateFormPage() {
         submittedAt: new Date().toISOString(),
       });
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      // Redirect to status page after successful save
+      setTimeout(() => {
+        router.push("/candidate/status");
+      }, 1500);
     } catch (err) {
       alert("Gagal menyimpan: " + err.message);
     }

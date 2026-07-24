@@ -18,6 +18,7 @@ export default function AdminCandidatesPage() {
   const [filterBidang, setFilterBidang] = useState("");
   const [filterKategori, setFilterKategori] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterDate, setFilterDate] = useState("");
   const [selected, setSelected] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null); // single delete
@@ -42,8 +43,28 @@ export default function AdminCandidatesPage() {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Sort by submittedAt desc
-      data.sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+
+      // Ultra-robust sorting:
+      // 1. Valid dates (Update or Submit) come first, sorted NEWEST to OLDEST.
+      // 2. Invalid/Missing dates always go to the BOTTOM.
+      data.sort((a, b) => {
+        const getTimestamp = (item) => {
+          if (!item) return 0;
+          const dateStr = item.updatedAt || item.submittedAt;
+          if (!dateStr) return 0;
+          const t = new Date(dateStr).getTime();
+          return isNaN(t) ? 0 : t;
+        };
+
+        const timeA = getTimestamp(a);
+        const timeB = getTimestamp(b);
+
+        if (timeA > 0 && timeB > 0) return timeB - timeA; // Newest first
+        if (timeA > 0 && timeB === 0) return -1; // A is valid, B is not -> A first
+        if (timeA === 0 && timeB > 0) return 1;  // B is valid, A is not -> B first
+        return 0; // Both invalid
+      });
+
       setCandidates(data);
     } catch (err) {
       console.error("Error loading candidates:", err);
@@ -61,7 +82,8 @@ export default function AdminCandidatesPage() {
     const matchBidang = !filterBidang || c.bidangKerja === filterBidang;
     const matchKategori = !filterKategori || c.kategoriKandidat === filterKategori;
     const matchStatus = !filterStatus || c.statusProgres === filterStatus;
-    return matchSearch && matchBidang && matchKategori && matchStatus;
+    const matchDate = !filterDate || (c.submittedAt && c.submittedAt.startsWith(filterDate));
+    return matchSearch && matchBidang && matchKategori && matchStatus && matchDate;
   });
 
   const uniqueBidang = [...new Set(candidates.map((c) => c.bidangKerja).filter(Boolean))];
@@ -321,38 +343,38 @@ export default function AdminCandidatesPage() {
   return (
     <>
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Data Kandidat</h1>
-            <p className="text-gray-500 text-sm">{candidates.length} kandidat terdaftar</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Data Kandidat</h1>
+            <p className="text-gray-500 text-xs sm:text-sm">{candidates.length} kandidat terdaftar</p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
             {userData?.role === "admin" && (
               <button
                 onClick={handleBulkExtract}
                 disabled={extractingAll || translatingAll}
-                className="bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 md:flex-none bg-green-600 text-white px-3 py-2 rounded-lg text-xs hover:bg-green-700 disabled:opacity-50"
               >
-                Ekstraksi Semua Sertifikat
+                Ekstraksi Sertifikat
               </button>
             )}
             {userData?.role === "admin" && (
               <button
                 onClick={handleBulkTranslate}
                 disabled={extractingAll || translatingAll}
-                className="bg-purple-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 md:flex-none bg-purple-600 text-white px-3 py-2 rounded-lg text-xs hover:bg-purple-700 disabled:opacity-50"
               >
                 Translate Semua
               </button>
             )}
             {userData?.role === "admin" && selected.length > 0 && (
-              <button onClick={handleDeleteBulk} className="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600">
-                Hapus {selected.length} terpilih
+              <button onClick={handleDeleteBulk} className="flex-1 md:flex-none bg-red-500 text-white px-3 py-2 rounded-lg text-xs hover:bg-red-600">
+                Hapus ({selected.length})
               </button>
             )}
             {userData?.role === "admin" && (
-              <button onClick={handleResetAll} className="bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm hover:bg-red-200">
+              <button onClick={handleResetAll} className="flex-1 md:flex-none bg-red-100 text-red-700 px-3 py-2 rounded-lg text-xs hover:bg-red-200">
                 Reset Semua
               </button>
             )}
@@ -363,40 +385,38 @@ export default function AdminCandidatesPage() {
         {(extractingAll || translatingAll) && (
           <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center space-x-3">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600"></div>
-            <span className="text-sm font-medium text-yellow-800">{bulkProgress}</span>
-          </div>
-        )}
-        {!extractingAll && !translatingAll && bulkProgress && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
-            <span className="text-sm font-medium text-green-800">{bulkProgress}</span>
-            <button onClick={() => setBulkProgress("")} className="text-green-600 hover:text-green-800 text-xs font-medium">Tutup</button>
+            <span className="text-xs sm:text-sm font-medium text-yellow-800">{bulkProgress}</span>
           </div>
         )}
 
         {/* Filters */}
-        <div className="card mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="card mb-6 p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
             <div>
-              <label className="form-label">Cari</label>
-              <input className="input-field" placeholder="Nama / Kode Job / TSK..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <label className="form-label text-xs">Cari</label>
+              <input className="input-field text-sm" placeholder="Nama / Kode Job..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <div>
-              <label className="form-label">Kategori</label>
-              <select className="input-field" value={filterKategori} onChange={(e) => setFilterKategori(e.target.value)}>
+              <label className="form-label text-xs">Tanggal Submit</label>
+              <input type="date" className="input-field text-sm" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="form-label text-xs">Kategori</label>
+              <select className="input-field text-sm" value={filterKategori} onChange={(e) => setFilterKategori(e.target.value)}>
                 <option value="">Semua</option>
                 {uniqueKategori.map((k) => <option key={k} value={k}>{k}</option>)}
               </select>
             </div>
             <div>
-              <label className="form-label">Bidang</label>
-              <select className="input-field" value={filterBidang} onChange={(e) => setFilterBidang(e.target.value)}>
+              <label className="form-label text-xs">Bidang</label>
+              <select className="input-field text-sm" value={filterBidang} onChange={(e) => setFilterBidang(e.target.value)}>
                 <option value="">Semua</option>
                 {uniqueBidang.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
             <div>
-              <label className="form-label font-medium text-gray-600">Status Progres</label>
-              <select className="input-field" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+              <label className="form-label text-xs font-medium text-gray-600">Status Progres</label>
+              <select className="input-field text-sm" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="">Semua</option>
                 <option value="On Proses">On Proses</option>
                 <option value="Pending Nunggu Job">Pending Nunggu Job</option>
@@ -404,108 +424,206 @@ export default function AdminCandidatesPage() {
                 <option value="Status On Job (Selesai)">Status On Job (Selesai)</option>
               </select>
             </div>
-            <div className="flex items-end">
-              <span className="text-sm text-gray-500 font-medium">{filtered.length} hasil</span>
+            <div className="flex items-end space-x-2">
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterDate("");
+                  setFilterKategori("");
+                  setFilterBidang("");
+                  setFilterStatus("");
+                }}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium mb-3"
+              >
+                Reset Filter
+              </button>
+              <span className="text-xs sm:text-sm text-gray-500 font-medium mb-3">{filtered.length} hasil</span>
             </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="card overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="py-3 px-2">
-                  <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={selectAll} className="rounded" />
-                </th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Foto</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Nama Lengkap</th>
-                <th className="text-left py-3 px-1 font-medium text-gray-600">Bidang</th>
-                <th className="text-left py-3 px-1 font-medium text-gray-600">Kategori</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Kode Job</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Status Progres</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
-                <th className="text-left py-3 px-2 font-medium text-gray-600">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} className={`border-b border-gray-100 hover:bg-gray-50 ${selected.includes(c.id) ? "bg-blue-50" : ""}`}>
-                  <td className="py-3 px-2">
-                    <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="rounded" />
-                  </td>
-                  <td className="py-3 px-2">
-                    <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} />
-                  </td>
-                  <td className="py-3 px-2">
-                    <div className="font-medium text-gray-800">{c.namaLengkap}</div>
-                    <div className="text-xs text-gray-400">{c.namaPanggilan}</div>
-                  </td>
-                  <td className="py-3 px-1">
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">{c.bidangKerja}</span>
-                  </td>
-                  <td className="py-3 px-1">
-                    <span className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
-                      c.kategoriKandidat === "NEW COMER" ? "bg-green-100 text-green-700" :
-                      c.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" ? "bg-purple-100 text-purple-700" :
-                      "bg-orange-100 text-orange-700"
-                    }`}>{c.kategoriKandidat}</span>
-                  </td>
-                  <td className="py-3 px-2 text-gray-600">{c.kodeJob || "-"}</td>
-                  <td className="py-3 px-2">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                      c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700 border border-sky-200" :
-                      c.statusProgres === "Pending Nunggu Job" ? "bg-amber-100 text-amber-700 border border-amber-200" :
-                      c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700 border border-rose-200" :
-                      c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" :
-                      "bg-gray-100 text-gray-600 border border-gray-200"
-                    }`}>
-                      {c.statusProgres || "Belum Ada"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2 text-xs text-gray-600 min-w-[200px]">
-                    {c.statusProgres ? (
-                      <div className="space-y-1">
-                        {c.namaTsk && <div><span className="font-medium text-gray-400">TSK:</span> <span className="font-medium text-gray-700">{c.namaTsk}</span></div>}
-                        {c.namaPerusahaanProgres && <div><span className="font-medium text-gray-400">Perusahaan:</span> <span className="font-medium text-gray-700">{c.namaPerusahaanProgres}</span></div>}
-                        {c.lokasiPerusahaan && <div><span className="font-medium text-gray-400">Lokasi:</span> <span className="font-medium text-gray-700">{c.lokasiPerusahaan}</span></div>}
-                        {c.jadwalKeberangkatan && <div><span className="font-medium text-gray-400">Keberangkatan:</span> <span className="font-medium text-gray-700">{c.jadwalKeberangkatan}</span></div>}
-                        {c.coeTerbit && <div><span className="font-medium text-gray-400">COE:</span> <span className="font-medium text-gray-700">{c.coeTerbit}</span></div>}
-                        {!c.namaTsk && !c.namaPerusahaanProgres && !c.lokasiPerusahaan && !c.jadwalKeberangkatan && !c.coeTerbit && (
-                          <span className="text-gray-400 italic">Data progres kosong</span>
-                        )}
-                      </div>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td className="py-3 px-2 text-gray-600 text-xs">{c.noHp}</td>
-                  <td className="py-3 px-2">
-                    <div className="flex space-x-2">
-                      <Link href={`/admin/cv/${c.id}`} className="text-blue-600 hover:text-blue-800 text-xs font-medium">
-                        CV
-                      </Link>
-                      {(userData?.role === "admin" || userData?.role === "approval") && (
-                        <Link href={`/admin/edit/${c.id}`} className="text-green-600 hover:text-green-800 text-xs font-medium">
-                          Edit
-                        </Link>
-                      )}
-                      {userData?.role === "admin" && (
-                        <button onClick={() => handleDeleteSingle(c)} className="text-red-500 hover:text-red-700 text-xs font-medium">
-                          Hapus
-                        </button>
-                      )}
-                    </div>
-                  </td>
+        {/* Desktop Table View */}
+        <div className="hidden lg:block card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="py-3 px-2">
+                    <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={selectAll} className="rounded" />
+                  </th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">Foto</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">Nama Lengkap</th>
+                  <th className="text-left py-3 px-1 font-medium text-gray-600">Bidang</th>
+                  <th className="text-left py-3 px-1 font-medium text-gray-600">Kategori</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">Kode Job</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">Status</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600 whitespace-nowrap min-w-[120px]">Tgl Submit</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">Aksi</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan="8" className="py-8 text-center text-gray-400">Tidak ada data</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((c) => {
+                  const submitDate = c.submittedAt ? new Date(c.submittedAt) : null;
+                  const isValidDate = submitDate && !isNaN(submitDate);
+
+                  return (
+                    <tr key={c.id} className={`border-b border-gray-100 hover:bg-gray-50 ${selected.includes(c.id) ? "bg-blue-50" : ""}`}>
+                      <td className="py-3 px-2">
+                        <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="rounded" />
+                      </td>
+                      <td className="py-3 px-2">
+                        <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} />
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="font-medium text-gray-800 line-clamp-2">{c.namaLengkap}</div>
+                        <div className="text-xs text-gray-400">{c.namaPanggilan}</div>
+                      </td>
+                      <td className="py-3 px-1">
+                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] whitespace-nowrap">{c.bidangKerja}</span>
+                      </td>
+                      <td className="py-3 px-1">
+                        <span className={`px-2 py-0.5 rounded text-[10px] whitespace-nowrap ${
+                          c.kategoriKandidat === "NEW COMER" ? "bg-green-100 text-green-700" :
+                          c.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" ? "bg-purple-100 text-purple-700" :
+                          "bg-orange-100 text-orange-700"
+                        }`}>{c.kategoriKandidat}</span>
+                      </td>
+                      <td className="py-3 px-2 text-gray-600 text-xs">{c.kodeJob || "-"}</td>
+                      <td className="py-3 px-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${
+                          c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700" :
+                          c.statusProgres === "Pending Nunggu Job" ? "bg-amber-100 text-amber-700" :
+                          c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700" :
+                          c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-100 text-emerald-700" :
+                          "bg-gray-100 text-gray-600"
+                        }`}>
+                          {c.statusProgres || "Belum Ada"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2 text-[10px] text-gray-600 min-w-[150px]">
+                        <div className="line-clamp-3">
+                          {c.namaTsk && <div>TSK: {c.namaTsk}</div>}
+                          {c.namaPerusahaanProgres && <div>Co: {c.namaPerusahaanProgres}</div>}
+                          {(!c.namaTsk && !c.namaPerusahaanProgres) && "-"}
+                        </div>
+                      </td>
+                      <td className="py-3 px-2 text-gray-600 text-xs">{c.noHp}</td>
+                      <td className="py-3 px-2 text-xs text-gray-500 whitespace-nowrap">
+                        {isValidDate ? (
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-700">{submitDate.toLocaleDateString('id-ID')}</span>
+                            <span className="text-[10px] text-gray-400">{submitDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                            {(new Date() - submitDate) < 24 * 60 * 60 * 1000 && (
+                              <span className="mt-1 w-fit bg-red-100 text-red-600 px-1 py-0.5 rounded text-[8px] font-bold">BARU</span>
+                            )}
+                          </div>
+                        ) : "-"}
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex space-x-2">
+                          <Link href={`/admin/cv/${c.id}`} className="text-blue-600 hover:underline text-xs">CV</Link>
+                          {(userData?.role === "admin" || userData?.role === "approval") && (
+                            <Link href={`/admin/edit/${c.id}`} className="text-green-600 hover:underline text-xs">Edit</Link>
+                          )}
+                          {userData?.role === "admin" && (
+                            <button onClick={() => handleDeleteSingle(c)} className="text-red-500 hover:underline text-xs">Hapus</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        {/* Mobile/Tablet Card View */}
+        <div className="lg:hidden space-y-4">
+          {filtered.map((c) => {
+            const submitDate = c.submittedAt ? new Date(c.submittedAt) : null;
+            const isValidDate = submitDate && !isNaN(submitDate);
+
+            return (
+              <div key={c.id} className={`card p-4 relative ${selected.includes(c.id) ? "border-blue-500 ring-1 ring-blue-500" : ""}`}>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 relative">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100">
+                      <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} />
+                    </div>
+                    <div className="absolute -top-2 -left-2">
+                      <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="w-5 h-5 rounded" />
+                    </div>
+                  </div>
+
+                  <div className="flex-grow min-w-0">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-gray-800 text-sm sm:text-base truncate leading-tight">{c.namaLengkap}</h3>
+                        <p className="text-xs text-gray-400">{c.namaPanggilan}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                        c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700" :
+                        c.statusProgres === "Pending Nunggu Job" ? "bg-amber-100 text-amber-700" :
+                        c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700" :
+                        c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-100 text-emerald-700" :
+                        "bg-gray-100 text-gray-600"
+                      }`}>
+                        {c.statusProgres || "NEW"}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-medium">{c.bidangKerja}</span>
+                      <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded text-[10px] font-medium">{c.kodeJob || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-gray-50 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <p className="text-gray-400 text-[10px] font-medium uppercase">Kategori</p>
+                    <p className="font-semibold text-gray-700">{c.kategoriKandidat}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-[10px] font-medium uppercase text-right">Tanggal Submit</p>
+                    <p className="font-semibold text-gray-700 text-right">
+                      {isValidDate ? submitDate.toLocaleDateString('id-ID') : "-"}
+                      {isValidDate && (new Date() - submitDate) < 24 * 60 * 60 * 1000 && (
+                        <span className="ml-1 text-[8px] text-red-500 font-bold">BARU</span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-gray-400 text-[10px] font-medium uppercase">No HP</p>
+                    <p className="font-semibold text-gray-700">{c.noHp}</p>
+                  </div>
+                  {c.namaTsk && (
+                    <div className="col-span-2 bg-gray-50 p-2 rounded">
+                      <p className="text-[10px] text-gray-500">TSK: <span className="text-gray-800 font-medium">{c.namaTsk}</span></p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <Link href={`/admin/cv/${c.id}`} className="flex-1 bg-blue-50 text-blue-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors">Lihat CV</Link>
+                  {(userData?.role === "admin" || userData?.role === "approval") && (
+                    <Link href={`/admin/edit/${c.id}`} className="flex-1 bg-green-50 text-green-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-green-100 transition-colors">Edit</Link>
+                  )}
+                  {userData?.role === "admin" && (
+                    <button onClick={() => handleDeleteSingle(c)} className="flex-1 bg-red-50 text-red-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-red-100 transition-colors">Hapus</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {filtered.length === 0 && (
+          <div className="card py-12 text-center text-gray-400">Tidak ada data ditemukan</div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

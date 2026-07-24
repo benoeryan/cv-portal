@@ -40,6 +40,9 @@ export default function Navbar() {
             )}
             {userData?.role === "candidate" && (
               <>
+                <Link href="/candidate/status" className="text-sm text-gray-600 hover:text-blue-600">
+                  Status Pendaftaran
+                </Link>
                 <Link href="/candidate/form" className="text-sm text-gray-600 hover:text-blue-600">
                   Isi Form
                 </Link>
