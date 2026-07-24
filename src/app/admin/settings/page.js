@@ -34,6 +34,10 @@ export default function SettingsPage() {
   const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Edit user
+  const [editingAccount, setEditingAccount] = useState(null);
+  const [editAccountData, setEditAccountData] = useState({ fullName: "", email: "" });
+
   // Edit role
   const [editingUser, setEditingUser] = useState(null);
   const [editRole, setEditRole] = useState("");
@@ -95,6 +99,28 @@ export default function SettingsPage() {
       );
     }
     setCreating(false);
+  };
+
+  const handleUpdateAccount = async (e) => {
+    e.preventDefault();
+    if (!editingAccount) return;
+    try {
+      await updateDoc(doc(db, "users", editingAccount.id), {
+        fullName: editAccountData.fullName,
+        email: editAccountData.email,
+      });
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === editingAccount.id
+            ? { ...u, fullName: editAccountData.fullName, email: editAccountData.email }
+            : u
+        )
+      );
+      setEditingAccount(null);
+      setMessage(`Profil ${editAccountData.fullName} berhasil diperbarui`);
+    } catch (err) {
+      setMessage("Error: " + err.message);
+    }
   };
 
   const handleUpdateRole = async () => {
@@ -206,8 +232,17 @@ export default function SettingsPage() {
                         <td className="py-3 px-3">
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => { setEditingUser(u); setEditRole(u.role); }}
+                              onClick={() => {
+                                setEditingAccount(u);
+                                setEditAccountData({ fullName: u.fullName || "", email: u.email || "" });
+                              }}
                               className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                            >
+                              Edit Akun
+                            </button>
+                            <button
+                              onClick={() => { setEditingUser(u); setEditRole(u.role); }}
+                              className="text-amber-600 hover:text-amber-800 text-xs font-medium"
                             >
                               Ubah Role
                             </button>
@@ -316,6 +351,40 @@ export default function SettingsPage() {
                 <button type="submit" className="btn-primary" disabled={creating}>
                   {creating ? "Membuat..." : "Buat Akun"}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Account */}
+      {editingAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">Edit Profil Pengguna</h3>
+            <form onSubmit={handleUpdateAccount} className="space-y-4">
+              <div>
+                <label className="form-label">Nama Lengkap</label>
+                <input
+                  className="input-field"
+                  value={editAccountData.fullName}
+                  onChange={(e) => setEditAccountData({ ...editAccountData, fullName: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label">Email</label>
+                <input
+                  type="email"
+                  className="input-field"
+                  value={editAccountData.email}
+                  onChange={(e) => setEditAccountData({ ...editAccountData, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="flex space-x-3 justify-end pt-2">
+                <button type="button" onClick={() => setEditingAccount(null)} className="btn-secondary">Batal</button>
+                <button type="submit" className="btn-primary">Simpan Perubahan</button>
               </div>
             </form>
           </div>

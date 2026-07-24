@@ -1,0 +1,5 @@
+- [ ] Konfigurasi Firebase untuk Google Auth (`src/lib/firebase.js`)
+- [ ] Implementasi `loginWithGoogle` di `AuthContext` (`src/context/AuthContext.js`)
+- [ ] Update halaman Login: Toggle password & Tombol Google (`src/app/auth/login/page.js`)
+- [ ] Update halaman Settings: Fitur Edit Akun & Modal (`src/app/admin/settings/page.js`)
+- [ ] Verifikasi perubahan
