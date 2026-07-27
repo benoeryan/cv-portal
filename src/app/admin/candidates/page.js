@@ -343,7 +343,7 @@ export default function AdminCandidatesPage() {
   return (
     <>
       <Navbar />
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="max-w-full mx-auto px-2 sm:px-6 py-4 sm:py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Data Kandidat</h1>
@@ -443,12 +443,12 @@ export default function AdminCandidatesPage() {
         </div>
 
         {/* Desktop Table View */}
-        <div className="hidden lg:block card overflow-hidden">
+        <div className="hidden lg:block card !p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="py-3 px-2">
+                  <th className="py-3 px-4">
                     <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={selectAll} className="rounded" />
                   </th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Foto</th>
@@ -460,7 +460,7 @@ export default function AdminCandidatesPage() {
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600 whitespace-nowrap min-w-[120px]">Tgl Submit</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">Aksi</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -470,7 +470,7 @@ export default function AdminCandidatesPage() {
 
                   return (
                     <tr key={c.id} className={`border-b border-gray-100 hover:bg-gray-50 ${selected.includes(c.id) ? "bg-blue-50" : ""}`}>
-                      <td className="py-3 px-2">
+                      <td className="py-3 px-4">
                         <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="rounded" />
                       </td>
                       <td className="py-3 px-2">
@@ -521,8 +521,8 @@ export default function AdminCandidatesPage() {
                           </div>
                         ) : "-"}
                       </td>
-                      <td className="py-3 px-2">
-                        <div className="flex space-x-2">
+                      <td className="py-3 px-4">
+                        <div className="flex space-x-2 whitespace-nowrap">
                           <Link href={`/admin/cv/${c.id}`} className="text-blue-600 hover:underline text-xs">CV</Link>
                           {(userData?.role === "admin" || userData?.role === "approval") && (
                             <Link href={`/admin/edit/${c.id}`} className="text-green-600 hover:underline text-xs">Edit</Link>
