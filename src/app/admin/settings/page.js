@@ -11,7 +11,7 @@ import {
   deleteDoc,
   setDoc,
 } from "firebase/firestore";
-import { createUserWithEmailAndPassword, getAuth, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, signOut, setPersistence, inMemoryPersistence } from "firebase/auth";
 import { initializeApp, deleteApp } from "firebase/app";
 import Navbar from "@/components/Navbar";
 
@@ -73,13 +73,19 @@ export default function SettingsPage() {
     e.preventDefault();
     setCreating(true);
     setMessage("");
+    console.log("Starting user creation process...");
 
     let tempApp;
     try {
-      // 1. Create a secondary Firebase instance to prevent admin logout
+      // 1. Create a secondary Firebase instance with NO persistence
+      // This is crucial to prevent the browser from signing out the current admin
       const tempAppName = `temp-app-${Date.now()}`;
       tempApp = initializeApp(firebaseConfig, tempAppName);
       const tempAuth = getAuth(tempApp);
+
+      // Force in-memory persistence for the temporary instance
+      await setPersistence(tempAuth, inMemoryPersistence);
+      console.log("Temporary Firebase instance initialized with in-memory persistence.");
 
       // 2. Create the user using the temporary auth instance
       const userCredential = await createUserWithEmailAndPassword(
@@ -87,8 +93,10 @@ export default function SettingsPage() {
         newUser.email,
         newUser.password
       );
+      console.log("User created in Firebase Auth:", userCredential.user.uid);
 
       // 3. Create the Firestore profile using the primary DB instance
+      // Note: We use the primary 'db' because 'tempApp' doesn't have Firestore initialized
       await setDoc(doc(db, "users", userCredential.user.uid), {
         email: newUser.email,
         fullName: newUser.fullName,
@@ -96,24 +104,32 @@ export default function SettingsPage() {
         createdAt: new Date().toISOString(),
         createdBy: user.uid,
       });
+      console.log("User profile created in Firestore.");
 
       // 4. Sign out from the temporary session and clean up
       await signOut(tempAuth);
       await deleteApp(tempApp);
+      console.log("Temporary session cleaned up.");
 
       setMessage(`Akun "${newUser.fullName}" berhasil dibuat dengan role ${newUser.role}`);
       setNewUser({ fullName: "", email: "", password: "", role: "viewer" });
       setShowAddUser(false);
       loadUsers();
     } catch (err) {
+      console.error("User creation failed:", err);
       // Cleanup on error
-      if (tempApp) await deleteApp(tempApp);
+      if (tempApp) {
+        try { await deleteApp(tempApp); } catch (e) { console.error("Cleanup failed:", e); }
+      }
 
-      setMessage(
-        err.code === "auth/email-already-in-use"
-          ? "Email sudah terdaftar"
-          : `Error: ${err.message}`
-      );
+      const errorMsg = err.code === "auth/email-already-in-use"
+        ? "Email sudah terdaftar"
+        : err.code === "auth/weak-password"
+        ? "Password minimal 6 karakter"
+        : `Gagal membuat akun: ${err.message}`;
+
+      setMessage(`Error: ${errorMsg}`);
+      alert(errorMsg); // Add a backup alert for visibility
     }
     setCreating(false);
   };
