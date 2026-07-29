@@ -1,0 +1,4 @@
+- [x] Update redirect logic in `src/app/page.js`
+- [x] Add Dashboard link in `src/components/Navbar.js`
+- [x] Create Admin Dashboard page in `src/app/admin/page.js`
+- [x] Verify Dashboard data and responsiveness

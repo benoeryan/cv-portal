@@ -11,7 +11,7 @@ export default function HomePage() {
   useEffect(() => {
     if (!loading && user) {
       if (userData?.role === "admin" || userData?.role === "viewer" || userData?.role === "approval") {
-        router.push("/admin/candidates");
+        router.push("/admin");
       } else {
         router.push("/candidate/status");
       }

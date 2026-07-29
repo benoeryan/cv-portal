@@ -24,6 +24,9 @@ export default function Navbar() {
             </Link>
             {userData?.role === "admin" && (
               <>
+                <Link href="/admin" className="text-sm text-gray-600 hover:text-blue-600">
+                  Dashboard
+                </Link>
                 <Link href="/admin/candidates" className="text-sm text-gray-600 hover:text-blue-600">
                   Data Kandidat
                 </Link>
@@ -53,6 +56,9 @@ export default function Navbar() {
             )}
             {(userData?.role === "viewer" || userData?.role === "approval") && (
               <>
+                <Link href="/admin" className="text-sm text-gray-600 hover:text-blue-600">
+                  Dashboard
+                </Link>
                 <Link href="/admin/candidates" className="text-sm text-gray-600 hover:text-blue-600">
                   Data Kandidat
                 </Link>
