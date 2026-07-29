@@ -1,34 +1,37 @@
-# Implementation Plan - Admin Dashboard
+# Implementation Plan - Interactive Admin Dashboard
 
-Create a dashboard for admin, viewer, and approval roles that provides a summary of candidates based on category, field, and progress status.
+Make dashboard elements clickable to filter the candidate list automatically.
 
 ## User Review Required
 
-> [!IMPORTANT]
-> The dashboard will be the new landing page for admins after login. The existing "Data Kandidat" page will still be accessible via the navigation bar.
+> [!NOTE]
+> Clicking on a status card, a "Bidang Kerja" item, or a "Kategori" item will navigate the admin to the "Data Kandidat" page with that specific filter already active.
 
 ## Proposed Changes
 
-### [Admin Dashboard Component]
+### [Admin Dashboard]
 
-#### [NEW] [page.js](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/app/admin/page.js)
-- Implement the Dashboard UI.
-- Fetch candidate data from Firestore.
-- Calculate statistics for `kategoriKandidat`, `bidangKerja`, and `statusProgres`.
-- Display summary cards and simple visual indicators (e.g., progress bars or percentage bars).
+#### [MODIFY] [page.js](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/app/admin/page.js)
+- Import `Link` from `next/link`.
+- Wrap the "Total Kandidat" card with a link to `/admin/candidates`.
+- Wrap status cards with links to `/admin/candidates?status=[status]`.
+- Wrap "Bidang Kerja" items with links to `/admin/candidates?bidang=[bidang]`.
+- Wrap "Kategori" items with links to `/admin/candidates?kategori=[kategori]`.
+- Update styles to ensure clickable elements look interactive (hover effects).
 
-### [Navigation & Routing]
+### [Candidate Data Page]
 
-#### [MODIFY] [page.js](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/app/page.js)
-- Update the redirect logic for `admin`, `viewer`, and `approval` roles to point to `/admin` instead of `/admin/candidates`.
-
-#### [MODIFY] [Navbar.js](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/components/Navbar.js)
-- Add a "Dashboard" link to the navigation bar for administrative roles.
+#### [MODIFY] [page.js](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/app/admin/candidates/page.js)
+- Import `useSearchParams` from `next/navigation`.
+- Use a `useEffect` hook to read `bidang`, `kategori`, and `status` from search parameters when the component mounts or when search parameters change.
+- Update the state variables `filterBidang`, `filterKategori`, and `filterStatus` based on the URL parameters.
+- Wrap the component or the part using `useSearchParams` with `Suspense` if required by Next.js (usually needed for `useSearchParams` in some Next.js configurations).
 
 ## Verification Plan
 
 ### Manual Verification
-- Log in as an admin and verify redirection to `/admin`.
-- Check if the dashboard displays correct counts for categories, fields, and statuses.
-- Verify that navigation between Dashboard and Data Kandidat works correctly.
-- Check responsiveness on mobile and desktop.
+- Go to the Dashboard.
+- Click on the "On Proses" card. Verify it redirects to "Data Kandidat" and only shows candidates with "On Proses" status.
+- Click on a specific Bidang (e.g., "KAIGO"). Verify it redirects and filters correctly.
+- Click on a Kategori (e.g., "NEW COMER"). Verify it redirects and filters correctly.
+- Verify that clicking "Lihat Detail Semua Kandidat" still works (shows all).

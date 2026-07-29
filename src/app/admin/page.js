@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
 export default function AdminDashboard() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -90,15 +91,19 @@ export default function AdminDashboard() {
 
         {/* Total Card */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="card p-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+          <Link href="/admin/candidates" className="card p-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white hover:shadow-lg transition-shadow">
             <h3 className="text-lg font-medium opacity-80">Total Kandidat</h3>
             <p className="text-4xl font-bold mt-2">{stats.total}</p>
-          </div>
+          </Link>
 
           {Object.entries(stats.byStatus).map(([status, count]) => {
             if (count === 0 && status === "Lainnya") return null;
             return (
-              <div key={status} className="card p-6 bg-white border border-gray-100 shadow-sm">
+              <Link
+                href={`/admin/candidates?status=${encodeURIComponent(status)}`}
+                key={status}
+                className="card p-6 bg-white border border-gray-100 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+              >
                 <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">{status}</h3>
                 <p className="text-3xl font-bold text-gray-800 mt-2">{count}</p>
                 <div className="w-full bg-gray-100 h-2 mt-4 rounded-full overflow-hidden">
@@ -112,7 +117,7 @@ export default function AdminDashboard() {
                     style={{ width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%` }}
                   ></div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -125,18 +130,22 @@ export default function AdminDashboard() {
               {Object.entries(stats.byBidang)
                 .sort((a, b) => b[1] - a[1])
                 .map(([bidang, count]) => (
-                <div key={bidang}>
+                <Link
+                  href={`/admin/candidates?bidang=${encodeURIComponent(bidang)}`}
+                  key={bidang}
+                  className="block group"
+                >
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="font-medium text-gray-700">{bidang}</span>
+                    <span className="font-medium text-gray-700 group-hover:text-blue-600 transition-colors">{bidang}</span>
                     <span className="text-gray-500">{count} Kandidat ({Math.round((count/stats.total)*100)}%)</span>
                   </div>
                   <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                     <div
-                      className="bg-blue-500 h-full"
+                      className="bg-blue-500 h-full group-hover:bg-blue-600 transition-colors"
                       style={{ width: `${(count / stats.total) * 100}%` }}
                     ></div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -148,19 +157,23 @@ export default function AdminDashboard() {
               {Object.entries(stats.byCategory)
                 .sort((a, b) => b[1] - a[1])
                 .map(([cat, count]) => (
-                <div key={cat} className="flex items-center">
+                <Link
+                  href={`/admin/candidates?kategori=${encodeURIComponent(cat)}`}
+                  key={cat}
+                  className="flex items-center group"
+                >
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold transition-transform group-hover:scale-105 ${
                         cat === "NEW COMER" ? "bg-green-100 text-green-700" :
                         cat === "EX-MAGANG/EX-TRAINEER" ? "bg-purple-100 text-purple-700" :
                         "bg-orange-100 text-orange-700"
                       }`}>{cat}</span>
-                      <span className="text-xl font-bold text-gray-800">{count}</span>
+                      <span className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{count}</span>
                     </div>
                     <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
                       <div
-                        className={`h-full ${
+                        className={`h-full transition-all ${
                           cat === "NEW COMER" ? "bg-green-500" :
                           cat === "EX-MAGANG/EX-TRAINEER" ? "bg-purple-500" :
                           "bg-orange-500"
@@ -169,7 +182,7 @@ export default function AdminDashboard() {
                       ></div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
 

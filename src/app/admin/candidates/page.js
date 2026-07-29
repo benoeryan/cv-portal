@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { translateToJapanese } from "@/lib/translateHelper";
@@ -9,9 +9,10 @@ import Navbar from "@/components/Navbar";
 import DriveImage from "@/components/DriveImage";
 import Link from "next/link";
 
-export default function AdminCandidatesPage() {
+function CandidatesContent() {
   const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +20,17 @@ export default function AdminCandidatesPage() {
   const [filterKategori, setFilterKategori] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterDate, setFilterDate] = useState("");
+
+  // Handle URL Parameters
+  useEffect(() => {
+    const bidang = searchParams.get("bidang");
+    const kategori = searchParams.get("kategori");
+    const status = searchParams.get("status");
+
+    if (bidang) setFilterBidang(bidang);
+    if (kategori) setFilterKategori(kategori);
+    if (status) setFilterStatus(status);
+  }, [searchParams]);
   const [selected, setSelected] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null); // single delete
@@ -662,5 +674,13 @@ export default function AdminCandidatesPage() {
         </div>
       )}
     </>
+  );
+}
+
+export default function AdminCandidatesPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+      <CandidatesContent />
+    </Suspense>
   );
 }

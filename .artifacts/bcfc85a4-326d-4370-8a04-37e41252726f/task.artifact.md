@@ -1,4 +1,4 @@
-- [x] Update redirect logic in `src/app/page.js`
-- [x] Add Dashboard link in `src/components/Navbar.js`
-- [x] Create Admin Dashboard page in `src/app/admin/page.js`
-- [x] Verify Dashboard data and responsiveness
+- [ ] Make Dashboard elements clickable in `src/app/admin/page.js`
+- [ ] Implement URL parameter handling in `src/app/admin/candidates/page.js`
+- [ ] Verify interactivity and filtering
+- [ ] Commit and push changes to GitHub
