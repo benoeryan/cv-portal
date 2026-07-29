@@ -39,11 +39,14 @@ export default function AdminDashboard() {
         byCategory: {},
         byBidang: {},
         byStatus: {
-          "On Proses": 0,
+          "Nihongo check": 0,
+          "Belum Lolos Nihongo check": 0,
           "Pending Nunggu Job": 0,
-          "Cancel": 0,
+          "Penjadwalan Interview": 0,
+          "On Proses": 0,
+          "Tidak Lolos Interview": 0,
           "Status On Job (Selesai)": 0,
-          "Lainnya": 0
+          "Cancel": 0
         }
       };
 
@@ -89,30 +92,36 @@ export default function AdminDashboard() {
           <p className="text-gray-500">Ringkasan data kandidat portal CV IJEF</p>
         </div>
 
-        {/* Total Card */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Link href="/admin/candidates" className="card p-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white hover:shadow-lg transition-shadow">
-            <h3 className="text-lg font-medium opacity-80">Total Kandidat</h3>
+        {/* Total Card & Status Cards Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <Link href="/admin/candidates" className="card p-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white hover:shadow-lg transition-shadow flex flex-col justify-center">
+            <h3 className="text-sm font-medium opacity-80 uppercase">Total Kandidat</h3>
             <p className="text-4xl font-bold mt-2">{stats.total}</p>
           </Link>
 
           {Object.entries(stats.byStatus).map(([status, count]) => {
-            if (count === 0 && status === "Lainnya") return null;
             return (
               <Link
                 href={`/admin/candidates?status=${encodeURIComponent(status)}`}
                 key={status}
-                className="card p-6 bg-white border border-gray-100 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+                className="card p-4 bg-white border border-gray-100 shadow-sm hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between"
               >
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">{status}</h3>
-                <p className="text-3xl font-bold text-gray-800 mt-2">{count}</p>
-                <div className="w-full bg-gray-100 h-2 mt-4 rounded-full overflow-hidden">
+                <div>
+                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 line-clamp-1">{status}</h3>
+                  <p className="text-2xl font-bold text-gray-800">{count}</p>
+                </div>
+                <div className="w-full bg-gray-100 h-1.5 mt-3 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${
+                      status === "Nihongo check" ? "bg-indigo-500" :
+                      status === "Belum Lolos Nihongo check" ? "bg-gray-400" :
+                      status === "Pending Nunggu Job" ? "bg-amber-500" :
+                      status === "Penjadwalan Interview" ? "bg-violet-500" :
                       status === "On Proses" ? "bg-sky-500" :
+                      status === "Tidak Lolos Interview" ? "bg-orange-500" :
                       status === "Status On Job (Selesai)" ? "bg-emerald-500" :
                       status === "Cancel" ? "bg-rose-500" :
-                      "bg-amber-500"
+                      "bg-gray-500"
                     }`}
                     style={{ width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%` }}
                   ></div>

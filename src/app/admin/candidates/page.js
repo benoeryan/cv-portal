@@ -430,10 +430,14 @@ function CandidatesContent() {
               <label className="form-label text-xs font-medium text-gray-600">Status Progres</label>
               <select className="input-field text-sm" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="">Semua</option>
-                <option value="On Proses">On Proses</option>
+                <option value="Nihongo check">Nihongo check</option>
+                <option value="Belum Lolos Nihongo check">Belum Lolos Nihongo check</option>
                 <option value="Pending Nunggu Job">Pending Nunggu Job</option>
-                <option value="Cancel">Cancel</option>
+                <option value="Penjadwalan Interview">Penjadwalan Interview</option>
+                <option value="On Proses">On Proses</option>
+                <option value="Tidak Lolos Interview">Tidak Lolos Interview</option>
                 <option value="Status On Job (Selesai)">Status On Job (Selesai)</option>
+                <option value="Cancel">Cancel</option>
               </select>
             </div>
             <div className="flex items-end space-x-2">
@@ -505,10 +509,14 @@ function CandidatesContent() {
                       <td className="py-3 px-2 text-gray-600 text-xs">{c.kodeJob || "-"}</td>
                       <td className="py-3 px-2">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${
-                          c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700" :
+                          c.statusProgres === "Nihongo check" ? "bg-indigo-100 text-indigo-700" :
+                          c.statusProgres === "Belum Lolos Nihongo check" ? "bg-gray-200 text-gray-700" :
                           c.statusProgres === "Pending Nunggu Job" ? "bg-amber-100 text-amber-700" :
-                          c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700" :
+                          c.statusProgres === "Penjadwalan Interview" ? "bg-violet-100 text-violet-700" :
+                          c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700" :
+                          c.statusProgres === "Tidak Lolos Interview" ? "bg-orange-100 text-orange-700" :
                           c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-100 text-emerald-700" :
+                          c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700" :
                           "bg-gray-100 text-gray-600"
                         }`}>
                           {c.statusProgres || "Belum Ada"}
@@ -577,10 +585,14 @@ function CandidatesContent() {
                         <p className="text-xs text-gray-400">{c.namaPanggilan}</p>
                       </div>
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                        c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700" :
+                        c.statusProgres === "Nihongo check" ? "bg-indigo-100 text-indigo-700" :
+                        c.statusProgres === "Belum Lolos Nihongo check" ? "bg-gray-200 text-gray-700" :
                         c.statusProgres === "Pending Nunggu Job" ? "bg-amber-100 text-amber-700" :
-                        c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700" :
+                        c.statusProgres === "Penjadwalan Interview" ? "bg-violet-100 text-violet-700" :
+                        c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700" :
+                        c.statusProgres === "Tidak Lolos Interview" ? "bg-orange-100 text-orange-700" :
                         c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-100 text-emerald-700" :
+                        c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700" :
                         "bg-gray-100 text-gray-600"
                       }`}>
                         {c.statusProgres || "NEW"}

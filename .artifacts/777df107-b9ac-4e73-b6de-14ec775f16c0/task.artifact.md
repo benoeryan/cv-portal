@@ -1,5 +1,12 @@
-- [ ] Konfigurasi Firebase untuk Google Auth (`src/lib/firebase.js`)
-- [ ] Implementasi `loginWithGoogle` di `AuthContext` (`src/context/AuthContext.js`)
-- [ ] Update halaman Login: Toggle password & Tombol Google (`src/app/auth/login/page.js`)
-- [ ] Update halaman Settings: Fitur Edit Akun & Modal (`src/app/admin/settings/page.js`)
-- [ ] Verifikasi perubahan
+- `[x]` Memperbaiki tata letak tabel di halaman Admin Candidates
+    - `[x]` Update `src/app/admin/candidates/page.js` untuk lebar kontainer dan padding
+    - `[x]` Update `src/components/Navbar.js` untuk lebar Navbar
+- `[x]` Verifikasi tampilan (lewat preview atau pengecekan kode)
+- `[x]` Git & Deployment
+    - `[x]` Cek status git dan remote
+    - `[x]` Commit perubahan
+    - `[x]` Push ke GitHub
+    - `[x]` Push ke Vercel (via integrasi GitHub / manual push)
+- `[x]` Update data Firestore dari `firestore_backup.json`
+    - `[x]` Menjalankan script restore data
+    - `[x]` Verifikasi hasil upload

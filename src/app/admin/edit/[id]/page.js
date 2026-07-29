@@ -445,10 +445,14 @@ export default function EditCandidatePage() {
                     onChange={(e) => handleChange("statusProgres", e.target.value)}
                   >
                     <option value="">-- Pilih Status --</option>
-                    <option value="On Proses">On Proses</option>
+                    <option value="Nihongo check">Nihongo check</option>
+                    <option value="Belum Lolos Nihongo check">Belum Lolos Nihongo check</option>
                     <option value="Pending Nunggu Job">Pending Nunggu Job</option>
-                    <option value="Cancel">Cancel</option>
+                    <option value="Penjadwalan Interview">Penjadwalan Interview</option>
+                    <option value="On Proses">On Proses</option>
+                    <option value="Tidak Lolos Interview">Tidak Lolos Interview</option>
                     <option value="Status On Job (Selesai)">Status On Job (Selesai)</option>
+                    <option value="Cancel">Cancel</option>
                   </select>
                 </div>
                 <div>
@@ -494,6 +498,15 @@ export default function EditCandidatePage() {
                     value={data.coeTerbit || ""} 
                     onChange={(e) => handleChange("coeTerbit", e.target.value)}
                     placeholder="Contoh: Terbit / Diproses / Belum Terbit..."
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="form-label">Keterangan Progres</label>
+                  <textarea
+                    className="input-field min-h-[100px]"
+                    value={data.keteranganProgres || ""}
+                    onChange={(e) => handleChange("keteranganProgres", e.target.value)}
+                    placeholder="Masukkan keterangan detail mengenai progres kandidat..."
                   />
                 </div>
               </div>

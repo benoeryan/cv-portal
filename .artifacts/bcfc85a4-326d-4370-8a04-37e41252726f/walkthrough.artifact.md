@@ -1,27 +1,24 @@
-# Walkthrough - Admin Dashboard
+# Walkthrough - Interactive Admin Dashboard
 
-Dashboard admin telah berhasil diimplementasikan. Sekarang, admin akan langsung melihat ringkasan statistik kandidat setelah login.
+Dashboard admin sekarang sepenuhnya interaktif. Setiap elemen statistik dapat diklik untuk melihat detail kandidat yang sesuai.
 
 ## Perubahan Utama
 
-### 1. Dashboard Baru
-Halaman dashboard baru di `/admin` menampilkan:
-- **Total Kandidat**: Kartu ringkasan total.
-- **Status Progres**: Statistik berdasarkan status (On Proses, Selesai, Cancel, dll) lengkap dengan indikator progress bar.
-- **Bidang Kerja**: Daftar bidang kerja dengan jumlah kandidat dan persentasenya.
-- **Kategori Kandidat**: Visualisasi statistik untuk kategori NEW COMER dan EX-MAGANG.
+### 1. Dashboard Interaktif
+- **Kartu Total & Status**: Setiap kartu status (On Proses, Pending, dll) sekarang bisa diklik.
+- **Daftar Bidang & Kategori**: Setiap baris pada tabel bidang kerja dan kategori kandidat sekarang menjadi link aktif.
+- **Efek Visual**: Menambahkan efek hover (bayangan dan perubahan warna) untuk memberi petunjuk bahwa elemen tersebut bisa diklik.
 
-### 2. Alur Navigasi
-- **Redirect Otomatis**: Admin, Viewer, dan Approval sekarang diarahkan ke `/admin` (Dashboard) alih-alih langsung ke tabel data.
-- **Menu Navigasi**: Menambahkan link "Dashboard" di Navbar untuk memudahkan akses balik dari halaman lain.
+### 2. Otomatisasi Filter pada Halaman Kandidat
+- **Query Param Handling**: Halaman "Data Kandidat" sekarang dapat membaca parameter dari URL (misal: `?status=Cancel`).
+- **Auto-Filter**: Saat admin mengklik dari dashboard, halaman daftar kandidat akan otomatis memfilter data berdasarkan kategori, bidang, atau status yang dipilih.
+- **Suspense Implementation**: Menambahkan `Suspense` wrapper untuk menangani pembacaan parameter URL secara aman di Next.js.
 
-## Pratinjau Kode
-
-- [page.js (Dashboard)](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/app/admin/page.js)
-- [Navbar.js](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/components/Navbar.js)
-- [page.js (Login Redirect)](file:///C:/Users/Lenovo/StudioProjects/cv-portal/src/app/page.js)
+## Cara Menggunakan
+1. Buka **Dashboard**.
+2. Klik pada angka atau kartu status (misal: klik angka di bawah "On Proses").
+3. Anda akan diarahkan ke halaman **Data Kandidat** dengan filter "On Proses" sudah aktif secara otomatis.
 
 ## Verifikasi
-- Struktur data diambil langsung dari Firestore.
-- Tampilan responsif (grid menyesuaikan ukuran layar).
-- Tombol shortcut ke halaman "Data Kandidat" tersedia di dashboard.
+- Perubahan sudah di-commit dan di-push ke branch `master`.
+- Menangani encoding URL (spasi dan karakter khusus) untuk parameter filter.
