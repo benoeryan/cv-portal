@@ -122,14 +122,15 @@ export default function SettingsPage() {
         try { await deleteApp(tempApp); } catch (e) { console.error("Cleanup failed:", e); }
       }
 
-      const errorMsg = err.code === "auth/email-already-in-use"
-        ? "Email sudah terdaftar"
-        : err.code === "auth/weak-password"
-        ? "Password minimal 6 karakter"
-        : `Gagal membuat akun: ${err.message}`;
+      let errorMsg = err.message;
+      if (err.code === "auth/email-already-in-use") {
+        errorMsg = "Email ini sudah terdaftar di sistem keamanan (Auth), namun profil databasenya mungkin belum ada. Mintalah pengguna tersebut untuk Login langsung agar sistem melakukan perbaikan otomatis.";
+      } else if (err.code === "auth/weak-password") {
+        errorMsg = "Password minimal 6 karakter";
+      }
 
       setMessage(`Error: ${errorMsg}`);
-      alert(errorMsg); // Add a backup alert for visibility
+      alert(errorMsg);
     }
     setCreating(false);
   };

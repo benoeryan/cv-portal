@@ -23,8 +23,21 @@ export function AuthProvider({ children }) {
         setUser(firebaseUser);
         const docRef = doc(db, "users", firebaseUser.uid);
         const docSnap = await getDoc(docRef);
+
         if (docSnap.exists()) {
           setUserData(docSnap.data());
+        } else {
+          // AUTO-REPAIR: If user exists in Auth but not in Firestore
+          console.log("Auto-repairing missing Firestore profile for:", firebaseUser.email);
+          const newProfile = {
+            email: firebaseUser.email,
+            fullName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            role: "candidate", // Default role for orphaned accounts
+            createdAt: new Date().toISOString(),
+            repairedAt: new Date().toISOString(),
+          };
+          await setDoc(docRef, newProfile);
+          setUserData(newProfile);
         }
       } else {
         setUser(null);
