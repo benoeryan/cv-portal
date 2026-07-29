@@ -1,5 +1,7 @@
-- [x] Update status options and add Keterangan field in `src/app/admin/edit/[id]/page.js`
-- [x] Update filter options and status badges in `src/app/admin/candidates/page.js`
-- [x] Update dashboard statistics and cards in `src/app/admin/page.js`
-- [x] Verify functionality and responsiveness
-- [x] Commit and push changes to GitHub
+- [ ] Prepare `src/app/admin/page.js` for full candidate data management
+- [ ] Implement Pipeline Distribution visualization component
+- [ ] Add Search and Filter bar to the Dashboard
+- [ ] Implement interactive Candidate Table in the Dashboard
+- [ ] Update Bidang and Kategori cards to work with cumulative filters
+- [ ] Verify interactivity and data accuracy
+- [ ] Commit and push changes to GitHub
