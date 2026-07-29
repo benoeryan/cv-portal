@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { db, auth } from "@/lib/firebase";
+import { db, auth, firebaseConfig } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -11,7 +11,8 @@ import {
   deleteDoc,
   setDoc,
 } from "firebase/firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, signOut } from "firebase/auth";
+import { initializeApp, deleteApp } from "firebase/app";
 import Navbar from "@/components/Navbar";
 
 const ROLES = [
@@ -73,12 +74,21 @@ export default function SettingsPage() {
     setCreating(true);
     setMessage("");
 
+    let tempApp;
     try {
+      // 1. Create a secondary Firebase instance to prevent admin logout
+      const tempAppName = `temp-app-${Date.now()}`;
+      tempApp = initializeApp(firebaseConfig, tempAppName);
+      const tempAuth = getAuth(tempApp);
+
+      // 2. Create the user using the temporary auth instance
       const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        tempAuth,
         newUser.email,
         newUser.password
       );
+
+      // 3. Create the Firestore profile using the primary DB instance
       await setDoc(doc(db, "users", userCredential.user.uid), {
         email: newUser.email,
         fullName: newUser.fullName,
@@ -87,11 +97,18 @@ export default function SettingsPage() {
         createdBy: user.uid,
       });
 
+      // 4. Sign out from the temporary session and clean up
+      await signOut(tempAuth);
+      await deleteApp(tempApp);
+
       setMessage(`Akun "${newUser.fullName}" berhasil dibuat dengan role ${newUser.role}`);
       setNewUser({ fullName: "", email: "", password: "", role: "viewer" });
       setShowAddUser(false);
       loadUsers();
     } catch (err) {
+      // Cleanup on error
+      if (tempApp) await deleteApp(tempApp);
+
       setMessage(
         err.code === "auth/email-already-in-use"
           ? "Email sudah terdaftar"
