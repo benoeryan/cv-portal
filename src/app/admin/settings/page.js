@@ -23,7 +23,7 @@ const ROLES = [
 ];
 
 export default function SettingsPage() {
-  const { user, userData, loading: authLoading } = useAuth();
+  const { user, userData, loading: authLoading, resetPassword } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,12 +32,14 @@ export default function SettingsPage() {
   // New user form
   const [showAddUser, setShowAddUser] = useState(false);
   const [newUser, setNewUser] = useState({ fullName: "", email: "", password: "", role: "viewer" });
+  const [showPassword, setShowPassword] = useState(false);
   const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState("");
 
   // Edit user
   const [editingAccount, setEditingAccount] = useState(null);
   const [editAccountData, setEditAccountData] = useState({ fullName: "", email: "" });
+  const [resetingPassword, setResetingPassword] = useState(false);
 
   // Edit role
   const [editingUser, setEditingUser] = useState(null);
@@ -183,6 +185,18 @@ export default function SettingsPage() {
     } catch (err) {
       setMessage("Error: " + err.message);
     }
+  };
+
+  const handleSendResetEmail = async (email) => {
+    if (!window.confirm(`Kirim email reset password ke ${email}?`)) return;
+    setResetingPassword(true);
+    try {
+      await resetPassword(email);
+      setMessage(`Email pemulihan password telah dikirim ke ${email}`);
+    } catch (err) {
+      setMessage("Error: " + err.message);
+    }
+    setResetingPassword(false);
   };
 
   const getRoleInfo = (role) => ROLES.find((r) => r.value === role) || ROLES[3];
@@ -369,7 +383,32 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="form-label">Password</label>
-                <input type="password" className="input-field" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required minLength={6} />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="input-field pr-10"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="form-label">Role</label>
@@ -410,11 +449,28 @@ export default function SettingsPage() {
                 <label className="form-label">Email</label>
                 <input
                   type="email"
-                  className="input-field"
+                  className="input-field bg-gray-50"
                   value={editAccountData.email}
                   onChange={(e) => setEditAccountData({ ...editAccountData, email: e.target.value })}
                   required
                 />
+              </div>
+              <div className="pt-2">
+                <label className="form-label">Keamanan</label>
+                <button
+                  type="button"
+                  onClick={() => handleSendResetEmail(editingAccount.email)}
+                  className="w-full bg-amber-50 text-amber-700 py-2 rounded-lg border border-amber-200 text-sm font-medium hover:bg-amber-100 transition-colors flex items-center justify-center gap-2"
+                  disabled={resetingPassword}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  {resetingPassword ? "Mengirim..." : "Kirim Email Reset Password"}
+                </button>
+                <p className="text-[10px] text-gray-400 mt-1 italic text-center">
+                  Link untuk membuat password baru akan dikirim langsung ke email pengguna.
+                </p>
               </div>
               <div className="flex space-x-3 justify-end pt-2">
                 <button type="button" onClick={() => setEditingAccount(null)} className="btn-secondary">Batal</button>
@@ -452,16 +508,21 @@ export default function SettingsPage() {
       {deleteTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-bold text-red-600 mb-2">Hapus Akun</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Anda yakin ingin menghapus akun <strong>{deleteTarget.fullName}</strong> ({deleteTarget.email})?
+            <h3 className="text-lg font-bold text-red-600 mb-2">Hapus Profil Akun</h3>
+            <p className="text-sm text-gray-600 mb-2">
+              Anda akan menghapus data profil <strong>{deleteTarget.fullName}</strong> ({deleteTarget.email}) dari database.
             </p>
+            <div className="bg-red-50 p-3 rounded-lg border border-red-100 mb-4">
+              <p className="text-[10px] text-red-700 leading-relaxed font-medium">
+                <strong>PENTING:</strong> Sistem ini hanya menghapus data profil (Firestore). Username & Password tetap tersimpan di sistem keamanan (Auth). Jika Anda ingin mendaftarkan ulang email ini sebagai "Akun Baru", Anda harus menghapusnya secara permanen terlebih dahulu melalui panel <strong>Firebase Console &gt; Authentication</strong>.
+              </p>
+            </div>
             <p className="text-sm text-gray-500 mb-3">Ketik <strong className="text-red-600">HAPUS</strong> untuk konfirmasi:</p>
             <input className="input-field mb-4" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} placeholder="Ketik HAPUS" />
             <div className="flex space-x-3 justify-end">
-              <button onClick={() => { setDeleteTarget(null); setDeleteConfirm(""); }} className="btn-secondary">Batal</button>
-              <button onClick={handleDeleteUser} disabled={deleteConfirm !== "HAPUS"} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                Hapus Permanen
+              <button onClick={() => { setDeleteTarget(null); setDeleteConfirm(""); }} className="btn-secondary text-sm">Batal</button>
+              <button onClick={handleDeleteUser} disabled={deleteConfirm !== "HAPUS"} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                Hapus Profil
               </button>
             </div>
           </div>
