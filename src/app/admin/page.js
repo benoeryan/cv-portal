@@ -60,11 +60,9 @@ export default function AdminDashboard() {
         summary.byBidang[bidang] = (summary.byBidang[bidang] || 0) + 1;
 
         // Stats by Status
-        const status = c.statusProgres || "Lainnya";
-        if (summary.byStatus.hasOwnProperty(status)) {
+        const status = c.statusProgres;
+        if (status && summary.byStatus.hasOwnProperty(status)) {
           summary.byStatus[status]++;
-        } else {
-          summary.byStatus["Lainnya"]++;
         }
       });
 

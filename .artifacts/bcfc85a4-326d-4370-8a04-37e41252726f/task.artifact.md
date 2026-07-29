@@ -1,5 +1,5 @@
-- [ ] Update status options and add Keterangan field in `src/app/admin/edit/[id]/page.js`
-- [ ] Update filter options and status badges in `src/app/admin/candidates/page.js`
-- [ ] Update dashboard statistics and cards in `src/app/admin/page.js`
-- [ ] Verify functionality and responsiveness
-- [ ] Commit and push changes to GitHub
+- [x] Update status options and add Keterangan field in `src/app/admin/edit/[id]/page.js`
+- [x] Update filter options and status badges in `src/app/admin/candidates/page.js`
+- [x] Update dashboard statistics and cards in `src/app/admin/page.js`
+- [x] Verify functionality and responsiveness
+- [x] Commit and push changes to GitHub

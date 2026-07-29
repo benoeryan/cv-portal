@@ -27,9 +27,9 @@ function CandidatesContent() {
     const kategori = searchParams.get("kategori");
     const status = searchParams.get("status");
 
-    if (bidang) setFilterBidang(bidang);
-    if (kategori) setFilterKategori(kategori);
-    if (status) setFilterStatus(status);
+    setFilterBidang(bidang || "");
+    setFilterKategori(kategori || "");
+    setFilterStatus(status || "");
   }, [searchParams]);
   const [selected, setSelected] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

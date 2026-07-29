@@ -1,24 +1,36 @@
-# Walkthrough - Interactive Admin Dashboard
+# Walkthrough - Updated Status Progress Flow & Dashboard
 
-Dashboard admin sekarang sepenuhnya interaktif. Setiap elemen statistik dapat diklik untuk melihat detail kandidat yang sesuai.
+Sistem manajemen status kandidat telah diperbarui dengan alur kerja yang lebih detail, penambahan kolom keterangan, serta pembaruan visual pada dashboard.
 
 ## Perubahan Utama
 
-### 1. Dashboard Interaktif
-- **Kartu Total & Status**: Setiap kartu status (On Proses, Pending, dll) sekarang bisa diklik.
-- **Daftar Bidang & Kategori**: Setiap baris pada tabel bidang kerja dan kategori kandidat sekarang menjadi link aktif.
-- **Efek Visual**: Menambahkan efek hover (bayangan dan perubahan warna) untuk memberi petunjuk bahwa elemen tersebut bisa diklik.
+### 1. Alur Status Baru
+Status progres kandidat kini mengikuti alur yang lebih spesifik:
+- `Nihongo check`
+- `Belum Lolos Nihongo check`
+- `Pending Nunggu Job`
+- `Penjadwalan Interview`
+- `On Proses`
+- `Tidak Lolos Interview`
+- `Status On Job (Selesai)`
+- `Cancel`
 
-### 2. Otomatisasi Filter pada Halaman Kandidat
-- **Query Param Handling**: Halaman "Data Kandidat" sekarang dapat membaca parameter dari URL (misal: `?status=Cancel`).
-- **Auto-Filter**: Saat admin mengklik dari dashboard, halaman daftar kandidat akan otomatis memfilter data berdasarkan kategori, bidang, atau status yang dipilih.
-- **Suspense Implementation**: Menambahkan `Suspense` wrapper untuk menangani pembacaan parameter URL secara aman di Next.js.
+### 2. Kolom Keterangan Progres
+- Menambahkan field **"Keterangan Progres"** pada halaman Edit Kandidat (Tab Status Progres).
+- Field ini memungkinkan admin menulis catatan detail mengenai setiap tahapan yang sedang dijalani kandidat.
+
+### 3. Dashboard Statistik Terintegrasi
+- Dashboard telah diperbarui untuk menampilkan **8 status baru** secara lengkap.
+- Grid kartu statistik disesuaikan agar tetap terlihat rapi pada layar desktop maupun mobile.
+- Memberikan skema warna unik untuk setiap status agar mudah dibedakan secara visual.
 
 ## Cara Menggunakan
-1. Buka **Dashboard**.
-2. Klik pada angka atau kartu status (misal: klik angka di bawah "On Proses").
-3. Anda akan diarahkan ke halaman **Data Kandidat** dengan filter "On Proses" sudah aktif secara otomatis.
+1. Buka halaman **Dashboard** untuk melihat sebaran kandidat berdasarkan status baru.
+2. Klik pada salah satu kartu status untuk melihat daftar kandidat terkait.
+3. Untuk memperbarui status, buka halaman **Edit Kandidat** > klik tab **Status Progres**.
+4. Pilih status baru dan isi kolom **Keterangan Progres** di bagian bawah, lalu klik **Simpan**.
 
 ## Verifikasi
-- Perubahan sudah di-commit dan di-push ke branch `master`.
-- Menangani encoding URL (spasi dan karakter khusus) untuk parameter filter.
+- Status baru telah ditambahkan ke dropdown filter dan form edit.
+- Dashboard menghitung data secara akurat dari Firestore.
+- Perubahan telah di-push ke branch `master`.
