@@ -13,6 +13,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filters State
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,6 +32,7 @@ export default function AdminDashboard() {
   }, [user, userData, authLoading]);
 
   const loadCandidates = async () => {
+    setRefreshing(true);
     try {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
@@ -50,8 +52,10 @@ export default function AdminDashboard() {
       setCandidates(data);
     } catch (err) {
       console.error("Error loading candidates:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
   };
 
   // Filter Logic
@@ -158,8 +162,13 @@ export default function AdminDashboard() {
             <p className="text-gray-500 text-sm">Ringkasan data kandidat portal CV IJEF</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={loadCandidates} className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-              Refresh Data
+            <button
+              onClick={loadCandidates}
+              disabled={refreshing}
+              className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {refreshing && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>}
+              {refreshing ? "Memperbarui..." : "Refresh Data"}
             </button>
           </div>
         </div>

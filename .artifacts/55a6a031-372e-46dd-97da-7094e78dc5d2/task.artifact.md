@@ -1,0 +1,4 @@
+- [x] Menambahkan state `refreshing` di `AdminDashboard`
+- [x] Memperbarui fungsi `loadCandidates` untuk menangani feedback visual
+- [x] Memperbarui komponen tombol "Refresh Data" di UI dashboard
+- [x] Verifikasi perubahan
