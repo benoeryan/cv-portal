@@ -1,36 +1,33 @@
-# Walkthrough - Updated Status Progress Flow & Dashboard
+# Walkthrough - Advanced Interactive Admin Dashboard
 
-Sistem manajemen status kandidat telah diperbarui dengan alur kerja yang lebih detail, penambahan kolom keterangan, serta pembaruan visual pada dashboard.
+Dashboard admin telah dirombak total menjadi pusat kendali data kandidat yang interaktif, lengkap dengan visualisasi pipeline dan integrasi daftar data.
 
-## Perubahan Utama
+## Fitur Baru & Perubahan Utama
 
-### 1. Alur Status Baru
-Status progres kandidat kini mengikuti alur yang lebih spesifik:
-- `Nihongo check`
-- `Belum Lolos Nihongo check`
-- `Pending Nunggu Job`
-- `Penjadwalan Interview`
-- `On Proses`
-- `Tidak Lolos Interview`
-- `Status On Job (Selesai)`
-- `Cancel`
+### 1. Visualisasi Pipeline Progres
+- **Pipeline Bar**: Bar horizontal multi-warna yang menunjukkan distribusi persentase kandidat di setiap tahapan secara visual.
+- **Legend Dinamis**: Rincian jumlah orang dan persentase untuk 9 status progres (termasuk "Belum Ada Status").
+- **Interaktivitas**: Mengklik legenda pipeline akan menyaring daftar kandidat di bawah secara instan.
 
-### 2. Kolom Keterangan Progres
-- Menambahkan field **"Keterangan Progres"** pada halaman Edit Kandidat (Tab Status Progres).
-- Field ini memungkinkan admin menulis catatan detail mengenai setiap tahapan yang sedang dijalani kandidat.
+### 2. Filter Berantai (Cumulative Filtering)
+- Admin sekarang bisa menyaring data secara **kombinasi**.
+- *Contoh*: Anda bisa mengklik bidang **"KAIGO"** lalu mengklik status **"On Proses"**. Tabel di bawah akan otomatis menampilkan hanya kandidat KAIGO yang sedang On Proses.
+- **Tombol Reset**: Tersedia tombol "Lihat Detail Semua Kandidat" dan "Hapus Semua Filter" untuk mengembalikan tampilan ke data awal.
 
-### 3. Dashboard Statistik Terintegrasi
-- Dashboard telah diperbarui untuk menampilkan **8 status baru** secara lengkap.
-- Grid kartu statistik disesuaikan agar tetap terlihat rapi pada layar desktop maupun mobile.
-- Memberikan skema warna unik untuk setiap status agar mudah dibedakan secara visual.
+### 3. Tabel Kandidat Terintegrasi
+- Daftar kandidat sekarang muncul langsung di bagian bawah Dashboard.
+- **Pencarian Cepat**: Field pencarian yang bisa mencari berdasarkan Nama, TSK, Perusahaan, atau bahkan isi **Keterangan Progres**.
+- **Action Buttons**: Tombol "Edit Progres" dan "Lihat CV" tersedia langsung di baris tabel untuk akses cepat.
+
+### 4. Status "Belum Ada Status"
+- Menambahkan deteksi otomatis untuk kandidat baru yang belum memiliki status progres, sehingga tidak ada data yang terlewat (menghindari "Lainnya/NaN").
 
 ## Cara Menggunakan
-1. Buka halaman **Dashboard** untuk melihat sebaran kandidat berdasarkan status baru.
-2. Klik pada salah satu kartu status untuk melihat daftar kandidat terkait.
-3. Untuk memperbarui status, buka halaman **Edit Kandidat** > klik tab **Status Progres**.
-4. Pilih status baru dan isi kolom **Keterangan Progres** di bagian bawah, lalu klik **Simpan**.
+1. **Analisis**: Lihat bar pipeline untuk memantau bottleneck (tahapan mana yang paling banyak kandidatnya).
+2. **Filter**: Klik pada kartu status di atas atau item bidang/kategori untuk mempersempit pencarian.
+3. **Edit**: Jika ingin memperbarui progres kandidat hasil filter, cukup klik tombol **"Edit Progres"** pada baris kandidat tersebut.
 
-## Verifikasi
-- Status baru telah ditambahkan ke dropdown filter dan form edit.
-- Dashboard menghitung data secara akurat dari Firestore.
-- Perubahan telah di-push ke branch `master`.
+## Verifikasi Teknis
+- State management menggunakan `useMemo` untuk efisiensi kalkulasi statistik saat filter berubah.
+- Layout responsif yang menyesuaikan grid kartu dari 2 kolom (mobile) hingga 5 kolom (desktop).
+- Perubahan telah di-commit dan di-push ke repository GitHub di branch `master`.
