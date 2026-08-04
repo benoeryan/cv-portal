@@ -45,7 +45,7 @@ export default function EditCandidatePage() {
   const [extracting, setExtracting] = useState(false);
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("data"); // data | certs | japanese
+  const [activeTab, setActiveTab] = useState("data"); // data | progres | certs | japanese | download
   const [viewerUrl, setViewerUrl] = useState("");
   const [viewerTitle, setViewerTitle] = useState("");
 
@@ -427,7 +427,73 @@ export default function EditCandidatePage() {
           <button onClick={() => setActiveTab("japanese")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "japanese" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             Terjemahan Jepang
           </button>
+          <button onClick={() => setActiveTab("download")} className={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === "download" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+            Download Dokumen
+          </button>
         </div>
+
+        {activeTab === "download" && (
+          <div className="space-y-6 animate-fadeIn">
+            <div className="card">
+              <h3 className="font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Pusat Download Dokumen Kandidat
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Section: Utama */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Dokumen Utama</h4>
+                  <div className="space-y-3">
+                    {[
+                      { key: "pasPhoto", label: "Pas Photo 3x4" },
+                      { key: "cvRirekisho", label: "CV / Rirekisho" },
+                      { key: "sertifikatBahasaJepang", label: "Sertifikat JFT/JLPT" },
+                      { key: "sertifikatSSW", label: "Sertifikat SSW" },
+                    ].map(doc => data[doc.key] && (
+                      <div key={doc.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <span className="text-sm font-medium text-gray-700">{doc.label}</span>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleOpenViewer(data[doc.key], doc.label)} className="text-xs bg-white border border-gray-200 px-3 py-1.5 rounded hover:bg-gray-50 transition-colors">View</button>
+                          <button onClick={() => handleDownload(data[doc.key], doc.key)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition-colors">Save</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section: Pendukung */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Dokumen Pendukung</h4>
+                  <div className="space-y-3">
+                    {[
+                      { key: "videoJFT", label: "Video Recording JFT" },
+                      { key: "videoSSW", label: "Video Recording SSW" },
+                      { key: "dokumenSimA", label: "SIM A" },
+                      { key: "dokumenSimB", label: "SIM B" },
+                      { key: "dokumenSimC", label: "SIM C" },
+                      { key: "scanIjazah", label: "Ijazah" },
+                      { key: "transkripNilai", label: "Transkrip Nilai" },
+                      { key: "sertifikatSenmonkyuu", label: "Senmonkyuu" },
+                      { key: "sertifikatSelesaiMagang", label: "Sertifikat Magang" },
+                    ].map(doc => data[doc.key] && (
+                      <div key={doc.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <span className="text-sm font-medium text-gray-700">{doc.label}</span>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleOpenViewer(data[doc.key], doc.label)} className="text-xs bg-white border border-gray-200 px-3 py-1.5 rounded hover:bg-gray-50 transition-colors">View</button>
+                          <button onClick={() => handleDownload(data[doc.key], doc.key)} className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition-colors">Save</button>
+                        </div>
+                      </div>
+                    ))}
+                    {!["videoJFT", "videoSSW", "dokumenSimA", "dokumenSimB", "dokumenSimC", "scanIjazah", "transkripNilai", "sertifikatSenmonkyuu", "sertifikatSelesaiMagang"].some(k => data[k]) && (
+                      <p className="text-xs text-gray-400 italic">Tidak ada dokumen pendukung</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeTab === "progres" && (
           <div className="space-y-4 animate-fadeIn">
@@ -813,9 +879,14 @@ export default function EditCandidatePage() {
                     <div className="flex gap-2">
                       <input className="input-field text-xs flex-grow" value={data.sertifikatSenmonkyuu || ""} onChange={(e) => handleChange("sertifikatSenmonkyuu", e.target.value)} placeholder="https://..." />
                       {data.sertifikatSenmonkyuu && data.sertifikatSenmonkyuu.match(/^https?:\/\//) && (
-                        <button type="button" onClick={() => handleOpenViewer(data.sertifikatSenmonkyuu, "Sertifikat Senmonkyuu")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
-                          View
-                        </button>
+                        <div className="flex gap-2 shrink-0">
+                          <button type="button" onClick={() => handleOpenViewer(data.sertifikatSenmonkyuu, "Sertifikat Senmonkyuu")} className="btn-secondary text-xs px-3 font-medium transition-colors">
+                            View
+                          </button>
+                          <button type="button" onClick={() => handleDownload(data.sertifikatSenmonkyuu, "Senmonkyuu")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                            Save
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -824,9 +895,14 @@ export default function EditCandidatePage() {
                     <div className="flex gap-2">
                       <input className="input-field text-xs flex-grow" value={data.sertifikatSelesaiMagang || ""} onChange={(e) => handleChange("sertifikatSelesaiMagang", e.target.value)} placeholder="https://..." />
                       {data.sertifikatSelesaiMagang && data.sertifikatSelesaiMagang.match(/^https?:\/\//) && (
-                        <button type="button" onClick={() => handleOpenViewer(data.sertifikatSelesaiMagang, "Sertifikat Selesai Magang")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
-                          View
-                        </button>
+                        <div className="flex gap-2 shrink-0">
+                          <button type="button" onClick={() => handleOpenViewer(data.sertifikatSelesaiMagang, "Sertifikat Selesai Magang")} className="btn-secondary text-xs px-3 font-medium transition-colors">
+                            View
+                          </button>
+                          <button type="button" onClick={() => handleDownload(data.sertifikatSelesaiMagang, "Magang_JITCO")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                            Save
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -852,9 +928,14 @@ export default function EditCandidatePage() {
                     <div className="flex gap-2">
                       <input className="input-field text-xs flex-grow" value={data.scanIjazah || ""} onChange={(e) => handleChange("scanIjazah", e.target.value)} placeholder="https://..." />
                       {data.scanIjazah && data.scanIjazah.match(/^https?:\/\//) && (
-                        <button type="button" onClick={() => handleOpenViewer(data.scanIjazah, "Scan Ijazah")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
-                          View
-                        </button>
+                        <div className="flex gap-2 shrink-0">
+                          <button type="button" onClick={() => handleOpenViewer(data.scanIjazah, "Scan Ijazah")} className="btn-secondary text-xs px-3 font-medium transition-colors">
+                            View
+                          </button>
+                          <button type="button" onClick={() => handleDownload(data.scanIjazah, "Ijazah")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                            Save
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -863,9 +944,14 @@ export default function EditCandidatePage() {
                     <div className="flex gap-2">
                       <input className="input-field text-xs flex-grow" value={data.transkripNilai || ""} onChange={(e) => handleChange("transkripNilai", e.target.value)} placeholder="https://..." />
                       {data.transkripNilai && data.transkripNilai.match(/^https?:\/\//) && (
-                        <button type="button" onClick={() => handleOpenViewer(data.transkripNilai, "Transkrip Nilai")} className="btn-secondary text-xs flex items-center justify-center px-4 shrink-0 font-medium transition-colors">
-                          View
-                        </button>
+                        <div className="flex gap-2 shrink-0">
+                          <button type="button" onClick={() => handleOpenViewer(data.transkripNilai, "Transkrip Nilai")} className="btn-secondary text-xs px-3 font-medium transition-colors">
+                            View
+                          </button>
+                          <button type="button" onClick={() => handleDownload(data.transkripNilai, "Transkrip")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs px-3 rounded-lg font-medium transition-colors">
+                            Save
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
