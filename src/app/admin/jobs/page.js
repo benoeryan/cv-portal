@@ -478,15 +478,15 @@ export default function JobManagementPage() {
                     <div className="space-y-3">
                       <div className="flex justify-between border-b border-slate-100 pb-2">
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Perusahaan</span>
-                        <span className="text-xs font-black text-slate-700">{selectedJobDetail.perusahaan || "-"}</span>
+                        <span className="text-xs font-black text-slate-700">{selectedJobDetail?.perusahaan || "-"}</span>
                       </div>
                       <div className="flex justify-between border-b border-slate-100 pb-2">
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Prefektur</span>
-                        <span className="text-xs font-black text-slate-700">{selectedJobDetail.lokasi || "-"}</span>
+                        <span className="text-xs font-black text-slate-700">{selectedJobDetail?.lokasi || "-"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Domisili</span>
-                        <span className="text-xs font-black text-slate-700">{selectedJobDetail.domisiliKerja || "-"}</span>
+                        <span className="text-xs font-black text-slate-700">{selectedJobDetail?.domisiliKerja || "-"}</span>
                       </div>
                     </div>
                   </div>
