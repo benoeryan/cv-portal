@@ -30,6 +30,10 @@ export default function JobManagementPage() {
     statusJob: "Open",
     domisiliKerja: "",
     fileUrl: "",
+    biayaJob: "",
+    skemaPembayaran: "",
+    benefitBiaya: "",
+    sumberJob: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -132,6 +136,10 @@ export default function JobManagementPage() {
       statusJob: "Open",
       domisiliKerja: "",
       fileUrl: "",
+      biayaJob: "",
+      skemaPembayaran: "",
+      benefitBiaya: "",
+      sumberJob: "",
     });
   };
 
@@ -152,6 +160,10 @@ export default function JobManagementPage() {
       statusJob: job.statusJob || "Open",
       domisiliKerja: job.domisiliKerja || "",
       fileUrl: job.fileUrl || "",
+      biayaJob: job.biayaJob || "",
+      skemaPembayaran: job.skemaPembayaran || "",
+      benefitBiaya: job.benefitBiaya || "",
+      sumberJob: job.sumberJob || "",
     });
     setShowModal(true);
   };
@@ -357,6 +369,28 @@ export default function JobManagementPage() {
                    <div>
                       <label className="form-label text-[10px] font-black uppercase text-slate-400">Fasilitas / Benefit</label>
                       <textarea className="input-field bg-slate-50 border-none font-bold text-xs" rows="3" value={formData.benefit} onChange={(e) => setFormData({...formData, benefit: e.target.value})} placeholder="Asrama, Transportasi, Lembur, dll" />
+                   </div>
+                </div>
+
+                <div className="md:col-span-2 space-y-4 pt-4 border-t border-slate-50">
+                   <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Informasi Biaya & Sumber</h4>
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Biaya Job</label>
+                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.biayaJob} onChange={(e) => setFormData({...formData, biayaJob: e.target.value})} placeholder="Contoh: Rp 5.000.000" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Skema Pembayaran</label>
+                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.skemaPembayaran} onChange={(e) => setFormData({...formData, skemaPembayaran: e.target.value})} placeholder="Potong Gaji / Cash" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Benefit Biaya</label>
+                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.benefitBiaya} onChange={(e) => setFormData({...formData, benefitBiaya: e.target.value})} placeholder="Free Tiket, dll" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Sumber Job</label>
+                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.sumberJob} onChange={(e) => setFormData({...formData, sumberJob: e.target.value})} placeholder="Nama Agen / TSK" />
+                      </div>
                    </div>
                 </div>
 

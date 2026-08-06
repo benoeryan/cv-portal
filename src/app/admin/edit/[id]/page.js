@@ -124,6 +124,9 @@ export default function EditCandidatePage() {
         `Gaji: ${job.gaji || "-"}\n` +
         `Benefit: ${job.benefit || "-"}\n` +
         `Domisili: ${job.domisiliKerja || "-"}\n` +
+        `Biaya: ${job.biayaJob || "-"}\n` +
+        `Skema: ${job.skemaPembayaran || "-"}\n` +
+        `Sumber: ${job.sumberJob || "-"}\n` +
         `-------------------\n` +
         (prev.keteranganProgres || "")
     }));
