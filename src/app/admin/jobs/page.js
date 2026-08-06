@@ -1,9 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import Navbar from "@/components/Navbar";
 
 export default function JobManagementPage() {
@@ -13,14 +14,28 @@ export default function JobManagementPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+
   const [formData, setFormData] = useState({
+    kodeJob: "",
     namaJob: "",
     perusahaan: "",
     lokasi: "",
     bidang: "",
     kategori: "",
+    gaji: "",
+    keterangan: "",
+    benefit: "",
+    klasifikasiKandidat: "",
+    deskripsiPekerjaan: "",
+    statusJob: "Open",
+    domisiliKerja: "",
+    fileUrl: "",
   });
-  const [submitting, setCreating] = useState(false);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!authLoading && (!user || userData?.role !== "admin")) {
@@ -35,7 +50,7 @@ export default function JobManagementPage() {
   const loadJobs = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, "jobs"), orderBy("namaJob", "asc"));
+      const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setJobs(data);
@@ -45,39 +60,98 @@ export default function JobManagementPage() {
     setLoading(false);
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    const storagePath = `jobs/attachments/${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        setUploadProgress(pct);
+      },
+      (err) => {
+        setUploading(false);
+        alert("Upload gagal: " + err.message);
+      },
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        setFormData(prev => ({ ...prev, fileUrl: downloadURL }));
+        setUploading(false);
+        setUploadProgress(0);
+      }
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setCreating(true);
+    setSubmitting(true);
     try {
+      const dataToSave = {
+        ...formData,
+        updatedAt: new Date().toISOString()
+      };
+
       if (editingJob) {
-        await updateDoc(doc(db, "jobs", editingJob.id), {
-          ...formData,
-          updatedAt: new Date().toISOString()
-        });
+        await updateDoc(doc(db, "jobs", editingJob.id), dataToSave);
       } else {
         await addDoc(collection(db, "jobs"), {
-          ...formData,
+          ...dataToSave,
           createdAt: new Date().toISOString()
         });
       }
-      setShowModal(false);
-      setEditingJob(null);
-      setFormData({ namaJob: "", perusahaan: "", lokasi: "", bidang: "", kategori: "" });
+
+      closeModal();
       loadJobs();
     } catch (err) {
       alert("Gagal menyimpan data: " + err.message);
     }
-    setCreating(false);
+    setSubmitting(false);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingJob(null);
+    setFormData({
+      kodeJob: "",
+      namaJob: "",
+      perusahaan: "",
+      lokasi: "",
+      bidang: "",
+      kategori: "",
+      gaji: "",
+      keterangan: "",
+      benefit: "",
+      klasifikasiKandidat: "",
+      deskripsiPekerjaan: "",
+      statusJob: "Open",
+      domisiliKerja: "",
+      fileUrl: "",
+    });
   };
 
   const handleEdit = (job) => {
     setEditingJob(job);
     setFormData({
+      kodeJob: job.kodeJob || "",
       namaJob: job.namaJob || "",
       perusahaan: job.perusahaan || "",
       lokasi: job.lokasi || "",
       bidang: job.bidang || "",
       kategori: job.kategori || "",
+      gaji: job.gaji || "",
+      keterangan: job.keterangan || "",
+      benefit: job.benefit || "",
+      klasifikasiKandidat: job.klasifikasiKandidat || "",
+      deskripsiPekerjaan: job.deskripsiPekerjaan || "",
+      statusJob: job.statusJob || "Open",
+      domisiliKerja: job.domisiliKerja || "",
+      fileUrl: job.fileUrl || "",
     });
     setShowModal(true);
   };
@@ -99,100 +173,227 @@ export default function JobManagementPage() {
   return (
     <>
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Manajemen Job</h1>
-            <p className="text-gray-500 text-sm">Kelola daftar lowongan pekerjaan untuk progres kandidat</p>
+            <h1 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Manajemen Job Center</h1>
+            <p className="text-gray-500 text-sm">Kelola katalog lowongan pekerjaan dan kriteria pendaftaran</p>
           </div>
           <button
-            onClick={() => { setEditingJob(null); setFormData({ namaJob: "", perusahaan: "", lokasi: "", bidang: "", kategori: "" }); setShowModal(true); }}
-            className="btn-primary"
+            onClick={() => { closeModal(); setShowModal(true); }}
+            className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
           >
-            + Tambah Job Baru
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
+            Tambah Lowongan Baru
           </button>
         </div>
 
-        <div className="card overflow-hidden !p-0">
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="py-3 px-4 font-bold text-gray-600">Nama Job</th>
-                <th className="py-3 px-4 font-bold text-gray-600">Perusahaan</th>
-                <th className="py-3 px-4 font-bold text-gray-600">Lokasi</th>
-                <th className="py-3 px-4 font-bold text-gray-600">Sektor</th>
-                <th className="py-3 px-4 font-bold text-gray-600 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.map((j) => (
-                <tr key={j.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                  <td className="py-4 px-4 font-medium text-gray-800">{j.namaJob}</td>
-                  <td className="py-4 px-4 text-gray-600">{j.perusahaan}</td>
-                  <td className="py-4 px-4 text-gray-600">{j.lokasi}</td>
-                  <td className="py-4 px-4">
-                    <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold">{j.bidang}</span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex justify-center gap-3">
-                      <button onClick={() => handleEdit(j)} className="text-indigo-600 hover:text-indigo-800 font-bold text-xs uppercase">Edit</button>
-                      <button onClick={() => handleDelete(j.id)} className="text-red-500 hover:text-red-700 font-bold text-xs uppercase">Hapus</button>
-                    </div>
-                  </td>
+        <div className="card overflow-hidden !p-0 border border-gray-100 shadow-xl rounded-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white">
+                  <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Kode</th>
+                  <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Nama Lowongan</th>
+                  <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Perusahaan & Lokasi</th>
+                  <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Sektor</th>
+                  <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Gaji</th>
+                  <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Status</th>
+                  <th className="py-4 px-4 font-black uppercase tracking-widest text-[10px] text-center">Aksi</th>
                 </tr>
-              ))}
-              {jobs.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="py-20 text-center text-gray-400">Belum ada daftar job. Klik "Tambah Job Baru" untuk memulai.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {jobs.map((j) => (
+                  <tr key={j.id} className="hover:bg-indigo-50/30 transition-colors">
+                    <td className="py-4 px-4 font-bold text-indigo-600">{j.kodeJob || "N/A"}</td>
+                    <td className="py-4 px-4">
+                      <div className="font-black text-gray-800 uppercase text-xs">{j.namaJob}</div>
+                      <div className="text-[10px] text-gray-400 font-bold mt-0.5">{j.kategori}</div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-gray-700">{j.perusahaan}</div>
+                      <div className="text-[10px] text-gray-400 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                        {j.lokasi}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">{j.bidang}</span>
+                    </td>
+                    <td className="py-4 px-4 font-black text-emerald-600 text-xs">
+                      {j.gaji || "-"}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase border ${
+                        j.statusJob === "Open" ? "bg-green-50 text-green-600 border-green-100" : "bg-rose-50 text-rose-600 border-rose-100"
+                      }`}>
+                        {j.statusJob}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex justify-center gap-2">
+                        <button onClick={() => handleEdit(j)} className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </button>
+                        <button onClick={() => handleDelete(j.id)} className="p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {jobs.length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="py-24 text-center">
+                       <div className="mb-4 inline-block p-4 bg-slate-50 rounded-full text-slate-300">
+                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                       </div>
+                       <h3 className="text-slate-800 font-black uppercase tracking-tight">Katalog Kosong</h3>
+                       <p className="text-slate-400 text-xs mt-1">Belum ada daftar lowongan. Klik tombol di atas untuk membuat.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">{editingJob ? "Edit Job" : "Tambah Job Baru"}</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center shrink-0 bg-slate-50">
               <div>
-                <label className="form-label">Nama Lowongan / Job</label>
-                <input className="input-field" value={formData.namaJob} onChange={(e) => setFormData({...formData, namaJob: e.target.value})} required placeholder="Contoh: Peternakan Sapi Tokyo" />
+                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{editingJob ? "Update Data Lowongan" : "Entry Lowongan Baru"}</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Sistem Katalog Job Matching IJEF</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="form-label">Perusahaan</label>
-                  <input className="input-field" value={formData.perusahaan} onChange={(e) => setFormData({...formData, perusahaan: e.target.value})} required placeholder="Nama Perusahaan" />
+              <button onClick={closeModal} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-slate-800">&times;</button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="overflow-y-auto p-8 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Basic Info Section */}
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Informasi Dasar & Lokasi</h4>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Kode Lowongan</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.kodeJob} onChange={(e) => setFormData({...formData, kodeJob: e.target.value})} required placeholder="Contoh: IJEF-001" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Status Lowongan</label>
+                        <select className="input-field bg-slate-50 border-none font-bold" value={formData.statusJob} onChange={(e) => setFormData({...formData, statusJob: e.target.value})}>
+                          <option value="Open">OPEN</option>
+                          <option value="Closed">CLOSED</option>
+                          <option value="Full">FULL / PENUH</option>
+                        </select>
+                      </div>
+                   </div>
+                   <div>
+                      <label className="form-label text-[10px] font-black uppercase text-slate-400">Nama Lowongan / Judul Job</label>
+                      <input className="input-field bg-slate-50 border-none font-bold" value={formData.namaJob} onChange={(e) => setFormData({...formData, namaJob: e.target.value})} required placeholder="Contoh: Perawat Lansia (Kaigo)" />
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Nama Perusahaan</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.perusahaan} onChange={(e) => setFormData({...formData, perusahaan: e.target.value})} required placeholder="Nama PT / Kumiai" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Gaji (Bulan/Tahun)</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.gaji} onChange={(e) => setFormData({...formData, gaji: e.target.value})} placeholder="Contoh: ¥180.000 / bln" />
+                      </div>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Prefektur / Lokasi</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.lokasi} onChange={(e) => setFormData({...formData, lokasi: e.target.value})} required placeholder="Contoh: Tokyo, Japan" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Domisili Kerja</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.domisiliKerja} onChange={(e) => setFormData({...formData, domisiliKerja: e.target.value})} placeholder="Contoh: Kawasan Industri Chiba" />
+                      </div>
+                   </div>
                 </div>
-                <div>
-                  <label className="form-label">Lokasi (Jepang)</label>
-                  <input className="input-field" value={formData.lokasi} onChange={(e) => setFormData({...formData, lokasi: e.target.value})} required placeholder="Contoh: Chiba, Tokyo" />
+
+                {/* Classification & Details Section */}
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Klasifikasi & Dokumen</h4>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Sektor / Bidang</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.bidang} onChange={(e) => setFormData({...formData, bidang: e.target.value})} placeholder="KAIGO, PM, dll" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Klasifikasi Kandidat</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.klasifikasiKandidat} onChange={(e) => setFormData({...formData, klasifikasiKandidat: e.target.value})} placeholder="Ex-Magang, New Comer, dll" />
+                      </div>
+                   </div>
+                   <div>
+                      <label className="form-label text-[10px] font-black uppercase text-slate-400">Upload File Pendukung (PDF/IMG/DOC)</label>
+                      <div className="flex gap-2">
+                         <button
+                            type="button"
+                            onClick={() => fileInputRef.current.click()}
+                            className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 disabled:opacity-50 flex items-center gap-2"
+                            disabled={uploading}
+                         >
+                            {uploading ? "Uploading..." : "Pilih File"}
+                         </button>
+                         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
+                         {formData.fileUrl && (
+                           <div className="flex-grow flex items-center justify-between bg-emerald-50 px-3 rounded-xl border border-emerald-100 overflow-hidden">
+                              <span className="text-[10px] font-bold text-emerald-600 truncate max-w-[150px]">File Terlampir ✓</span>
+                              <a href={formData.fileUrl} target="_blank" className="text-[10px] font-black text-emerald-700 underline">LIHAT</a>
+                           </div>
+                         )}
+                      </div>
+                      {uploading && (
+                        <div className="w-full bg-slate-100 h-1 mt-2 rounded-full overflow-hidden">
+                           <div className="h-full bg-indigo-500 transition-all" style={{ width: `${uploadProgress}%` }}></div>
+                        </div>
+                      )}
+                   </div>
+                   <div>
+                      <label className="form-label text-[10px] font-black uppercase text-slate-400">Fasilitas / Benefit</label>
+                      <textarea className="input-field bg-slate-50 border-none font-bold text-xs" rows="3" value={formData.benefit} onChange={(e) => setFormData({...formData, benefit: e.target.value})} placeholder="Asrama, Transportasi, Lembur, dll" />
+                   </div>
                 </div>
+
+                {/* Descriptions Section */}
+                <div className="md:col-span-2 space-y-4 pt-4 border-t border-slate-50">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Deskripsi Pekerjaan</label>
+                        <textarea className="input-field bg-slate-50 border-none font-bold text-xs" rows="4" value={formData.deskripsiPekerjaan} onChange={(e) => setFormData({...formData, deskripsiPekerjaan: e.target.value})} placeholder="Uraian tugas harian di tempat kerja..." />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Keterangan Tambahan / Syarat Khusus</label>
+                        <textarea className="input-field bg-slate-50 border-none font-bold text-xs" rows="4" value={formData.keterangan} onChange={(e) => setFormData({...formData, keterangan: e.target.value})} placeholder="Tinggi badan min. 165cm, Tidak buta warna, dll" />
+                      </div>
+                   </div>
+                </div>
+
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="form-label">Sektor / Bidang</label>
-                  <input className="input-field" value={formData.bidang} onChange={(e) => setFormData({...formData, bidang: e.target.value})} placeholder="Contoh: KAIGO, PM" />
-                </div>
-                <div>
-                  <label className="form-label">Kategori</label>
-                  <input className="input-field" value={formData.kategori} onChange={(e) => setFormData({...formData, kategori: e.target.value})} placeholder="NEW COMER, dll" />
-                </div>
-              </div>
-              <div className="flex gap-3 justify-end pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Batal</button>
-                <button type="submit" className="btn-primary px-8" disabled={submitting}>
-                  {submitting ? "Menyimpan..." : "Simpan Data Job"}
+
+              <div className="flex gap-3 justify-end pt-8 pb-4">
+                <button type="button" onClick={closeModal} className="px-6 py-2.5 rounded-xl font-bold text-slate-400 hover:bg-slate-50 transition-all uppercase text-xs tracking-widest">Batal</button>
+                <button type="submit" className="bg-slate-900 text-white px-10 py-2.5 rounded-xl font-black shadow-xl shadow-slate-200 hover:bg-indigo-600 transition-all uppercase text-xs tracking-widest" disabled={submitting || uploading}>
+                  {submitting ? "Processing..." : "Simpan Data Lowongan"}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { animation: fadeIn 0.3s ease-out forwards; }
+      `}</style>
     </>
   );
 }

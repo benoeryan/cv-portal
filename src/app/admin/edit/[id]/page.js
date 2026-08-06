@@ -117,11 +117,15 @@ export default function EditCandidatePage() {
 
     setData(prev => ({
       ...prev,
+      kodeJob: job.kodeJob || prev.kodeJob,
       namaPerusahaanProgres: job.perusahaan || "",
       lokasiPerusahaan: job.lokasi || "",
-      keteranganProgres: prev.keteranganProgres
-        ? `${prev.keteranganProgres}\nJob: ${job.namaJob}`
-        : `Job: ${job.namaJob}`
+      keteranganProgres: `Job: ${job.namaJob}\n` +
+        `Gaji: ${job.gaji || "-"}\n` +
+        `Benefit: ${job.benefit || "-"}\n` +
+        `Domisili: ${job.domisiliKerja || "-"}\n` +
+        `-------------------\n` +
+        (prev.keteranganProgres || "")
     }));
   };
 
