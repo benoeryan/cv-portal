@@ -120,14 +120,20 @@ export default function EditCandidatePage() {
       kodeJob: job.kodeJob || prev.kodeJob,
       namaPerusahaanProgres: job.perusahaan || "",
       lokasiPerusahaan: job.lokasi || "",
-      keteranganProgres: `Job: ${job.namaJob}\n` +
+      namaTsk: job.sumberJob || prev.namaTsk,
+      bidangKerja: job.bidang || prev.bidangKerja,
+      kategoriKandidat: job.kategori || prev.kategoriKandidat,
+      keteranganProgres: `--- INFORMASI JOB [${job.kodeJob || "N/A"}] ---\n` +
+        `Nama Job: ${job.namaJob}\n` +
         `Gaji: ${job.gaji || "-"}\n` +
         `Benefit: ${job.benefit || "-"}\n` +
+        `Lokasi: ${job.lokasi || "-"}\n` +
         `Domisili: ${job.domisiliKerja || "-"}\n` +
         `Biaya: ${job.biayaJob || "-"}\n` +
         `Skema: ${job.skemaPembayaran || "-"}\n` +
         `Sumber: ${job.sumberJob || "-"}\n` +
-        `-------------------\n` +
+        `Deskripsi: ${job.deskripsiPekerjaan || "-"}\n` +
+        `---------------------------\n` +
         (prev.keteranganProgres || "")
     }));
   };
@@ -555,7 +561,7 @@ export default function EditCandidatePage() {
                   >
                     <option value="">-- Pilih Job untuk Auto-Fill Data --</option>
                     {availableJobs.map(job => (
-                      <option key={job.id} value={job.id}>{job.namaJob} ({job.perusahaan})</option>
+                      <option key={job.id} value={job.id}>{job.kodeJob ? `[${job.kodeJob}] ` : ""}{job.namaJob} ({job.perusahaan})</option>
                     ))}
                   </select>
                   <button
@@ -571,7 +577,45 @@ export default function EditCandidatePage() {
                     )}
                   </button>
                 </div>
-                <p className="text-[10px] text-indigo-400 mt-2 italic">* Memilih job akan otomatis mengisi Nama Perusahaan dan Lokasi di bawah.</p>
+
+                {/* Visual Summary Card of Last Selected Job */}
+                {availableJobs.some(j => j.kodeJob === data.kodeJob) && (
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-3 rounded-lg border border-indigo-100 shadow-sm animate-fadeIn">
+                    {(() => {
+                      const job = availableJobs.find(j => j.kodeJob === data.kodeJob);
+                      return (
+                        <>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Gaji</span>
+                            <span className="text-[11px] font-black text-emerald-600">{job.gaji || "-"}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Sumber / TSK</span>
+                            <span className="text-[11px] font-black text-gray-700">{job.sumberJob || "-"}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Biaya Job</span>
+                            <span className="text-[11px] font-black text-rose-600">{job.biayaJob || "-"}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Skema Bayar</span>
+                            <span className="text-[11px] font-black text-blue-600">{job.skemaPembayaran || "-"}</span>
+                          </div>
+                          <div className="col-span-2 flex flex-col pt-1 border-t border-gray-50">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Benefit</span>
+                            <span className="text-[10px] font-medium text-gray-600 line-clamp-1">{job.benefit || "-"}</span>
+                          </div>
+                          <div className="col-span-2 flex flex-col pt-1 border-t border-gray-50">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Domisili</span>
+                            <span className="text-[10px] font-medium text-gray-600 line-clamp-1">{job.domisiliKerja || "-"}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                <p className="text-[10px] text-indigo-400 mt-2 italic">* Memilih job akan otomatis mengisi Nama Perusahaan, Lokasi, TSK, Bidang, dan Kategori.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
