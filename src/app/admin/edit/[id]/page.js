@@ -126,6 +126,8 @@ export default function EditCandidatePage() {
       keteranganProgres: `--- INFORMASI JOB [${job.kodeJob || "N/A"}] ---\n` +
         `Nama Job: ${job.namaJob}\n` +
         `Gaji: ${job.gaji || "-"}\n` +
+        `Kuota: ${job.jumlahKandidat || "-"} orang\n` +
+        `Kriteria: ${job.klasifikasiKandidat || "-"} | ${job.jenisKelamin || "-"} | Max ${job.usiaMax || "-"} thn\n` +
         `Benefit: ${job.benefit || "-"}\n` +
         `Lokasi: ${job.lokasi || "-"}\n` +
         `Domisili: ${job.domisiliKerja || "-"}\n` +
@@ -588,6 +590,14 @@ export default function EditCandidatePage() {
                           <div className="flex flex-col">
                             <span className="text-[9px] text-gray-400 font-bold uppercase">Gaji</span>
                             <span className="text-[11px] font-black text-emerald-600">{job.gaji || "-"}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Kriteria</span>
+                            <span className="text-[10px] font-black text-gray-700">{job.usiaMax ? `Max ${job.usiaMax}` : "-"} | {job.jenisKelamin || "-"}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Kuota</span>
+                            <span className="text-[11px] font-black text-indigo-600">{job.jumlahKandidat ? `${job.jumlahKandidat} Orang` : "-"}</span>
                           </div>
                           <div className="flex flex-col">
                             <span className="text-[9px] text-gray-400 font-bold uppercase">Sumber / TSK</span>

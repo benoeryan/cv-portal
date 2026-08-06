@@ -34,9 +34,13 @@ export default function JobManagementPage() {
     skemaPembayaran: "",
     benefitBiaya: "",
     sumberJob: "",
+    usiaMax: "",
+    jenisKelamin: "Pria & Wanita",
+    jumlahKandidat: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
@@ -62,6 +66,86 @@ export default function JobManagementPage() {
       console.error("Error loading jobs:", err);
     }
     setLoading(false);
+  };
+
+  const handleImportGoogleSheets = async () => {
+    if (!window.confirm("Import data job dari Google Sheets? Data dengan Kode Job yang sama akan diupdate.")) return;
+    setImporting(true);
+    try {
+      // Spreadsheet URL from user
+      const sheetId = "1P2P6Z_-11udONGzjSDIBVcX-OfnT8jeUwAPYL-p12yY";
+      const sheetName = "LIST JOB AVAILABLE";
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+      const response = await fetch(csvUrl);
+      const csvText = await response.text();
+
+      // Simple CSV parser (handle quotes)
+      const rows = csvText.split("\n").map(row => {
+        const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        return matches ? matches.map(m => m.replace(/^"|"$/g, "")) : [];
+      });
+
+      if (rows.length < 2) throw new Error("Format sheet tidak valid atau kosong.");
+
+      const headers = rows[0];
+      const dataRows = rows.slice(1);
+
+      let count = 0;
+      for (const row of dataRows) {
+        if (row.length === 0 || !row[0]) continue;
+
+        // Map columns based on your sheet structure
+        // I will assume standard order or look for keywords in headers
+        const getVal = (keywords) => {
+          const idx = headers.findIndex(h => keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
+          return idx !== -1 ? row[idx] : "";
+        };
+
+        const jobData = {
+          kodeJob: getVal(["Kode", "Job Code"]) || row[0],
+          namaJob: getVal(["Nama Lowongan", "Job Name", "Title"]),
+          perusahaan: getVal(["Perusahaan", "Company"]),
+          lokasi: getVal(["Lokasi", "Prefektur", "Location"]),
+          bidang: getVal(["Sektor", "Bidang", "Field"]),
+          kategori: getVal(["Kategori", "Category"]),
+          gaji: getVal(["Gaji", "Salary"]),
+          keterangan: getVal(["Keterangan", "Note", "Syarat"]),
+          benefit: getVal(["Benefit", "Fasilitas"]),
+          klasifikasiKandidat: getVal(["Klasifikasi", "Kriteria"]),
+          deskripsiPekerjaan: getVal(["Deskripsi", "Description"]),
+          statusJob: getVal(["Status"]) || "Open",
+          domisiliKerja: getVal(["Domisili", "Area"]),
+          biayaJob: getVal(["Biaya", "Fee"]),
+          skemaPembayaran: getVal(["Skema", "Payment"]),
+          benefitBiaya: getVal(["Benefit Biaya"]),
+          sumberJob: getVal(["Sumber", "TSK", "Source"]),
+          usiaMax: getVal(["Usia", "Age"]),
+          jenisKelamin: getVal(["Gender", "Jenis Kelamin"]) || "Pria & Wanita",
+          jumlahKandidat: getVal(["Jumlah", "Kuota", "Need"]),
+          updatedAt: new Date().toISOString()
+        };
+
+        // Check if job exists by kodeJob
+        const q = query(collection(db, "jobs"));
+        const snap = await getDocs(q);
+        const existing = snap.docs.find(d => d.data().kodeJob === jobData.kodeJob);
+
+        if (existing) {
+          await updateDoc(doc(db, "jobs", existing.id), jobData);
+        } else {
+          await addDoc(collection(db, "jobs"), { ...jobData, createdAt: new Date().toISOString() });
+        }
+        count++;
+      }
+
+      alert(`Berhasil mengimpor ${count} data job.`);
+      loadJobs();
+    } catch (err) {
+      console.error("Import error:", err);
+      alert("Gagal impor: " + err.message);
+    }
+    setImporting(false);
   };
 
   const handleFileUpload = (e) => {
@@ -140,6 +224,9 @@ export default function JobManagementPage() {
       skemaPembayaran: "",
       benefitBiaya: "",
       sumberJob: "",
+      usiaMax: "",
+      jenisKelamin: "Pria & Wanita",
+      jumlahKandidat: "",
     });
   };
 
@@ -164,6 +251,9 @@ export default function JobManagementPage() {
       skemaPembayaran: job.skemaPembayaran || "",
       benefitBiaya: job.benefitBiaya || "",
       sumberJob: job.sumberJob || "",
+      usiaMax: job.usiaMax || "",
+      jenisKelamin: job.jenisKelamin || "Pria & Wanita",
+      jumlahKandidat: job.jumlahKandidat || "",
     });
     setShowModal(true);
   };
@@ -191,13 +281,27 @@ export default function JobManagementPage() {
             <h1 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Manajemen Job Center</h1>
             <p className="text-gray-500 text-sm">Kelola katalog lowongan pekerjaan dan kriteria pendaftaran</p>
           </div>
-          <button
-            onClick={() => { closeModal(); setShowModal(true); }}
-            className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
-            Tambah Lowongan Baru
-          </button>
+          <div className="flex gap-2 w-full md:w-auto">
+            <button
+              onClick={handleImportGoogleSheets}
+              disabled={importing}
+              className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-xs"
+            >
+              {importing ? (
+                <div className="animate-spin h-4 w-4 border-b-2 border-white rounded-full"></div>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              )}
+              Import Sheets
+            </button>
+            <button
+              onClick={() => { closeModal(); setShowModal(true); }}
+              className="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2 text-xs"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
+              Tambah Lowongan
+            </button>
+          </div>
         </div>
 
         <div className="card overflow-hidden !p-0 border border-gray-100 shadow-xl rounded-2xl">
@@ -339,6 +443,24 @@ export default function JobManagementPage() {
                       <div>
                         <label className="form-label text-[10px] font-black uppercase text-slate-400">Klasifikasi Kandidat</label>
                         <input className="input-field bg-slate-50 border-none font-bold" value={formData.klasifikasiKandidat} onChange={(e) => setFormData({...formData, klasifikasiKandidat: e.target.value})} placeholder="Ex-Magang, New Comer, dll" />
+                      </div>
+                   </div>
+                   <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Usia Max</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.usiaMax} onChange={(e) => setFormData({...formData, usiaMax: e.target.value})} placeholder="Contoh: 35 Thn" />
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Gender</label>
+                        <select className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.jenisKelamin} onChange={(e) => setFormData({...formData, jenisKelamin: e.target.value})}>
+                          <option value="Pria & Wanita">Pria & Wanita</option>
+                          <option value="Pria Saja">Pria Saja</option>
+                          <option value="Wanita Saja">Wanita Saja</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Kuota</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.jumlahKandidat} onChange={(e) => setFormData({...formData, jumlahKandidat: e.target.value})} placeholder="Jml Orang" />
                       </div>
                    </div>
                    <div>
