@@ -41,6 +41,7 @@ export default function JobManagementPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [reseting, setReseting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
@@ -72,7 +73,6 @@ export default function JobManagementPage() {
     if (!window.confirm("Import data job dari Google Sheets? Data dengan Kode Job yang sama akan diupdate.")) return;
     setImporting(true);
     try {
-      // Spreadsheet URL from user
       const sheetId = "1P2P6Z_-11udONGzjSDIBVcX-OfnT8jeUwAPYL-p12yY";
       const sheetName = "LIST JOB AVAILABLE";
       const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
@@ -80,7 +80,6 @@ export default function JobManagementPage() {
       const response = await fetch(csvUrl);
       const csvText = await response.text();
 
-      // Enhanced CSV parser to handle quotes and empty fields better
       const rows = csvText.split(/\r?\n/).map(line => {
         const result = [];
         let current = "";
@@ -106,48 +105,51 @@ export default function JobManagementPage() {
       const dataRows = rows.slice(1);
 
       let count = 0;
-      for (const row of dataRows) {
-        if (row.length === 0 || !row[0]) continue;
+      // Map exact columns based on the provided image headers
+      const colMap = {
+        status: headers.findIndex(h => h && h.toUpperCase().includes("STATUS")),
+        listJob: headers.findIndex(h => h && h.toUpperCase().includes("LIST JOB")),
+        daerah: headers.findIndex(h => h && h.toUpperCase().includes("DAERAH")),
+        kodeJob: headers.findIndex(h => h && h.toUpperCase().includes("KODE JOB")),
+        gender: headers.findIndex(h => h && h.toUpperCase().includes("JENIS KELAMIN")),
+        gaji: headers.findIndex(h => h && h.toUpperCase().includes("GAJI")),
+        kuota: headers.findIndex(h => h && h.toUpperCase().includes("KANDIDAT YANG DIBUTUHKAN")),
+        kualifikasi: headers.findIndex(h => h && h.toUpperCase().includes("KUALIFIKASI")),
+        biaya: headers.findIndex(h => h && h.toUpperCase().includes("BIAYA")),
+        keterangan: headers.findIndex(h => h && h.toUpperCase().includes("KETERANGAN")),
+        sumber: headers.findIndex(h => h && h.toUpperCase().includes("TSK/SUMBER JOB")),
+      };
 
-        // Map columns based on your sheet structure
-        // I will assume standard order or look for keywords in headers
-        const getVal = (keywords) => {
-          const idx = headers.findIndex(h => h && keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
-          const val = (idx !== -1 && row[idx] !== undefined) ? row[idx] : "";
-          return val === null ? "" : String(val).trim();
-        };
+      for (const row of dataRows) {
+        const getRowVal = (idx) => (idx !== -1 && row[idx] !== undefined) ? String(row[idx]).trim() : "";
+
+        const rawKode = getRowVal(colMap.kodeJob);
+        if (!rawKode) continue;
 
         const jobData = {
-          statusJob: getVal(["STATUS"]),
-          namaJob: getVal(["LIST JOB", "Nama Lowongan", "Pekerjaan"]),
-          lokasi: getVal(["DAERAH", "Lokasi", "Prefektur"]),
-          kodeJob: getVal(["KODE JOB", "Job Code"]) || row[0] || "",
-          jenisKelamin: getVal(["JENIS KELAMIN", "Gender"]) || "Pria & Wanita",
-          gaji: getVal(["GAJI", "Salary"]),
-          jumlahKandidat: getVal(["KANDIDAT YANG DIBUTUHKAN", "Kuota", "Need"]),
-          klasifikasiKandidat: getVal(["KUALIFIKASI", "Kriteria"]),
-          deskripsiPekerjaan: getVal(["KUALIFIKASI", "Deskripsi"]),
-          biayaJob: getVal(["BIAYA", "Fee"]),
-          keterangan: getVal(["KETERANGAN", "Note"]),
-          sumberJob: getVal(["TSK/SUMBER JOB", "Agen", "Source"]),
-          perusahaan: getVal(["TSK/SUMBER JOB", "Perusahaan", "Company"]), // Using TSK as Perusahaan for now since not separate in sheet
-          bidang: getVal(["LIST JOB", "Sektor", "Bidang"]), // Using LIST JOB as Bidang for mapping
-          kategori: getVal(["Kategori", "Category"]) || "SSW", // Defaulting to SSW if not found
-          domisiliKerja: getVal(["DAERAH", "Area"]),
-          usiaMax: getVal(["Usia", "Umur", "Age"]),
+          statusJob: getRowVal(colMap.status) || "Open",
+          namaJob: getRowVal(colMap.listJob),
+          lokasi: getRowVal(colMap.daerah),
+          kodeJob: rawKode,
+          jenisKelamin: getRowVal(colMap.gender),
+          gaji: getRowVal(colMap.gaji),
+          jumlahKandidat: getRowVal(colMap.kuota),
+          klasifikasiKandidat: getRowVal(colMap.kualifikasi),
+          deskripsiPekerjaan: getRowVal(colMap.kualifikasi),
+          biayaJob: getRowVal(colMap.biaya),
+          keterangan: getRowVal(colMap.keterangan),
+          sumberJob: getRowVal(colMap.sumber),
+          perusahaan: getRowVal(colMap.sumber),
+          bidang: getRowVal(colMap.listJob),
+          kategori: rawKode.toUpperCase().startsWith("IND") ? "ENGINEERING" : "SSW",
           updatedAt: new Date().toISOString()
         };
 
-        // Strict cleanup for Firestore
         const finalData = {};
         Object.keys(jobData).forEach(key => {
-          finalData[key] = jobData[key] === undefined ? "" : jobData[key];
+          finalData[key] = jobData[key] === undefined || jobData[key] === null ? "" : jobData[key];
         });
 
-        // Ensure bidang is never undefined
-        if (!finalData.bidang) finalData.bidang = "";
-
-        // Check if job exists by kodeJob
         const q = query(collection(db, "jobs"));
         const snap = await getDocs(q);
         const existing = snap.docs.find(d => d.data().kodeJob === finalData.kodeJob);
@@ -160,13 +162,28 @@ export default function JobManagementPage() {
         count++;
       }
 
-      alert(`Berhasil mengimpor ${count} data job.`);
+      alert(`Berhasil impor/update ${count} data job.`);
       loadJobs();
     } catch (err) {
-      console.error("Import error:", err);
       alert("Gagal impor: " + err.message);
     }
     setImporting(false);
+  };
+
+  const handleResetAll = async () => {
+    if (!window.confirm("PERINGATAN: Ini akan menghapus SEMUA data job secara permanen. Lanjutkan?")) return;
+    setReseting(true);
+    try {
+      const snapshot = await getDocs(collection(db, "jobs"));
+      for (const d of snapshot.docs) {
+        await deleteDoc(doc(db, "jobs", d.id));
+      }
+      alert("Semua data job telah berhasil dihapus.");
+      loadJobs();
+    } catch (err) {
+      alert("Gagal reset: " + err.message);
+    }
+    setReseting(false);
   };
 
   const handleFileUpload = (e) => {
@@ -304,6 +321,13 @@ export default function JobManagementPage() {
           </div>
           <div className="flex gap-2 w-full md:w-auto">
             <button
+              onClick={handleResetAll}
+              disabled={reseting || importing}
+              className="bg-red-50 text-red-600 px-4 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-all text-xs"
+            >
+              {reseting ? "Resetting..." : "Reset Semua"}
+            </button>
+            <button
               onClick={handleImportGoogleSheets}
               disabled={importing}
               className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-xs"
@@ -362,7 +386,7 @@ export default function JobManagementPage() {
                     </td>
                     <td className="py-4 px-4">
                       <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase border ${
-                        j.statusJob === "Open" ? "bg-green-50 text-green-600 border-green-100" : "bg-rose-50 text-rose-600 border-rose-100"
+                        j.statusJob === "Open" || j.statusJob === "OPEN" || j.statusJob === "クローズ" ? "bg-green-50 text-green-600 border-green-100" : "bg-rose-50 text-rose-600 border-rose-100"
                       }`}>
                         {j.statusJob}
                       </span>
@@ -424,6 +448,7 @@ export default function JobManagementPage() {
                           <option value="Open">OPEN</option>
                           <option value="Closed">CLOSED</option>
                           <option value="Full">FULL / PENUH</option>
+                          <option value="クローズ">クローズ (CLOSED)</option>
                         </select>
                       </div>
                    </div>
