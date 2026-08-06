@@ -74,95 +74,96 @@ export default function JobManagementPage() {
     setImporting(true);
     try {
       const sheetId = "1P2P6Z_-11udONGzjSDIBVcX-OfnT8jeUwAPYL-p12yY";
-      const sheetName = "LIST JOB AVAILABLE";
-      const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+      const gid = "1920132706"; // LIST JOB AVAILABLE
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
 
       const response = await fetch(csvUrl);
+      if (!response.ok) throw new Error("Gagal mengambil data. Pastikan link publik.");
       const csvText = await response.text();
 
-      const rows = csvText.split(/\r?\n/).map(line => {
-        const result = [];
-        let current = "";
+      const parseCSV = (text) => {
+        const rows = [];
+        let currentRow = [];
+        let currentCell = "";
         let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
           if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === "," && !inQuotes) {
-            result.push(current.trim());
-            current = "";
-          } else {
-            current += char;
-          }
+            if (inQuotes && text[i+1] === '"') { currentCell += '"'; i++; }
+            else { inQuotes = !inQuotes; }
+          } else if (char === "," && !inQuotes) { currentRow.push(currentCell); currentCell = ""; }
+          else if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (char === "\r" && text[i+1] === "\n") i++;
+            currentRow.push(currentCell); rows.push(currentRow);
+            currentRow = []; currentCell = "";
+          } else { currentCell += char; }
         }
-        result.push(current.trim());
-        return result;
-      }).filter(row => row.length > 0 && row.some(cell => cell !== ""));
-
-      if (rows.length < 2) throw new Error("Format sheet tidak valid atau kosong.");
-
-      const headers = rows[0];
-      const dataRows = rows.slice(1);
-
-      let count = 0;
-      // Map exact columns based on the provided image headers
-      const colMap = {
-        status: headers.findIndex(h => h && h.toUpperCase().includes("STATUS")),
-        listJob: headers.findIndex(h => h && h.toUpperCase().includes("LIST JOB")),
-        daerah: headers.findIndex(h => h && h.toUpperCase().includes("DAERAH")),
-        kodeJob: headers.findIndex(h => h && h.toUpperCase().includes("KODE JOB")),
-        gender: headers.findIndex(h => h && h.toUpperCase().includes("JENIS KELAMIN")),
-        gaji: headers.findIndex(h => h && h.toUpperCase().includes("GAJI")),
-        kuota: headers.findIndex(h => h && h.toUpperCase().includes("KANDIDAT YANG DIBUTUHKAN")),
-        kualifikasi: headers.findIndex(h => h && h.toUpperCase().includes("KUALIFIKASI")),
-        biaya: headers.findIndex(h => h && h.toUpperCase().includes("BIAYA")),
-        keterangan: headers.findIndex(h => h && h.toUpperCase().includes("KETERANGAN")),
-        sumber: headers.findIndex(h => h && h.toUpperCase().includes("TSK/SUMBER JOB")),
+        if (currentRow.length > 0 || currentCell !== "") { currentRow.push(currentCell); rows.push(currentRow); }
+        return rows;
       };
 
-      for (const row of dataRows) {
-        const getRowVal = (idx) => (idx !== -1 && row[idx] !== undefined) ? String(row[idx]).trim() : "";
+      const rows = parseCSV(csvText).filter(r => r.length > 1 && r.some(c => c.trim() !== ""));
+      if (rows.length < 2) throw new Error("Sheet kosong atau format tidak valid.");
 
-        const rawKode = getRowVal(colMap.kodeJob);
-        if (!rawKode) continue;
+      const headers = rows[0].map(h => h.trim().toUpperCase());
+      const dataRows = rows.slice(1);
+
+      const getIdx = (keywords) => headers.findIndex(h => keywords.some(k => h.includes(k)));
+      const colMap = {
+        status: getIdx(["STATUS"]),
+        listJob: getIdx(["LIST JOB"]),
+        daerah: getIdx(["DAERAH"]),
+        kodeJob: getIdx(["KODE JOB"]),
+        gender: getIdx(["JENIS KELAMIN"]),
+        gaji: getIdx(["GAJI"]),
+        kuota: getIdx(["KANDIDAT", "DIBUTUHKAN"]),
+        kualifikasi: getIdx(["KUALIFIKASI"]),
+        biaya: getIdx(["BIAYA"]),
+        keterangan: getIdx(["KETERANGAN"]),
+        sumber: getIdx(["TSK", "SUMBER"]),
+      };
+
+      const jobsSnap = await getDocs(collection(db, "jobs"));
+      const existingMap = {};
+      jobsSnap.docs.forEach(doc => { if (doc.data().kodeJob) existingMap[doc.data().kodeJob] = doc.id; });
+
+      let count = 0;
+      for (const row of dataRows) {
+        const val = (idx) => (idx !== -1 && row[idx] !== undefined) ? String(row[idx]).trim() : "";
+        const kode = val(colMap.kodeJob);
+        if (!kode || kode === "KODE JOB") continue;
 
         const jobData = {
-          statusJob: getRowVal(colMap.status) || "Open",
-          namaJob: getRowVal(colMap.listJob),
-          lokasi: getRowVal(colMap.daerah),
-          kodeJob: rawKode,
-          jenisKelamin: getRowVal(colMap.gender),
-          gaji: getRowVal(colMap.gaji),
-          jumlahKandidat: getRowVal(colMap.kuota),
-          klasifikasiKandidat: getRowVal(colMap.kualifikasi),
-          deskripsiPekerjaan: getRowVal(colMap.kualifikasi),
-          biayaJob: getRowVal(colMap.biaya),
-          keterangan: getRowVal(colMap.keterangan),
-          sumberJob: getRowVal(colMap.sumber),
-          perusahaan: getRowVal(colMap.sumber),
-          bidang: getRowVal(colMap.listJob),
-          kategori: rawKode.toUpperCase().startsWith("IND") ? "ENGINEERING" : "SSW",
+          statusJob: val(colMap.status) || "Open",
+          namaJob: val(colMap.listJob),
+          lokasi: val(colMap.daerah),
+          kodeJob: kode,
+          jenisKelamin: val(colMap.gender),
+          gaji: val(colMap.gaji),
+          jumlahKandidat: val(colMap.kuota),
+          klasifikasiKandidat: val(colMap.kualifikasi),
+          deskripsiPekerjaan: val(colMap.kualifikasi),
+          biayaJob: val(colMap.biaya),
+          keterangan: val(colMap.keterangan),
+          sumberJob: val(colMap.sumber),
+          perusahaan: val(colMap.sumber),
+          bidang: val(colMap.listJob),
+          kategori: kode.toUpperCase().startsWith("IND") ? "ENGINEERING" : "SSW",
           updatedAt: new Date().toISOString()
         };
 
-        const finalData = {};
-        Object.keys(jobData).forEach(key => {
-          finalData[key] = jobData[key] === undefined || jobData[key] === null ? "" : jobData[key];
-        });
+        Object.keys(jobData).forEach(k => { if (jobData[k] === undefined) jobData[k] = ""; });
 
-        const q = query(collection(db, "jobs"));
-        const snap = await getDocs(q);
-        const existing = snap.docs.find(d => d.data().kodeJob === finalData.kodeJob);
-
-        if (existing) {
-          await updateDoc(doc(db, "jobs", existing.id), finalData);
+        const existingId = existingMap[kode];
+        if (existingId) {
+          await updateDoc(doc(db, "jobs", existingId), jobData);
         } else {
-          await addDoc(collection(db, "jobs"), { ...finalData, createdAt: new Date().toISOString() });
+          await addDoc(collection(db, "jobs"), { ...jobData, createdAt: new Date().toISOString() });
         }
         count++;
       }
 
-      alert(`Berhasil impor/update ${count} data job.`);
+      alert(`Berhasil impor ${count} data job.`);
       loadJobs();
     } catch (err) {
       alert("Gagal impor: " + err.message);
