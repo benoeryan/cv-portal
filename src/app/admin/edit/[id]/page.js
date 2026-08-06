@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import { translateToJapanese, translateToIndonesian } from "@/lib/translateHelper";
 import JapaneseDatePicker from "@/components/JapaneseDatePicker";
@@ -48,6 +48,8 @@ export default function EditCandidatePage() {
   const [activeTab, setActiveTab] = useState("data"); // data | progres | certs | japanese | download
   const [viewerUrl, setViewerUrl] = useState("");
   const [viewerTitle, setViewerTitle] = useState("");
+  const [availableJobs, setAvailableJobs] = useState([]);
+  const [fetchingJobs, setFetchingJobs] = useState(false);
 
   const handleOpenViewer = (url, title) => {
     if (!url) return;
@@ -90,6 +92,38 @@ export default function EditCandidatePage() {
     }
     if (user && params.id) loadData();
   }, [user, userData, authLoading, params.id]);
+
+  useEffect(() => {
+    if (activeTab === "progres") {
+      loadAvailableJobs();
+    }
+  }, [activeTab]);
+
+  const loadAvailableJobs = async () => {
+    setFetchingJobs(true);
+    try {
+      const q = query(collection(db, "jobs"), orderBy("namaJob", "asc"));
+      const snapshot = await getDocs(q);
+      setAvailableJobs(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (err) {
+      console.error("Error loading jobs:", err);
+    }
+    setFetchingJobs(false);
+  };
+
+  const handleJobSelect = (jobId) => {
+    const job = availableJobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    setData(prev => ({
+      ...prev,
+      namaPerusahaanProgres: job.perusahaan || "",
+      lokasiPerusahaan: job.lokasi || "",
+      keteranganProgres: prev.keteranganProgres
+        ? `${prev.keteranganProgres}\nJob: ${job.namaJob}`
+        : `Job: ${job.namaJob}`
+    }));
+  };
 
   const loadData = async () => {
     try {
@@ -502,6 +536,37 @@ export default function EditCandidatePage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                 Manajemen Status Progres Kandidat
               </h3>
+
+              {/* Job Selector Integration */}
+              <div className="mb-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <label className="text-xs font-bold text-indigo-400 uppercase tracking-widest block mb-2">Pilih dari Daftar Job (Manajemen Job)</label>
+                <div className="flex gap-2">
+                  <select
+                    className="input-field flex-grow border-indigo-200 focus:ring-indigo-500"
+                    onChange={(e) => handleJobSelect(e.target.value)}
+                    defaultValue=""
+                  >
+                    <option value="">-- Pilih Job untuk Auto-Fill Data --</option>
+                    {availableJobs.map(job => (
+                      <option key={job.id} value={job.id}>{job.namaJob} ({job.perusahaan})</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={loadAvailableJobs}
+                    className="p-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50"
+                    title="Refresh Daftar Job"
+                  >
+                    {fetchingJobs ? (
+                      <div className="animate-spin h-4 w-4 border-b-2 border-indigo-600 rounded-full"></div>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[10px] text-indigo-400 mt-2 italic">* Memilih job akan otomatis mengisi Nama Perusahaan dan Lokasi di bawah.</p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="form-label">Status Progres</label>

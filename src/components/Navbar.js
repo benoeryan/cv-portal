@@ -34,6 +34,9 @@ export default function Navbar() {
                   <Link href="/admin/import" className="text-sm text-gray-600 hover:text-blue-600">
                     Import Data
                   </Link>
+                  <Link href="/admin/jobs" className="text-sm text-gray-600 hover:text-blue-600">
+                    Manajemen Job
+                  </Link>
                   <Link href="/admin/settings" className="text-sm text-gray-600 hover:text-blue-600">
                     Settings
                   </Link>
