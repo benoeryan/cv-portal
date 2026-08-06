@@ -80,11 +80,25 @@ export default function JobManagementPage() {
       const response = await fetch(csvUrl);
       const csvText = await response.text();
 
-      // Simple CSV parser (handle quotes)
-      const rows = csvText.split("\n").map(row => {
-        const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-        return matches ? matches.map(m => m.replace(/^"|"$/g, "")) : [];
-      });
+      // Enhanced CSV parser to handle quotes and empty fields better
+      const rows = csvText.split(/\r?\n/).map(line => {
+        const result = [];
+        let current = "";
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === "," && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      }).filter(row => row.length > 0 && row.some(cell => cell !== ""));
 
       if (rows.length < 2) throw new Error("Format sheet tidak valid atau kosong.");
 
@@ -98,33 +112,38 @@ export default function JobManagementPage() {
         // Map columns based on your sheet structure
         // I will assume standard order or look for keywords in headers
         const getVal = (keywords) => {
-          const idx = headers.findIndex(h => keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
-          return idx !== -1 ? row[idx] : "";
+          const idx = headers.findIndex(h => h && keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
+          return (idx !== -1 && row[idx] !== undefined) ? row[idx] : "";
         };
 
         const jobData = {
-          kodeJob: getVal(["Kode", "Job Code"]) || row[0],
-          namaJob: getVal(["Nama Lowongan", "Job Name", "Title"]),
-          perusahaan: getVal(["Perusahaan", "Company"]),
-          lokasi: getVal(["Lokasi", "Prefektur", "Location"]),
-          bidang: getVal(["Sektor", "Bidang", "Field"]),
-          kategori: getVal(["Kategori", "Category"]),
-          gaji: getVal(["Gaji", "Salary"]),
-          keterangan: getVal(["Keterangan", "Note", "Syarat"]),
-          benefit: getVal(["Benefit", "Fasilitas"]),
-          klasifikasiKandidat: getVal(["Klasifikasi", "Kriteria"]),
-          deskripsiPekerjaan: getVal(["Deskripsi", "Description"]),
-          statusJob: getVal(["Status"]) || "Open",
-          domisiliKerja: getVal(["Domisili", "Area"]),
-          biayaJob: getVal(["Biaya", "Fee"]),
-          skemaPembayaran: getVal(["Skema", "Payment"]),
-          benefitBiaya: getVal(["Benefit Biaya"]),
-          sumberJob: getVal(["Sumber", "TSK", "Source"]),
-          usiaMax: getVal(["Usia", "Age"]),
-          jenisKelamin: getVal(["Gender", "Jenis Kelamin"]) || "Pria & Wanita",
-          jumlahKandidat: getVal(["Jumlah", "Kuota", "Need"]),
+          kodeJob: getVal(["Kode", "Job Code"]) || row[0] || "",
+          namaJob: getVal(["Nama Lowongan", "Job Name", "Title", "Pekerjaan"]),
+          perusahaan: getVal(["Perusahaan", "Company", "PT", "Kumiai"]),
+          lokasi: getVal(["Lokasi", "Prefektur", "Location", "Pref"]),
+          bidang: getVal(["Sektor", "Bidang", "Field", "Job Category"]),
+          kategori: getVal(["Kategori", "Category", "Tipe"]),
+          gaji: getVal(["Gaji", "Salary", "Wage"]),
+          keterangan: getVal(["Keterangan", "Note", "Syarat", "Requirement"]),
+          benefit: getVal(["Benefit", "Fasilitas", "Facility"]),
+          klasifikasiKandidat: getVal(["Klasifikasi", "Kriteria", "Target"]),
+          deskripsiPekerjaan: getVal(["Deskripsi", "Description", "Uraian"]),
+          statusJob: getVal(["Status", "Ketersediaan"]) || "Open",
+          domisiliKerja: getVal(["Domisili", "Area", "Wilayah"]),
+          biayaJob: getVal(["Biaya", "Fee", "Cost"]),
+          skemaPembayaran: getVal(["Skema", "Payment", "Bayar"]),
+          benefitBiaya: getVal(["Benefit Biaya", "Financial Benefit"]),
+          sumberJob: getVal(["Sumber", "TSK", "Source", "Agen"]),
+          usiaMax: getVal(["Usia", "Age", "Umur"]),
+          jenisKelamin: getVal(["Gender", "Jenis Kelamin", "Sex"]) || "Pria & Wanita",
+          jumlahKandidat: getVal(["Jumlah", "Kuota", "Need", "Capacity"]),
           updatedAt: new Date().toISOString()
         };
+
+        // Ensure no undefined values are sent to Firestore
+        Object.keys(jobData).forEach(key => {
+          if (jobData[key] === undefined) jobData[key] = "";
+        });
 
         // Check if job exists by kodeJob
         const q = query(collection(db, "jobs"));
