@@ -13,7 +13,9 @@ export default function JobManagementPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [selectedJobDetail, setSelectedJobDetail] = useState(null);
 
   const [formData, setFormData] = useState({
     kodeJob: "",
@@ -366,10 +368,10 @@ export default function JobManagementPage() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {jobs.map((j) => (
-                  <tr key={j.id} className="hover:bg-indigo-50/30 transition-colors">
-                    <td className="py-4 px-4 font-bold text-indigo-600">{j.kodeJob || "N/A"}</td>
+                  <tr key={j.id} className="hover:bg-indigo-50/30 transition-colors cursor-pointer group" onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }}>
+                    <td className="py-4 px-4 font-bold text-indigo-600 group-hover:underline">{j.kodeJob || "N/A"}</td>
                     <td className="py-4 px-4">
-                      <div className="font-black text-gray-800 uppercase text-xs">{j.namaJob}</div>
+                      <div className="font-black text-gray-800 uppercase text-xs group-hover:text-indigo-600 transition-colors">{j.namaJob}</div>
                       <div className="text-[10px] text-gray-400 font-bold mt-0.5">{j.kategori}</div>
                     </td>
                     <td className="py-4 px-4">
@@ -392,7 +394,7 @@ export default function JobManagementPage() {
                         {j.statusJob}
                       </span>
                     </td>
-                    <td className="py-4 px-4">
+                    <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-center gap-2">
                         <button onClick={() => handleEdit(j)} className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -420,6 +422,155 @@ export default function JobManagementPage() {
           </div>
         </div>
       </div>
+
+      {showDetailModal && selectedJobDetail && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-indigo-600 text-white">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Detail Lowongan</span>
+                <h3 className="text-xl font-black uppercase tracking-tight">{selectedJobDetail.namaJob}</h3>
+              </div>
+              <button onClick={() => { setShowDetailModal(false); setSelectedJobDetail(null); }} className="p-2 hover:bg-white/20 rounded-full transition-colors text-white">&times;</button>
+            </div>
+
+            <div className="overflow-y-auto p-8 custom-scrollbar space-y-8">
+              {/* Header Info */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Kode Job</p>
+                  <p className="font-bold text-indigo-600">{selectedJobDetail.kodeJob || "-"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Status</p>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${selectedJobDetail.statusJob === "Open" || selectedJobDetail.statusJob === "OPEN" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                    {selectedJobDetail.statusJob || "Open"}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Sektor</p>
+                  <p className="font-bold text-slate-700">{selectedJobDetail.bidang || "-"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Kategori</p>
+                  <p className="font-bold text-slate-700">{selectedJobDetail.kategori || "-"}</p>
+                </div>
+              </div>
+
+              {/* Main Content */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                    <h4 className="text-xs font-black text-slate-800 uppercase flex items-center gap-2">
+                      <div className="w-1 h-3 bg-indigo-500 rounded-full"></div>
+                      Informasi Penempatan
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b border-slate-100 pb-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Perusahaan</span>
+                        <span className="text-xs font-black text-slate-700">{selectedJobDetail.perusahaan || "-"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-100 pb-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Prefektur</span>
+                        <span className="text-xs font-black text-slate-700">{selectedJobDetail.lokasi || "-"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Domisili</span>
+                        <span className="text-xs font-black text-slate-700">{selectedJobDetail.domisiliKerja || "-"}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 space-y-4">
+                    <h4 className="text-xs font-black text-emerald-800 uppercase flex items-center gap-2">
+                      <div className="w-1 h-3 bg-emerald-500 rounded-full"></div>
+                      Financial & Benefit
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b border-emerald-100/50 pb-2">
+                        <span className="text-[10px] font-bold text-emerald-600/60 uppercase">Gaji Pokok</span>
+                        <span className="text-xs font-black text-emerald-700">{selectedJobDetail.gaji || "-"}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-emerald-600/60 uppercase">Benefit/Fasilitas</span>
+                        <p className="text-[11px] font-medium text-slate-600 leading-relaxed whitespace-pre-line">{selectedJobDetail.benefit || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-4">
+                    <h4 className="text-xs font-black text-indigo-800 uppercase flex items-center gap-2">
+                      <div className="w-1 h-3 bg-indigo-500 rounded-full"></div>
+                      Kriteria Kandidat
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-indigo-400 uppercase">Usia Max</p>
+                        <p className="text-xs font-black text-slate-700">{selectedJobDetail.usiaMax || "-"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-indigo-400 uppercase">Gender</p>
+                        <p className="text-xs font-black text-slate-700">{selectedJobDetail.jenisKelamin || "-"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-indigo-400 uppercase">Kuota</p>
+                        <p className="text-xs font-black text-slate-700">{selectedJobDetail.jumlahKandidat || "-"} Orang</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-indigo-400 uppercase">Target</p>
+                        <p className="text-xs font-black text-slate-700 line-clamp-1">{selectedJobDetail.klasifikasiKandidat || "-"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                    <h4 className="text-xs font-black text-slate-800 uppercase">Administrasi & File</h4>
+                    <div className="space-y-2">
+                       <div className="flex justify-between text-[11px]">
+                          <span className="text-slate-400">Biaya Proses:</span>
+                          <span className="font-bold text-rose-600">{selectedJobDetail.biayaJob || "-"}</span>
+                       </div>
+                       {selectedJobDetail.fileUrl ? (
+                         <a href={selectedJobDetail.fileUrl} target="_blank" className="flex items-center justify-center gap-2 w-full py-2 bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-all mt-2">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            Lihat Dokumen Job
+                         </a>
+                       ) : (
+                         <div className="text-[10px] text-slate-400 italic text-center py-2 border border-dashed border-slate-200 rounded-xl mt-2">Tidak ada lampiran file</div>
+                       )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Descriptions Section */}
+              <div className="space-y-6 pt-6 border-t border-slate-50">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black text-slate-800 uppercase">Kualifikasi & Deskripsi Pekerjaan</h4>
+                  <div className="p-5 bg-slate-50 rounded-2xl text-[13px] leading-relaxed text-slate-600 whitespace-pre-line border border-slate-100">
+                    {selectedJobDetail.deskripsiPekerjaan || selectedJobDetail.klasifikasiKandidat || "Tidak ada deskripsi detail."}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black text-slate-800 uppercase">Keterangan Tambahan</h4>
+                  <div className="p-5 bg-indigo-50/30 rounded-2xl text-[13px] leading-relaxed text-slate-600 whitespace-pre-line border border-indigo-50/50">
+                    {selectedJobDetail.keterangan || "Tidak ada keterangan tambahan."}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button onClick={() => { setShowDetailModal(false); setSelectedJobDetail(null); }} className="px-8 py-2.5 bg-slate-800 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition-all">
+                Tutup Detail
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
 
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
