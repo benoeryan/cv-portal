@@ -113,47 +113,49 @@ export default function JobManagementPage() {
         // I will assume standard order or look for keywords in headers
         const getVal = (keywords) => {
           const idx = headers.findIndex(h => h && keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
-          return (idx !== -1 && row[idx] !== undefined) ? row[idx] : "";
+          const val = (idx !== -1 && row[idx] !== undefined) ? row[idx] : "";
+          return val === null ? "" : String(val).trim();
         };
 
         const jobData = {
-          kodeJob: getVal(["Kode", "Job Code"]) || row[0] || "",
-          namaJob: getVal(["Nama Lowongan", "Job Name", "Title", "Pekerjaan"]),
-          perusahaan: getVal(["Perusahaan", "Company", "PT", "Kumiai"]),
-          lokasi: getVal(["Lokasi", "Prefektur", "Location", "Pref"]),
-          bidang: getVal(["Sektor", "Bidang", "Field", "Job Category"]),
-          kategori: getVal(["Kategori", "Category", "Tipe"]),
-          gaji: getVal(["Gaji", "Salary", "Wage"]),
-          keterangan: getVal(["Keterangan", "Note", "Syarat", "Requirement"]),
-          benefit: getVal(["Benefit", "Fasilitas", "Facility"]),
-          klasifikasiKandidat: getVal(["Klasifikasi", "Kriteria", "Target"]),
-          deskripsiPekerjaan: getVal(["Deskripsi", "Description", "Uraian"]),
-          statusJob: getVal(["Status", "Ketersediaan"]) || "Open",
-          domisiliKerja: getVal(["Domisili", "Area", "Wilayah"]),
-          biayaJob: getVal(["Biaya", "Fee", "Cost"]),
-          skemaPembayaran: getVal(["Skema", "Payment", "Bayar"]),
-          benefitBiaya: getVal(["Benefit Biaya", "Financial Benefit"]),
-          sumberJob: getVal(["Sumber", "TSK", "Source", "Agen"]),
-          usiaMax: getVal(["Usia", "Age", "Umur"]),
-          jenisKelamin: getVal(["Gender", "Jenis Kelamin", "Sex"]) || "Pria & Wanita",
-          jumlahKandidat: getVal(["Jumlah", "Kuota", "Need", "Capacity"]),
+          statusJob: getVal(["STATUS"]),
+          namaJob: getVal(["LIST JOB", "Nama Lowongan", "Pekerjaan"]),
+          lokasi: getVal(["DAERAH", "Lokasi", "Prefektur"]),
+          kodeJob: getVal(["KODE JOB", "Job Code"]) || row[0] || "",
+          jenisKelamin: getVal(["JENIS KELAMIN", "Gender"]) || "Pria & Wanita",
+          gaji: getVal(["GAJI", "Salary"]),
+          jumlahKandidat: getVal(["KANDIDAT YANG DIBUTUHKAN", "Kuota", "Need"]),
+          klasifikasiKandidat: getVal(["KUALIFIKASI", "Kriteria"]),
+          deskripsiPekerjaan: getVal(["KUALIFIKASI", "Deskripsi"]),
+          biayaJob: getVal(["BIAYA", "Fee"]),
+          keterangan: getVal(["KETERANGAN", "Note"]),
+          sumberJob: getVal(["TSK/SUMBER JOB", "Agen", "Source"]),
+          perusahaan: getVal(["TSK/SUMBER JOB", "Perusahaan", "Company"]), // Using TSK as Perusahaan for now since not separate in sheet
+          bidang: getVal(["LIST JOB", "Sektor", "Bidang"]), // Using LIST JOB as Bidang for mapping
+          kategori: getVal(["Kategori", "Category"]) || "SSW", // Defaulting to SSW if not found
+          domisiliKerja: getVal(["DAERAH", "Area"]),
+          usiaMax: getVal(["Usia", "Umur", "Age"]),
           updatedAt: new Date().toISOString()
         };
 
-        // Ensure no undefined values are sent to Firestore
+        // Strict cleanup for Firestore
+        const finalData = {};
         Object.keys(jobData).forEach(key => {
-          if (jobData[key] === undefined) jobData[key] = "";
+          finalData[key] = jobData[key] === undefined ? "" : jobData[key];
         });
+
+        // Ensure bidang is never undefined
+        if (!finalData.bidang) finalData.bidang = "";
 
         // Check if job exists by kodeJob
         const q = query(collection(db, "jobs"));
         const snap = await getDocs(q);
-        const existing = snap.docs.find(d => d.data().kodeJob === jobData.kodeJob);
+        const existing = snap.docs.find(d => d.data().kodeJob === finalData.kodeJob);
 
         if (existing) {
-          await updateDoc(doc(db, "jobs", existing.id), jobData);
+          await updateDoc(doc(db, "jobs", existing.id), finalData);
         } else {
-          await addDoc(collection(db, "jobs"), { ...jobData, createdAt: new Date().toISOString() });
+          await addDoc(collection(db, "jobs"), { ...finalData, createdAt: new Date().toISOString() });
         }
         count++;
       }
