@@ -20,9 +20,9 @@ export default function CVTemplate({ data }) {
   const photoUrl = getDriveImageUrl(data.pasPhoto);
 
   return (
-    <div className="cv-container bg-white p-6 max-w-[210mm] mx-auto" id="cv-print-area">
+    <div className="cv-container bg-white p-6 max-w-[210mm] mx-auto text-center uppercase" id="cv-print-area">
       {/* Header */}
-      <h2 className="text-center text-lg font-bold mb-4 border-b-2 border-black pb-2">
+      <h2 className="text-center text-lg font-bold mb-4 border-b-2 border-black pb-2 uppercase">
         履歴書 (CV)
       </h2>
 
@@ -131,7 +131,7 @@ export default function CVTemplate({ data }) {
       </table>
 
       {/* Education */}
-      <h3 className="font-bold text-sm mb-2">学歴 (Riwayat Pendidikan)</h3>
+      <h3 className="font-bold text-sm mb-2 text-center uppercase">学歴 (Riwayat Pendidikan)</h3>
       <table className="cv-table mb-4">
         <thead>
           <tr className="bg-[#FFF2CC]">
@@ -183,7 +183,7 @@ export default function CVTemplate({ data }) {
       </table>
 
       {/* Work History */}
-      <h3 className="font-bold text-sm mb-2">職歴 (Riwayat Pekerjaan)</h3>
+      <h3 className="font-bold text-sm mb-2 text-center uppercase">職歴 (Riwayat Pekerjaan)</h3>
       <table className="cv-table mb-4">
         <thead>
           <tr className="bg-[#FFF2CC]">
@@ -213,7 +213,7 @@ export default function CVTemplate({ data }) {
       </table>
 
       {/* Family */}
-      <h3 className="font-bold text-sm mb-2">家族構成 (Data Keluarga)</h3>
+      <h3 className="font-bold text-sm mb-2 text-center uppercase">家族構成 (Data Keluarga)</h3>
       <table className="cv-table mb-4">
         <thead>
           <tr className="bg-[#FFF2CC]">
@@ -240,42 +240,42 @@ export default function CVTemplate({ data }) {
       </table>
 
       {/* Motivation - Use Japanese translations if available */}
-      <h3 className="font-bold text-sm mb-2">志望理由・自己PR</h3>
+      <h3 className="font-bold text-sm mb-2 text-center uppercase">志望理由・自己PR</h3>
       <table className="cv-table mb-4">
         <tbody>
           <tr>
-            <td className="font-bold bg-[#FFF2CC] w-[18%] align-top">長所 (kelebihan)</td>
-            <td className="whitespace-pre-wrap text-xs">{data.translations?.kelebihan || data.kelebihan}</td>
+            <td className="font-bold bg-[#FFF2CC] w-[18%] align-middle text-center uppercase">長所 (kelebihan)</td>
+            <td className="whitespace-pre-wrap text-xs text-center uppercase">{data.translations?.kelebihan || data.kelebihan}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-[#FFF2CC] align-top">短所 (kekurangan)</td>
-            <td className="whitespace-pre-wrap text-xs">{data.translations?.kekurangan || data.kekurangan}</td>
+            <td className="font-bold bg-[#FFF2CC] align-middle text-center uppercase">短所 (kekurangan)</td>
+            <td className="whitespace-pre-wrap text-xs text-center uppercase">{data.translations?.kekurangan || data.kekurangan}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-[#FFF2CC] align-top">来日理由</td>
-            <td className="whitespace-pre-wrap text-xs">{data.translations?.alasanKeJepang || data.alasanKeJepang}</td>
+            <td className="font-bold bg-[#FFF2CC] align-middle text-center uppercase">来日理由</td>
+            <td className="whitespace-pre-wrap text-xs text-center uppercase">{data.translations?.alasanKeJepang || data.alasanKeJepang}</td>
           </tr>
           <tr>
-            <td className="font-bold bg-[#FFF2CC] align-top">職業希望理由</td>
-            <td className="whitespace-pre-wrap text-xs">{data.translations?.alasanMelamarBidang || data.alasanMelamarBidang}</td>
+            <td className="font-bold bg-[#FFF2CC] align-middle text-center uppercase">職業希望理由</td>
+            <td className="whitespace-pre-wrap text-xs text-center uppercase">{data.translations?.alasanMelamarBidang || data.alasanMelamarBidang}</td>
           </tr>
           {(data.alasanKaigofukushishi || data.translations?.alasanKaigofukushishi) && (
             <tr>
-              <td className="font-bold bg-[#FFF2CC] align-top">介護福祉士志望理由</td>
-              <td className="whitespace-pre-wrap text-xs">{data.translations?.alasanKaigofukushishi || data.alasanKaigofukushishi}</td>
+              <td className="font-bold bg-[#FFF2CC] align-middle text-center uppercase">介護福祉士志望理由</td>
+              <td className="whitespace-pre-wrap text-xs text-center uppercase">{data.translations?.alasanKaigofukushishi || data.alasanKaigofukushishi}</td>
             </tr>
           )}
           {(data.promosiDiri || data.translations?.promosiDiri) && (
             <tr>
-              <td className="font-bold bg-[#FFF2CC] align-top">自己PR (Promosi Diri)</td>
-              <td className="whitespace-pre-wrap text-xs">{data.translations?.promosiDiri || data.promosiDiri}</td>
+              <td className="font-bold bg-[#FFF2CC] align-middle text-center uppercase">自己PR (Promosi Diri)</td>
+              <td className="whitespace-pre-wrap text-xs text-center uppercase">{data.translations?.promosiDiri || data.promosiDiri}</td>
             </tr>
           )}
         </tbody>
       </table>
 
       {/* Certificates Section - 免許・資格・受験日 */}
-      <h3 className="font-bold text-sm mb-2">免許・資格・受験日</h3>
+      <h3 className="font-bold text-sm mb-2 text-center uppercase">免許・資格・受験日</h3>
       <table className="cv-table">
         <tbody>
           {/* 1. Language Certificates (All Categories) */}

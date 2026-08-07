@@ -115,4 +115,14 @@ body {
   border: 1px solid #333;
   padding: 4px 8px;
   font-size: 12px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cv-container {
+  text-transform: uppercase;
+}
+
+.cv-container h2, .cv-container h3 {
+  text-align: center;
 }
