@@ -50,6 +50,7 @@ export default function EditCandidatePage() {
   const [viewerTitle, setViewerTitle] = useState("");
   const [availableJobs, setAvailableJobs] = useState([]);
   const [fetchingJobs, setFetchingJobs] = useState(false);
+  const [jobSearchTerm, setJobSearchTerm] = useState("");
 
   const handleOpenViewer = (url, title) => {
     if (!url) return;
@@ -554,30 +555,56 @@ export default function EditCandidatePage() {
 
               {/* Job Selector Integration */}
               <div className="mb-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                <label className="text-xs font-bold text-indigo-400 uppercase tracking-widest block mb-2">Pilih dari Daftar Job (Manajemen Job)</label>
-                <div className="flex gap-2">
-                  <select
-                    className="input-field flex-grow border-indigo-200 focus:ring-indigo-500"
-                    onChange={(e) => handleJobSelect(e.target.value)}
-                    defaultValue=""
-                  >
-                    <option value="">-- Pilih Job untuk Auto-Fill Data --</option>
-                    {availableJobs.map(job => (
-                      <option key={job.id} value={job.id}>{job.kodeJob ? `[${job.kodeJob}] ` : ""}{job.namaJob} ({job.perusahaan})</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={loadAvailableJobs}
-                    className="p-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50"
-                    title="Refresh Daftar Job"
-                  >
-                    {fetchingJobs ? (
-                      <div className="animate-spin h-4 w-4 border-b-2 border-indigo-600 rounded-full"></div>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg>
-                    )}
-                  </button>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-bold text-indigo-400 uppercase tracking-widest block">Pilih dari Daftar Job (Manajemen Job)</label>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {/* Search Bar for Jobs */}
+                  <div className="relative">
+                    <svg className="w-4 h-4 absolute left-3 top-2.5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                      type="text"
+                      className="input-field pl-9 bg-white border-indigo-100 text-sm py-2"
+                      placeholder="Cari Kode Job atau Nama Lowongan..."
+                      value={jobSearchTerm}
+                      onChange={(e) => setJobSearchTerm(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <select
+                      className="input-field flex-grow border-indigo-200 focus:ring-indigo-500 bg-white"
+                      onChange={(e) => handleJobSelect(e.target.value)}
+                      defaultValue=""
+                    >
+                      <option value="">-- Pilih Job untuk Auto-Fill Data --</option>
+                      {availableJobs
+                        .filter(job =>
+                          !jobSearchTerm ||
+                          job.kodeJob?.toLowerCase().includes(jobSearchTerm.toLowerCase()) ||
+                          job.namaJob?.toLowerCase().includes(jobSearchTerm.toLowerCase()) ||
+                          job.perusahaan?.toLowerCase().includes(jobSearchTerm.toLowerCase())
+                        )
+                        .map(job => (
+                        <option key={job.id} value={job.id}>{job.kodeJob ? `[${job.kodeJob}] ` : ""}{job.namaJob} ({job.perusahaan})</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={loadAvailableJobs}
+                      className="p-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg hover:bg-indigo-50"
+                      title="Refresh Daftar Job"
+                    >
+                      {fetchingJobs ? (
+                        <div className="animate-spin h-4 w-4 border-b-2 border-indigo-600 rounded-full"></div>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.001 0 01-15.357-2m15.357 2H15" /></svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Visual Summary Card of Last Selected Job */}
