@@ -123,7 +123,8 @@ export default function EditCandidatePage() {
       namaTsk: job.sumberJob || prev.namaTsk,
       bidangKerja: job.bidang || prev.bidangKerja,
       kategoriKandidat: job.kategori || prev.kategoriKandidat,
-      keteranganProgres: `--- INFORMASI JOB [${job.kodeJob || "N/A"}] ---\n` +
+      keteranganProgres: (prev.keteranganProgres || ""),
+      keteranganTambahan: `--- INFORMASI JOB [${job.kodeJob || "N/A"}] ---\n` +
         `Nama Job: ${job.namaJob}\n` +
         `Gaji: ${job.gaji || "-"}\n` +
         `Kuota: ${job.jumlahKandidat || "-"} orang\n` +
@@ -135,8 +136,7 @@ export default function EditCandidatePage() {
         `Skema: ${job.skemaPembayaran || "-"}\n` +
         `Sumber: ${job.sumberJob || "-"}\n` +
         `Deskripsi: ${job.deskripsiPekerjaan || "-"}\n` +
-        `---------------------------\n` +
-        (prev.keteranganProgres || "")
+        `---------------------------`
     }));
   };
 
@@ -693,12 +693,21 @@ export default function EditCandidatePage() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="form-label">Keterangan Progres</label>
+                  <label className="form-label">Keterangan Progres (Update Harian)</label>
                   <textarea
                     className="input-field min-h-[100px]"
                     value={data.keteranganProgres || ""}
                     onChange={(e) => handleChange("keteranganProgres", e.target.value)}
-                    placeholder="Masukkan keterangan detail mengenai progres kandidat..."
+                    placeholder="Masukkan catatan perkembangan progres harian kandidat..."
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="form-label">Keterangan Tambahan / Detail Job</label>
+                  <textarea
+                    className="input-field min-h-[150px] bg-slate-50 font-mono text-xs"
+                    value={data.keteranganTambahan || ""}
+                    onChange={(e) => handleChange("keteranganTambahan", e.target.value)}
+                    placeholder="Informasi detail job akan muncul di sini secara otomatis saat job dipilih..."
                   />
                 </div>
               </div>
