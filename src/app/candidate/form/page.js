@@ -7,7 +7,13 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import UploadField from "@/components/UploadField";
 
-const KATEGORI_OPTIONS = ["NEW COMER", "EX-MAGANG/EX-TRAINEER", "ENGINEERING/GIJINKOKU"];
+const KATEGORI_OPTIONS = [
+  "SISWA IJEF : SISWA OFFLINE",
+  "SISWA IJEF : SISWA ONLINE",
+  "SISWA NON IJEF : NEW COMER",
+  "SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE",
+  "SISWA MATCHING JOB : ENGINEERING/GIJINKOKU"
+];
 const BIDANG_OPTIONS_NEW_COMER = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "LAINNYA"];
 const BIDANG_OPTIONS_EX_MAGANG = ["TG JAHIT/GARMEN", "Housei", "KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "KIKAI KAKOU", "LAINNYA"];
 const BIDANG_OPTIONS_ENGINEERING = ["ENGINEERING", "KIKAI KAKOU", "LAINNYA"];
@@ -306,9 +312,9 @@ export default function CandidateFormPage() {
             <InputField label="Kode Job" name="kodeJob" value={formData.kodeJob} onChange={handleChange} placeholder="Contoh: IJEF076" />
             <InputField label="Kategori Kandidat" name="kategoriKandidat" value={formData.kategoriKandidat} onChange={handleChange} options={KATEGORI_OPTIONS} required />
             <InputField label="Bidang Kerja" name="bidangKerja" value={formData.bidangKerja} onChange={handleChange} options={
-              formData.kategoriKandidat === "NEW COMER" ? BIDANG_OPTIONS_NEW_COMER :
-              formData.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" ? BIDANG_OPTIONS_EX_MAGANG :
-              formData.kategoriKandidat === "ENGINEERING/GIJINKOKU" ? BIDANG_OPTIONS_ENGINEERING :
+              formData.kategoriKandidat?.includes("NEW COMER") ? BIDANG_OPTIONS_NEW_COMER :
+              formData.kategoriKandidat?.includes("EX-MAGANG") ? BIDANG_OPTIONS_EX_MAGANG :
+              formData.kategoriKandidat?.includes("ENGINEERING") ? BIDANG_OPTIONS_ENGINEERING :
               BIDANG_OPTIONS
             } required />
             {formData.bidangKerja === "LAINNYA" && (
@@ -408,7 +414,7 @@ export default function CandidateFormPage() {
           </FormSection>
 
           {/* KHUSUS EX-MAGANG: Sertifikat Tambahan */}
-          {formData.kategoriKandidat === "EX-MAGANG/EX-TRAINEER" && (
+          {formData.kategoriKandidat?.includes("EX-MAGANG") && (
             <FormSection title="Dokumen Khusus Ex-Magang/Ex-Traineer">
               <UploadField label="Sertifikat Senmonkyuu/Hyoukachosho" name="sertifikatSenmonkyuu" value={formData.sertifikatSenmonkyuu} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
               <UploadField label="Sertifikat Selesai Magang/JITCO" name="sertifikatSelesaiMagang" value={formData.sertifikatSelesaiMagang} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
@@ -417,7 +423,7 @@ export default function CandidateFormPage() {
           )}
 
           {/* KHUSUS ENGINEERING: Ijazah & Transkrip */}
-          {formData.kategoriKandidat === "ENGINEERING/GIJINKOKU" && (
+          {formData.kategoriKandidat?.includes("ENGINEERING") && (
             <FormSection title="Dokumen Khusus Engineering/Gijinkoku">
               <InputField label="Jurusan D3/S1" name="jurusanUniv" value={formData.jurusanUniv} onChange={handleChange} required />
               <UploadField label="Scan Ijazah" name="scanIjazah" value={formData.scanIjazah} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
@@ -534,7 +540,7 @@ export default function CandidateFormPage() {
             <InputField label="Kekurangan Anda" name="kekurangan" value={formData.kekurangan} onChange={handleChange} type="textarea" fullWidth required />
             <InputField label="Alasan Ingin ke Jepang" name="alasanKeJepang" value={formData.alasanKeJepang} onChange={handleChange} type="textarea" fullWidth required />
             <InputField label="Alasan Melamar di Bidang Ini" name="alasanMelamarBidang" value={formData.alasanMelamarBidang} onChange={handleChange} type="textarea" fullWidth />
-            {formData.kategoriKandidat !== "ENGINEERING/GIJINKOKU" && (
+            {!formData.kategoriKandidat?.includes("ENGINEERING") && (
               <InputField label="Alasan Ingin Menjadi Kaigofukushishi (Khusus Kaigo)" name="alasanKaigofukushishi" value={formData.alasanKaigofukushishi} onChange={handleChange} type="textarea" fullWidth />
             )}
             <InputField label="Impian di Masa Depan" name="impianMasaDepan" value={formData.impianMasaDepan} onChange={handleChange} type="textarea" fullWidth />

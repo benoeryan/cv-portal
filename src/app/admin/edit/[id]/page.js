@@ -773,9 +773,11 @@ export default function EditCandidatePage() {
                   <label className="form-label">Kategori Kandidat</label>
                   <select className="input-field" value={data.kategoriKandidat || ""} onChange={(e) => handleChange("kategoriKandidat", e.target.value)}>
                     <option value="">-- Pilih --</option>
-                    <option value="NEW COMER">NEW COMER</option>
-                    <option value="EX-MAGANG/EX-TRAINEER">EX-MAGANG/EX-TRAINEER</option>
-                    <option value="ENGINEERING/GIJINKOKU">ENGINEERING/GIJINKOKU</option>
+                    <option value="SISWA IJEF : SISWA OFFLINE">SISWA IJEF : SISWA OFFLINE</option>
+                    <option value="SISWA IJEF : SISWA ONLINE">SISWA IJEF : SISWA ONLINE</option>
+                    <option value="SISWA NON IJEF : NEW COMER">SISWA NON IJEF : NEW COMER</option>
+                    <option value="SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE">SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE</option>
+                    <option value="SISWA MATCHING JOB : ENGINEERING/GIJINKOKU">SISWA MATCHING JOB : ENGINEERING/GIJINKOKU</option>
                   </select>
                 </div>
                 <div>
@@ -1362,7 +1364,7 @@ export default function EditCandidatePage() {
               <div className="space-y-4">
                 {TRANSLATABLE_FIELDS.filter((f) => {
                   // Hide alasanKaigofukushishi for ENGINEERING/GIJINKOKU
-                  if (f.key === "alasanKaigofukushishi" && data.kategoriKandidat === "ENGINEERING/GIJINKOKU") return false;
+                  if (f.key === "alasanKaigofukushishi" && data.kategoriKandidat?.includes("ENGINEERING")) return false;
                   return true;
                 }).map((f) => (
                   <div key={f.key}>

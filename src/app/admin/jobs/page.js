@@ -151,7 +151,7 @@ export default function JobManagementPage() {
           sumberJob: val(colMap.sumber),
           perusahaan: val(colMap.sumber),
           bidang: val(colMap.listJob),
-          kategori: kode.toUpperCase().startsWith("IND") ? "ENGINEERING" : "SSW",
+          kategori: kode.toUpperCase().startsWith("IND") ? "SISWA MATCHING JOB : ENGINEERING/GIJINKOKU" : "SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE",
           updatedAt: new Date().toISOString()
         };
 

@@ -602,15 +602,23 @@ function parseMultilineWork(text) {
 }
 
 function normalizeKategori(rawValue) {
-  if (!rawValue) return "NEW COMER";
+  if (!rawValue) return "SISWA NON IJEF : NEW COMER";
   const upper = rawValue.toUpperCase().trim();
+
+  if (upper.includes("OFFLINE")) return "SISWA IJEF : SISWA OFFLINE";
+  if (upper.includes("ONLINE")) return "SISWA IJEF : SISWA ONLINE";
+
   if (upper.includes("MAGANG") || upper.includes("TRAINEER") || upper.includes("TRAINEE")) {
-    return "EX-MAGANG/EX-TRAINEER";
+    return "SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE";
   }
   if (upper.includes("ENGINEERING") || upper.includes("GIJINKOKU")) {
-    return "ENGINEERING/GIJINKOKU";
+    return "SISWA MATCHING JOB : ENGINEERING/GIJINKOKU";
   }
-  return "NEW COMER";
+  if (upper.includes("NEW COMER")) {
+    return "SISWA NON IJEF : NEW COMER";
+  }
+
+  return "SISWA NON IJEF : NEW COMER";
 }
 
 function parseRow(headers, values) {

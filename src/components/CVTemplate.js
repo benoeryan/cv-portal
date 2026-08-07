@@ -280,30 +280,30 @@ export default function CVTemplate({ data }) {
         <tbody>
           {/* 1. Language Certificates (All Categories) */}
           {data.tanggalJFT && (
-            <tr><td className="text-xs py-1">国際交流基金日本語基礎テスト - 受験日: {data.tanggalJFT}</td></tr>
+            <tr><td className="text-xs py-1 text-center uppercase">国際交流基金日本語基礎テスト - 受験日: {data.tanggalJFT}</td></tr>
           )}
           {data.tanggalJLPT && (
-            <tr><td className="text-xs py-1">日本語能力試験 (JLPT) - 受験日: {data.tanggalJLPT}</td></tr>
+            <tr><td className="text-xs py-1 text-center uppercase">日本語能力試験 (JLPT) - 受験日: {data.tanggalJLPT}</td></tr>
           )}
 
           {/* 2. Category-Specific Certificates */}
-          {data.kategoriKandidat?.toUpperCase() === "NEW COMER" ? (
+          {data.kategoriKandidat?.toUpperCase().includes("NEW COMER") || data.kategoriKandidat?.toUpperCase().includes("IJEF") ? (
             <>
-              {/* SSW Mapping for New Comer */}
+              {/* SSW Mapping for New Comer & IJEF Students */}
               {data.bidangKerja === "KAIGO" ? (
                 <>
                   {data.tanggalSSW && (
-                    <tr><td className="text-xs py-1">介護技能評価試験 - 受験日: {data.tanggalSSW}</td></tr>
+                    <tr><td className="text-xs py-1 text-center uppercase">介護技能評価試験 - 受験日: {data.tanggalSSW}</td></tr>
                   )}
                   {data.tanggalSSWKaigo && (
-                    <tr><td className="text-xs py-1">介護日本語評価試験 - 受験日: {data.tanggalSSWKaigo}</td></tr>
+                    <tr><td className="text-xs py-1 text-center uppercase">介護日本語評価試験 - 受験日: {data.tanggalSSWKaigo}</td></tr>
                   )}
                 </>
               ) : (
                 <>
                   {data.tanggalSSW && (
                     <tr>
-                      <td className="text-xs py-1">
+                      <td className="text-xs py-1 text-center uppercase">
                         {data.bidangKerja === "PM" ? "品製造業技能測定試験" :
                          data.bidangKerja === "RESTORAN" ? "外食業技能測定試験" :
                          data.bidangKerja === "HOTEL" ? "宿泊業技能測定試験" :
@@ -316,25 +316,25 @@ export default function CVTemplate({ data }) {
                 </>
               )}
             </>
-          ) : data.kategoriKandidat?.toUpperCase() === "EX-MAGANG/EX-TRAINEER" ? (
+          ) : data.kategoriKandidat?.toUpperCase().includes("EX-MAGANG") ? (
             <>
               {/* Apprenticeship Certificates for Ex-Magang */}
               {data.tanggalShuryoShomei && (
-                <tr><td className="text-xs py-1">技能実習修了証明書 - 受験日: {data.tanggalShuryoShomei}</td></tr>
+                <tr><td className="text-xs py-1 text-center uppercase">技能実習修了証明書 - 受験日: {data.tanggalShuryoShomei}</td></tr>
               )}
             </>
           ) : null}
 
           {/* 3. SIM A (All Categories) */}
           {data.simA === "YA" && (
-            <tr><td className="text-xs py-1">インドネシアの普通自動車免許</td></tr>
+            <tr><td className="text-xs py-1 text-center uppercase">インドネシアの普通自動車免許</td></tr>
           )}
 
           {/* 4. Custom Certificates */}
           {data.sertifikat && data.sertifikat.length > 0 && data.sertifikat.map((s, idx) => (
             s.nama && s.tanggal ? (
               <tr key={`sert-${idx}`}>
-                <td className="text-xs py-1">{s.nama} - 受験日: {s.tanggal}</td>
+                <td className="text-xs py-1 text-center uppercase">{s.nama} - 受験日: {s.tanggal}</td>
               </tr>
             ) : null
           ))}
