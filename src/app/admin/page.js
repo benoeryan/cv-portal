@@ -440,17 +440,17 @@ export default function AdminDashboard() {
              </div>
           </div>
 
-          <div className="overflow-x-auto overflow-y-auto max-h-[800px] custom-scrollbar">
+          <div className="overflow-x-auto overflow-y-auto max-h-[800px] custom-scrollbar relative">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#1E293B] text-white">
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest">Kandidat</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest">Status Progres</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest">Keterangan Progres</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest">Perusahaan & Lokasi JP</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest">Nama TSK</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest">Target Keberangkatan</th>
-                  <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-widest">Direct Action</th>
+                <tr className="bg-[#1E293B] text-white sticky top-0 z-30">
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest bg-[#1E293B]">Kandidat</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest bg-[#1E293B]">Status Progres</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest bg-[#1E293B]">Keterangan Progres</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest bg-[#1E293B]">Perusahaan & Lokasi JP</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest bg-[#1E293B]">Nama TSK</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest bg-[#1E293B]">Target Keberangkatan</th>
+                  <th className="py-4 px-6 text-center text-[10px] font-black uppercase tracking-widest bg-[#1E293B]">Direct Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
