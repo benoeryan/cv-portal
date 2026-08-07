@@ -113,6 +113,14 @@ export default function EditCandidatePage() {
   };
 
   const handleJobSelect = (jobId) => {
+    if (!jobId) {
+      setData(prev => ({
+        ...prev,
+        keteranganTambahan: ""
+      }));
+      return;
+    }
+
     const job = availableJobs.find(j => j.id === jobId);
     if (!job) return;
 
