@@ -34,8 +34,8 @@ export default function HomePage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-100 px-4 py-12">
       <div className="max-w-4xl w-full">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2 uppercase">CV Portal IJEF</h1>
-          <p className="text-slate-500 font-medium italic">Sistem Pendaftaran & Matching Job Kerja Jepang v3.0</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2 uppercase">PORTAL IJEF</h1>
+          <p className="text-slate-500 font-medium italic">sistem pendaftaran & matching job kerja v3.0</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
