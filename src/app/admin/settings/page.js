@@ -29,6 +29,7 @@ export default function SettingsPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("users");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // New user form
   const [showAddUser, setShowAddUser] = useState(false);
@@ -244,73 +245,103 @@ export default function SettingsPage() {
         {/* TAB: User Management */}
         {activeTab === "users" && (
           <>
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm text-gray-500">{users.length} akun terdaftar</span>
-              <button onClick={() => setShowAddUser(true)} className="btn-primary">
-                + Tambah Akun Baru
-              </button>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+              <div className="relative w-full md:w-64">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  placeholder="Cari nama atau email..."
+                  className="input-field pl-10 py-2 text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-4 w-full md:w-auto justify-between">
+                <span className="text-sm text-gray-500">{users.length} akun terdaftar</span>
+                <button onClick={() => setShowAddUser(true)} className="btn-primary">
+                  + Tambah Akun Baru
+                </button>
+              </div>
             </div>
 
             {/* User List */}
-            <div className="card overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-3 font-medium text-gray-600">Nama</th>
-                    <th className="text-left py-3 px-3 font-medium text-gray-600">Email</th>
-                    <th className="text-left py-3 px-3 font-medium text-gray-600">Role</th>
-                    <th className="text-left py-3 px-3 font-medium text-gray-600">Dibuat</th>
-                    <th className="text-left py-3 px-3 font-medium text-gray-600">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => {
-                    const roleInfo = getRoleInfo(u.role);
-                    return (
-                      <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-3 font-medium text-gray-800">{u.fullName || "-"}</td>
-                        <td className="py-3 px-3 text-gray-600 text-xs">{u.email}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${roleInfo.color}`}>
-                            {roleInfo.label}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-gray-400 text-xs">
-                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString("id") : "-"}
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => {
-                                setEditingAccount(u);
-                                setEditAccountData({ fullName: u.fullName || "", email: u.email || "" });
-                              }}
-                              className="text-blue-600 hover:text-blue-800 text-xs font-medium"
-                            >
-                              Edit Akun
-                            </button>
-                            <button
-                              onClick={() => { setEditingUser(u); setEditRole(u.role); }}
-                              className="text-amber-600 hover:text-amber-800 text-xs font-medium"
-                            >
-                              Ubah Role
-                            </button>
-                            {u.id !== user.uid && (
+            <div className="card !p-0 overflow-hidden border border-gray-200">
+              <div className="overflow-x-auto max-h-[70vh] custom-scrollbar">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="sticky top-0 z-10 bg-gray-50 text-left py-3 px-4 font-bold text-gray-600 uppercase tracking-wider text-[10px]">Nama</th>
+                      <th className="sticky top-0 z-10 bg-gray-50 text-left py-3 px-4 font-bold text-gray-600 uppercase tracking-wider text-[10px]">Email</th>
+                      <th className="sticky top-0 z-10 bg-gray-50 text-left py-3 px-4 font-bold text-gray-600 uppercase tracking-wider text-[10px]">Role</th>
+                      <th className="sticky top-0 z-10 bg-gray-50 text-left py-3 px-4 font-bold text-gray-600 uppercase tracking-wider text-[10px]">Dibuat</th>
+                      <th className="sticky top-0 z-10 bg-gray-50 text-left py-3 px-4 font-bold text-gray-600 uppercase tracking-wider text-[10px]">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {users
+                      .filter(u =>
+                        !searchTerm ||
+                        u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map((u) => {
+                      const roleInfo = getRoleInfo(u.role);
+                      return (
+                        <tr key={u.id} className="hover:bg-blue-50/30 transition-colors">
+                          <td className="py-3 px-4 font-medium text-gray-800">{u.fullName || "-"}</td>
+                          <td className="py-3 px-4 text-gray-600 text-xs">{u.email}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${roleInfo.color}`}>
+                              {roleInfo.label}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">
+                            {u.createdAt ? new Date(u.createdAt).toLocaleDateString("id") : "-"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex space-x-3">
                               <button
-                                onClick={() => setDeleteTarget(u)}
-                                className="text-red-500 hover:text-red-700 text-xs font-medium"
+                                onClick={() => {
+                                  setEditingAccount(u);
+                                  setEditAccountData({ fullName: u.fullName || "", email: u.email || "" });
+                                }}
+                                className="text-blue-600 hover:text-blue-800 text-xs font-bold"
                               >
-                                Hapus
+                                Edit
                               </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                              <button
+                                onClick={() => { setEditingUser(u); setEditRole(u.role); }}
+                                className="text-amber-600 hover:text-amber-800 text-xs font-bold"
+                              >
+                                Role
+                              </button>
+                              {u.id !== user.uid && (
+                                <button
+                                  onClick={() => setDeleteTarget(u)}
+                                  className="text-red-500 hover:text-red-700 text-xs font-bold"
+                                >
+                                  Hapus
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            <style jsx>{`
+              .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+              .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+              .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+            `}</style>
           </>
         )}
 
