@@ -171,6 +171,8 @@ export default function CandidateFormPage() {
     videoJFT: "",
     sertifikatSSW: "",
     videoSSW: "",
+    sertifikatSSW2: "",
+    videoSSW2: "",
     cvRirekisho: "",
   });
 
@@ -477,17 +479,17 @@ export default function CandidateFormPage() {
 
           {/* PENDIDIKAN */}
           <FormSection title="Riwayat Pendidikan">
-            <InputField label="SD - Nama Sekolah" name="sdNama" value={formData.sdNama} onChange={handleChange} />
-            <InputField label="SD - Tahun Masuk" name="sdMasuk" value={formData.sdMasuk} onChange={handleChange} type="date" />
-            <InputField label="SD - Tahun Lulus" name="sdLulus" value={formData.sdLulus} onChange={handleChange} type="date" />
+            <InputField label="SD - Nama Sekolah" name="sdNama" value={formData.sdNama} onChange={handleChange} required />
+            <InputField label="SD - Tahun Masuk" name="sdMasuk" value={formData.sdMasuk} onChange={handleChange} type="date" required />
+            <InputField label="SD - Tahun Lulus" name="sdLulus" value={formData.sdLulus} onChange={handleChange} type="date" required />
             <div></div>
-            <InputField label="SMP - Nama Sekolah" name="smpNama" value={formData.smpNama} onChange={handleChange} />
-            <InputField label="SMP - Tahun Masuk" name="smpMasuk" value={formData.smpMasuk} onChange={handleChange} type="date" />
-            <InputField label="SMP - Tahun Lulus" name="smpLulus" value={formData.smpLulus} onChange={handleChange} type="date" />
+            <InputField label="SMP - Nama Sekolah" name="smpNama" value={formData.smpNama} onChange={handleChange} required />
+            <InputField label="SMP - Tahun Masuk" name="smpMasuk" value={formData.smpMasuk} onChange={handleChange} type="date" required />
+            <InputField label="SMP - Tahun Lulus" name="smpLulus" value={formData.smpLulus} onChange={handleChange} type="date" required />
             <div></div>
-            <InputField label="SMA/K - Nama Sekolah" name="smaNama" value={formData.smaNama} onChange={handleChange} />
-            <InputField label="SMA/K - Tahun Masuk" name="smaMasuk" value={formData.smaMasuk} onChange={handleChange} type="date" />
-            <InputField label="SMA/K - Tahun Lulus" name="smaLulus" value={formData.smaLulus} onChange={handleChange} type="date" />
+            <InputField label="SMA/K - Nama Sekolah" name="smaNama" value={formData.smaNama} onChange={handleChange} required />
+            <InputField label="SMA/K - Tahun Masuk" name="smaMasuk" value={formData.smaMasuk} onChange={handleChange} type="date" required />
+            <InputField label="SMA/K - Tahun Lulus" name="smaLulus" value={formData.smaLulus} onChange={handleChange} type="date" required />
             <InputField label="SMA/K - Jurusan" name="smaJurusan" value={formData.smaJurusan} onChange={handleChange} />
             <InputField label="Universitas - Nama" name="univNama" value={formData.univNama} onChange={handleChange} />
             <InputField label="Universitas - Tahun Masuk" name="univMasuk" value={formData.univMasuk} onChange={handleChange} type="date" />
@@ -562,6 +564,8 @@ export default function CandidateFormPage() {
             <UploadField label="Video Screen Recording JFT" name="videoJFT" value={formData.videoJFT} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
             <UploadField label="Sertifikat SSW" name="sertifikatSSW" value={formData.sertifikatSSW} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
             <UploadField label="Video Screen Recording SSW" name="videoSSW" value={formData.videoSSW} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
+            <UploadField label="Sertifikat SSW 2 (Optional)" name="sertifikatSSW2" value={formData.sertifikatSSW2} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
+            <UploadField label="Video Screen Recording SSW 2 (Optional)" name="videoSSW2" value={formData.videoSSW2} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
             <UploadField label="CV/Rirekisho" name="cvRirekisho" value={formData.cvRirekisho} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
           </FormSection>
 

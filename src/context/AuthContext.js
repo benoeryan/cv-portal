@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
     return await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (role = "candidate") => {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
 
@@ -77,7 +77,7 @@ export function AuthProvider({ children }) {
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         fullName: user.displayName,
-        role: "candidate", // Default role
+        role: role, // Use passed role
         createdAt: new Date().toISOString(),
       });
     }

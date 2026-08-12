@@ -17,6 +17,7 @@ import Navbar from "@/components/Navbar";
 
 const ROLES = [
   { value: "admin", label: "Admin", color: "bg-red-100 text-red-700" },
+  { value: "partner", label: "Partner/Mitra", color: "bg-purple-100 text-purple-700" },
   { value: "viewer", label: "Viewer", color: "bg-blue-100 text-blue-700" },
   { value: "approval", label: "Approval", color: "bg-yellow-100 text-yellow-700" },
   { value: "candidate", label: "Candidate", color: "bg-green-100 text-green-700" },
@@ -329,6 +330,10 @@ export default function SettingsPage() {
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h4 className="font-medium text-blue-700 mb-1">Viewer</h4>
                 <p className="text-sm text-blue-600">Hanya bisa melihat data kandidat dan CV. Tidak bisa edit, hapus, atau approve.</p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <h4 className="font-medium text-purple-700 mb-1">Partner/Mitra</h4>
+                <p className="text-sm text-purple-600">Akses khusus untuk mitra perusahaan. Bisa melihat daftar lowongan (Job) dan mencari siswa yang tersedia untuk disalurkan.</p>
               </div>
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <h4 className="font-medium text-green-700 mb-1">Candidate</h4>

@@ -1323,6 +1323,8 @@ export default function EditCandidatePage() {
                   { key: "videoJFT", label: "Video JFT (URL)" },
                   { key: "sertifikatSSW", label: "Sertifikat SSW (URL)" },
                   { key: "videoSSW", label: "Video SSW (URL)" },
+                  { key: "sertifikatSSW2", label: "Sertifikat SSW 2 (URL)" },
+                  { key: "videoSSW2", label: "Video SSW 2 (URL)" },
                   { key: "cvRirekisho", label: "CV/Rirekisho (URL)" },
                   { key: "sertifikatSenmonkyuu", label: "Sertifikat Senmonkyuu (URL)" },
                   { key: "sertifikatSelesaiMagang", label: "Sertifikat Selesai Magang (URL)" },
