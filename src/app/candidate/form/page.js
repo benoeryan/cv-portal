@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import UploadField from "@/components/UploadField";
 
@@ -11,9 +11,11 @@ const KATEGORI_OPTIONS = [
   "SISWA IJEF : SISWA OFFLINE",
   "SISWA IJEF : SISWA ONLINE",
   "SISWA NON IJEF : NEW COMER",
+  "SISWA NON IJEF : SISWA MITRA",
   "SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE",
   "SISWA MATCHING JOB : ENGINEERING/GIJINKOKU"
 ];
+const LEVEL_BAHASA_OPTIONS = ["N1", "N2", "N3", "N4", "N5", "JFT BASIC A2", "BELUM ADA"];
 const BIDANG_OPTIONS_NEW_COMER = ["KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "LAINNYA"];
 const BIDANG_OPTIONS_EX_MAGANG = ["TG JAHIT/GARMEN", "Housei", "KAIGO", "PM", "PERTANIAN", "PETERNAKAN", "KONSTRUKSI DOBOKU", "KIKAI KAKOU", "LAINNYA"];
 const BIDANG_OPTIONS_ENGINEERING = ["ENGINEERING", "KIKAI KAKOU", "LAINNYA"];
@@ -25,7 +27,8 @@ const STATUS_NIKAH_OPTIONS = ["BELUM MENIKAH", "SUDAH MENIKAH", "CERAI"];
 const YA_TIDAK = ["YA", "TIDAK"];
 const DOMINAN_TANGAN_OPTIONS = ["KANAN", "KIRI"];
 const HUBUNGAN_KELUARGA = ["AYAH", "IBU", "KAKAK LAKI-LAKI", "KAKAK PEREMPUAN", "ADIK LAKI-LAKI", "ADIK PEREMPUAN", "SUAMI", "ISTRI", "ANAK LAKI-LAKI", "ANAK PEREMPUAN", "KAKEK", "NENEK", "PAMAN", "BIBI"];
-const STATUS_PEKERJA_OPTIONS = ["Pegawai Tetap", "Pegawai Kontrak", "Magang/Internship", "Ginou jisshuusei", "Membantu Orang Tua", "Usaha Pribadi"];
+const DOMISILI_OPTIONS = ["INDO", "JEPANG", "LAINNYA"];
+const STATUS_PEKERJA_OPTIONS = ["Pegawai Tetap", "Pegawai Kontrak", "Magang/Internship", "Ginou jisshuusei", "Tokutei Ginou", "Freelance", "Membantu Orang Tua", "Usaha Pribadi"];
 const DOC_ACCEPT = "image/*,application/pdf,.doc,.docx,.xls,.xlsx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 function FormSection({ title, children }) {
@@ -81,6 +84,9 @@ export default function CandidateFormPage() {
     kodeReferensi: "",
     kodeJob: "",
     kategoriKandidat: "",
+    namaMitra: "",
+    domisiliSiswa: "",
+    levelBahasa: "",
     namaLengkap: "",
     namaPanggilan: "",
     bidangKerja: "",
@@ -176,6 +182,8 @@ export default function CandidateFormPage() {
     cvRirekisho: "",
   });
 
+  const [partners, setPartners] = useState([]);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/auth/login");
@@ -183,8 +191,17 @@ export default function CandidateFormPage() {
     }
     if (user) {
       loadExistingData();
+      loadPartners();
     }
   }, [user, authLoading]);
+
+  const loadPartners = async () => {
+    try {
+      const q = query(collection(db, "partners"), orderBy("name", "asc"));
+      const snapshot = await getDocs(q);
+      setPartners(snapshot.docs.map(d => d.data().name));
+    } catch (err) { console.error(err); }
+  };
 
   const loadExistingData = async () => {
     try {
@@ -259,6 +276,79 @@ export default function CandidateFormPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Strict Validation
+    const requiredFields = [
+      { key: "kategoriKandidat", label: "Kategori Kandidat" },
+      { key: "domisiliSiswa", label: "Domisili Siswa" },
+      { key: "levelBahasa", label: "Level Sertifikasi Bahasa" },
+      { key: "namaLengkap", label: "Nama Lengkap" },
+      { key: "namaPanggilan", label: "Nama Panggilan" },
+      { key: "noHp", label: "No. HP" },
+      { key: "email", label: "Email" },
+      { key: "tanggalLahir", label: "Tanggal Lahir" },
+      { key: "tempatLahir", label: "Tempat Lahir" },
+      { key: "alamatLengkap", label: "Alamat Lengkap" },
+      { key: "jenisKelamin", label: "Jenis Kelamin" },
+      { key: "agama", label: "Agama" },
+      { key: "tinggiBadan", label: "Tinggi Badan" },
+      { key: "beratBadan", label: "Berat Badan" },
+      { key: "statusPernikahan", label: "Status Pernikahan" },
+      { key: "kelebihan", label: "Kelebihan" },
+      { key: "kekurangan", label: "Kekurangan" },
+      { key: "alasanKeJepang", label: "Alasan ke Jepang" },
+      { key: "impianMasaDepan", label: "Impian Masa Depan" },
+      { key: "lamaInginTinggal", label: "Lama Ingin Tinggal" },
+      { key: "lamaBelajarBahasaJepang", label: "Lama Belajar Bahasa Jepang" },
+      { key: "nomorDarurat", label: "No. HP Darurat" },
+      { key: "namaPemilikDarurat", label: "Nama Pemilik No. Darurat" },
+      { key: "hubunganDarurat", label: "Hubungan Darurat" },
+    ];
+
+    for (const f of requiredFields) {
+      if (!formData[f.key]) {
+        alert(`Harap isi bidang ${f.label}!`);
+        return;
+      }
+    }
+
+    // Special: Siswa Mitra validation
+    if (formData.kategoriKandidat === "SISWA NON IJEF : SISWA MITRA" && !formData.namaMitra) {
+      alert("Harap pilih Nama Mitra!");
+      return;
+    }
+
+    // Education Validation
+    if (!formData.sdNama || !formData.sdMasuk || !formData.sdLulus ||
+        !formData.smpNama || !formData.smpMasuk || !formData.smpLulus ||
+        !formData.smaNama || !formData.smaMasuk || !formData.smaLulus) {
+      alert("Riwayat Pendidikan (SD, SMP, SMA/K) wajib diisi lengkap!");
+      return;
+    }
+
+    // Work Validation (At least one entry if not NEW COMER)
+    const hasWork = formData.pekerjaan.some(p => p.perusahaan && p.masuk);
+    if (!hasWork) {
+      alert("Riwayat Pekerjaan wajib diisi (minimal 1)!");
+      return;
+    }
+
+    // Document Validation
+    const requiredDocs = [
+      { key: "pasPhoto", label: "Pas Photo" },
+      { key: "sertifikatBahasaJepang", label: "Sertifikat Bahasa Jepang" },
+      { key: "videoJFT", label: "Video JFT" },
+      { key: "sertifikatSSW", label: "Sertifikat SSW" },
+      { key: "videoSSW", label: "Video SSW" },
+      { key: "cvRirekisho", label: "CV/Rirekisho" },
+    ];
+    for (const d of requiredDocs) {
+      if (!formData[d.key]) {
+        alert(`Dokumen ${d.label} wajib di-upload!`);
+        return;
+      }
+    }
+
     setLoading(true);
     setSaved(false);
     try {
@@ -313,6 +403,11 @@ export default function CandidateFormPage() {
             <InputField label="Kode Referensi" name="kodeReferensi" value={formData.kodeReferensi} onChange={handleChange} placeholder="Contoh: Jimusho" />
             <InputField label="Kode Job" name="kodeJob" value={formData.kodeJob} onChange={handleChange} placeholder="Contoh: IJEF076" />
             <InputField label="Kategori Kandidat" name="kategoriKandidat" value={formData.kategoriKandidat} onChange={handleChange} options={KATEGORI_OPTIONS} required />
+            {formData.kategoriKandidat === "SISWA NON IJEF : SISWA MITRA" && (
+              <InputField label="Nama Mitra" name="namaMitra" value={formData.namaMitra} onChange={handleChange} options={partners} required />
+            )}
+            <InputField label="Domisili Siswa" name="domisiliSiswa" value={formData.domisiliSiswa} onChange={handleChange} options={DOMISILI_OPTIONS} required />
+            <InputField label="Level Sertifikasi Bahasa" name="levelBahasa" value={formData.levelBahasa} onChange={handleChange} options={LEVEL_BAHASA_OPTIONS} required />
             <InputField label="Bidang Kerja" name="bidangKerja" value={formData.bidangKerja} onChange={handleChange} options={
               formData.kategoriKandidat?.includes("NEW COMER") ? BIDANG_OPTIONS_NEW_COMER :
               formData.kategoriKandidat?.includes("EX-MAGANG") ? BIDANG_OPTIONS_EX_MAGANG :
@@ -552,6 +647,9 @@ export default function CandidateFormPage() {
 
           {/* KONTAK DARURAT */}
           <FormSection title="Kontak Darurat">
+            <div className="md:col-span-2">
+              <p className="text-[10px] text-rose-500 font-bold uppercase italic mb-2 tracking-widest bg-rose-50 px-2 py-1 rounded inline-block border border-rose-100">ISI KONTAK DARURAT HARUS ORANG LAIN, TIDAK BOLEH DIRI SENDIRI</p>
+            </div>
             <InputField label="No HP Darurat" name="nomorDarurat" value={formData.nomorDarurat} onChange={handleChange} required />
             <InputField label="Nama Pemilik No Darurat" name="namaPemilikDarurat" value={formData.namaPemilikDarurat} onChange={handleChange} required />
             <InputField label="Hubungan dengan Pelamar" name="hubunganDarurat" value={formData.hubunganDarurat} onChange={handleChange} required />
@@ -564,8 +662,8 @@ export default function CandidateFormPage() {
             <UploadField label="Video Screen Recording JFT" name="videoJFT" value={formData.videoJFT} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
             <UploadField label="Sertifikat SSW" name="sertifikatSSW" value={formData.sertifikatSSW} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
             <UploadField label="Video Screen Recording SSW" name="videoSSW" value={formData.videoSSW} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
-            <UploadField label="Sertifikat SSW 2 (Optional)" name="sertifikatSSW2" value={formData.sertifikatSSW2} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
-            <UploadField label="Video Screen Recording SSW 2 (Optional)" name="videoSSW2" value={formData.videoSSW2} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
+            <UploadField label="Sertifikat SSW 2 (Khusus KAIGO)" name="sertifikatSSW2" value={formData.sertifikatSSW2} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
+            <UploadField label="Video Screen Recording SSW 2 (Khusus KAIGO)" name="videoSSW2" value={formData.videoSSW2} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
             <UploadField label="CV/Rirekisho" name="cvRirekisho" value={formData.cvRirekisho} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
           </FormSection>
 

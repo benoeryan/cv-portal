@@ -86,57 +86,62 @@ export default function CandidateStatusPage() {
         </div>
 
         {/* STATUS PROGRES DARI ADMIN */}
-        <div className="card mb-6 border-l-4 border-blue-600">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-            Status Progres Saat Ini
-          </h2>
-          <div className="bg-gray-50 rounded-lg p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Status Utama</label>
-                <span className={`px-3 py-1 rounded-full text-sm font-bold border ${
-                  data.statusProgres === "On Proses" ? "bg-sky-50 text-sky-700 border-sky-200" :
-                  data.statusProgres === "Pending Nunggu Job" ? "bg-amber-50 text-amber-700 border-amber-200" :
-                  data.statusProgres === "Cancel" ? "bg-rose-50 text-rose-700 border-rose-200" :
-                  data.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                  "bg-gray-50 text-gray-600 border-gray-200"
-                }`}>
-                  {data.statusProgres || "Belum Diproses"}
-                </span>
-              </div>
+        <div className="card mb-6 border-l-4 border-blue-600 shadow-xl shadow-blue-50">
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-lg font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+              Monitoring Progres Pendaftaran
+            </h2>
+            <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${
+              data.statusProgres === "On Proses" ? "bg-sky-50 text-sky-700 border-sky-200" :
+              data.statusProgres === "Pending Nunggu Job" ? "bg-amber-50 text-amber-700 border-amber-200" :
+              data.statusProgres === "Cancel" ? "bg-rose-50 text-rose-700 border-rose-200" :
+              data.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+              "bg-gray-50 text-gray-600 border-gray-200"
+            }`}>
+              {data.statusProgres || "Menunggu Verifikasi"}
+            </span>
+          </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Nama TSK</label>
-                <p className="text-gray-700 font-medium">{data.namaTsk || "-"}</p>
+          <div className="bg-slate-50/50 rounded-3xl p-8 border border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sektor/Bidang</label>
+                <p className="text-slate-800 font-bold uppercase">{data.bidangKerja || "-"}</p>
               </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Perusahaan</label>
-                <p className="text-gray-700 font-medium">{data.namaPerusahaanProgres || "-"}</p>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nama TSK</label>
+                <p className="text-slate-800 font-bold uppercase">{data.namaTsk || "-"}</p>
               </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Lokasi Kerja</label>
-                <p className="text-gray-700 font-medium">{data.lokasiPerusahaan || "-"}</p>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Perusahaan JP</label>
+                <p className="text-slate-800 font-bold uppercase">{data.namaPerusahaanProgres || "-"}</p>
               </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Jadwal Keberangkatan</label>
-                <p className="text-gray-700 font-medium">{data.jadwalKeberangkatan || "-"}</p>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Lokasi Kerja</label>
+                <p className="text-slate-800 font-bold uppercase">{data.lokasiPerusahaan || "-"}</p>
               </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Status COE</label>
-                <p className="text-gray-700 font-medium">{data.coeTerbit || "-"}</p>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Target Berangkat</label>
+                <p className="text-slate-800 font-bold uppercase">{data.jadwalKeberangkatan || "-"}</p>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status COE</label>
+                <p className="text-slate-800 font-bold uppercase">{data.coeTerbit || "-"}</p>
               </div>
             </div>
+
+            {/* Execution Actions based on status */}
+            {data.statusProgres === "Penjadwalan Interview" && (
+              <div className="mt-8 p-6 bg-indigo-600 rounded-2xl text-white flex flex-col md:flex-row justify-between items-center gap-4">
+                 <div>
+                    <h4 className="font-black uppercase tracking-tight">Panggilan Interview Tersedia!</h4>
+                    <p className="text-xs text-indigo-100 mt-1">Admin telah menjadwalkan interview untuk Anda. Hubungi admin untuk konfirmasi kehadiran.</p>
+                 </div>
+                 <a href="https://wa.me/6281234567890" target="_blank" className="bg-white text-indigo-600 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg">Konfirmasi Sekarang</a>
+              </div>
+            )}
           </div>
-          {data.updatedAt && (
-            <p className="mt-4 text-[10px] text-gray-400 italic text-right">
-              Terakhir diperbarui: {new Date(data.updatedAt).toLocaleString('id-ID')}
-            </p>
-          )}
         </div>
 
         {/* RINGKASAN DATA KANDIDAT */}

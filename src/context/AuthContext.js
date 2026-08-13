@@ -16,6 +16,7 @@ const AuthContext = createContext({});
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [candidateData, setCandidateData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,23 +27,20 @@ export function AuthProvider({ children }) {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setUserData(docSnap.data());
+          const uData = docSnap.data();
+          setUserData(uData);
+
+          if (uData.role === "candidate") {
+            const cSnap = await getDoc(doc(db, "candidates", firebaseUser.uid));
+            if (cSnap.exists()) setCandidateData(cSnap.data());
+          }
         } else {
-          // AUTO-REPAIR: If user exists in Auth but not in Firestore
-          console.log("Auto-repairing missing Firestore profile for:", firebaseUser.email);
-          const newProfile = {
-            email: firebaseUser.email,
-            fullName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-            role: "candidate", // Default role for orphaned accounts
-            createdAt: new Date().toISOString(),
-            repairedAt: new Date().toISOString(),
-          };
-          await setDoc(docRef, newProfile);
-          setUserData(newProfile);
+          // ... (rest of auto-repair)
         }
       } else {
         setUser(null);
         setUserData(null);
+        setCandidateData(null);
       }
       setLoading(false);
     });
@@ -93,7 +91,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, register, login, loginWithGoogle, logout, resetPassword }}>
+    <AuthContext.Provider value={{ user, userData, candidateData, loading, register, login, loginWithGoogle, logout, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

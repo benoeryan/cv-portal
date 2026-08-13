@@ -15,7 +15,7 @@ export default function HomePage() {
       if (userData.role === "admin" || userData.role === "viewer" || userData.role === "approval") {
         router.push("/admin");
       } else if (userData.role === "partner") {
-        router.push("/partner/jobs");
+        router.push("/partner");
       } else {
         router.push("/candidate/status");
       }

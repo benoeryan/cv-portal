@@ -776,8 +776,22 @@ export default function EditCandidatePage() {
                     <option value="SISWA IJEF : SISWA OFFLINE">SISWA IJEF : SISWA OFFLINE</option>
                     <option value="SISWA IJEF : SISWA ONLINE">SISWA IJEF : SISWA ONLINE</option>
                     <option value="SISWA NON IJEF : NEW COMER">SISWA NON IJEF : NEW COMER</option>
+                    <option value="SISWA NON IJEF : SISWA MITRA">SISWA NON IJEF : SISWA MITRA</option>
                     <option value="SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE">SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE</option>
                     <option value="SISWA MATCHING JOB : ENGINEERING/GIJINKOKU">SISWA MATCHING JOB : ENGINEERING/GIJINKOKU</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Nama Mitra (Jika Kategori Mitra)</label>
+                  <input className="input-field" value={data.namaMitra || ""} onChange={(e) => handleChange("namaMitra", e.target.value)} />
+                </div>
+                <div>
+                  <label className="form-label">Domisili Siswa</label>
+                  <select className="input-field" value={data.domisiliSiswa || ""} onChange={(e) => handleChange("domisiliSiswa", e.target.value)}>
+                    <option value="">-- Pilih --</option>
+                    <option value="INDO">INDO</option>
+                    <option value="JEPANG">JEPANG</option>
+                    <option value="LAINNYA">LAINNYA</option>
                   </select>
                 </div>
                 <div>

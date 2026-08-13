@@ -4,13 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function Navbar() {
-  const { user, userData, logout } = useAuth();
+  const { user, userData, candidateData, logout } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
     await logout();
     router.push("/");
   };
+
+  const showJobList = userData?.role === "admin" || (
+    userData?.role === "candidate" &&
+    (candidateData?.kategoriKandidat?.includes("NEW COMER") || candidateData?.kategoriKandidat?.includes("MATCHING JOB"))
+  );
 
   if (!user) return null;
 
@@ -31,6 +36,12 @@ export default function Navbar() {
                   <Link href="/admin/candidates" className="text-sm text-gray-600 hover:text-blue-600">
                     Data Kandidat
                   </Link>
+                  <Link href="/admin/partners" className="text-sm text-gray-600 hover:text-blue-600">
+                    Daftar Mitra
+                  </Link>
+                  <Link href="/admin/requests" className="text-sm text-gray-600 hover:text-blue-600">
+                    Request Mitra
+                  </Link>
                   <Link href="/admin/jobs" className="text-sm text-gray-600 hover:text-blue-600">
                     Manajemen Job
                   </Link>
@@ -50,11 +61,23 @@ export default function Navbar() {
                   <Link href="/candidate/status" className="text-sm text-gray-600 hover:text-blue-600">
                     Status Pendaftaran
                   </Link>
+                  {showJobList && (
+                    <Link href="/jobs" className="text-sm text-gray-600 hover:text-blue-600 font-bold">
+                      Daftar Job
+                    </Link>
+                  )}
                   <Link href="/candidate/form" className="text-sm text-gray-600 hover:text-blue-600">
                     Isi Form
                   </Link>
                   <Link href="/candidate/cv" className="text-sm text-gray-600 hover:text-blue-600">
                     Lihat CV
+                  </Link>
+                </>
+              )}
+              {(userData?.role === "partner" || userData?.role === "admin") && (
+                <>
+                  <Link href="/partner" className="text-sm text-gray-600 hover:text-blue-600">
+                    Portal Mitra
                   </Link>
                 </>
               )}
