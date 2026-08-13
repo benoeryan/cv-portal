@@ -120,87 +120,84 @@ export default function PartnerCandidateSearchPage() {
   return (
     <>
       <Navbar />
-      <div className="max-w-full mx-auto px-6 py-10 bg-[#F8F9FC] min-h-screen font-sans flex flex-col space-y-10">
-        <div className="text-center shrink-0">
-            <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">PENCARIAN SISWA READY MATCH v6.0</h1>
-            <p className="text-slate-500 text-xs font-black uppercase tracking-[0.3em] mt-2">Daftar Kandidat Bersertifikat SSW & Siap Matching Job</p>
+      <div className="max-w-full mx-auto px-8 py-10 bg-[#F8F9FC] min-h-screen font-sans flex flex-col h-screen overflow-hidden">
+        <div className="text-center shrink-0 mb-8">
+            <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tighter leading-none">PENCARIAN SISWA READY MATCH</h1>
+            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Daftar Kandidat Bersertifikat SSW & Siap Matching Job</p>
         </div>
 
-        {/* DASHBOARD: GENDER & DOMISILI (Interaktif) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-7xl mx-auto w-full shrink-0">
-           <div onClick={() => {setFilterType("gender"); setFilterValue("LAKI-LAKI");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='gender'&&filterValue==='LAKI-LAKI'?'bg-blue-600 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-blue-100'}`}>
-              <p className="text-[10px] font-black uppercase opacity-60">Siswa Laki-laki</p>
-              <h3 className="text-4xl font-black">{stats.gender.find(g => g[0]==='LAKI-LAKI')?.[1] || 0}</h3>
-           </div>
-           <div onClick={() => {setFilterType("gender"); setFilterValue("PEREMPUAN");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='gender'&&filterValue==='PEREMPUAN'?'bg-rose-500 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-rose-100'}`}>
-              <p className="text-[10px] font-black uppercase opacity-60">Siswa Perempuan</p>
-              <h3 className="text-4xl font-black">{stats.gender.find(g => g[0]==='PEREMPUAN')?.[1] || 0}</h3>
-           </div>
-           <div onClick={() => {setFilterType("domisili"); setFilterValue("INDO");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='domisili'&&filterValue==='INDO'?'bg-indigo-600 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-indigo-100'}`}>
-              <p className="text-[10px] font-black uppercase opacity-60">Di Indonesia</p>
-              <h3 className="text-4xl font-black">{stats.domisili.find(d => d[0]==='INDO')?.[1] || 0}</h3>
-           </div>
-           <div onClick={() => {setFilterType("domisili"); setFilterValue("JEPANG");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='domisili'&&filterValue==='JEPANG'?'bg-slate-900 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-slate-300'}`}>
-              <p className="text-[10px] font-black uppercase opacity-60">Di Jepang</p>
-              <h3 className="text-4xl font-black">{stats.domisili.find(d => d[0]==='JEPANG')?.[1] || 0}</h3>
-           </div>
-        </div>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-10 pr-2 pb-20">
+          {/* DASHBOARD: GENDER & DOMISILI */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-7xl mx-auto w-full shrink-0">
+             <div onClick={() => {setFilterType("gender"); setFilterValue("LAKI-LAKI");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='gender'&&filterValue==='LAKI-LAKI'?'bg-blue-600 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-blue-100'}`}>
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Siswa Pria</p>
+                <h3 className="text-4xl font-black">{stats.gender.find(g => g[0]==='LAKI-LAKI')?.[1] || 0}</h3>
+             </div>
+             <div onClick={() => {setFilterType("gender"); setFilterValue("PEREMPUAN");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='gender'&&filterValue==='PEREMPUAN'?'bg-rose-500 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-rose-100'}`}>
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Siswa Wanita</p>
+                <h3 className="text-4xl font-black">{stats.gender.find(g => g[0]==='PEREMPUAN')?.[1] || 0}</h3>
+             </div>
+             <div onClick={() => {setFilterType("domisili"); setFilterValue("INDO");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='domisili'&&filterValue==='INDO'?'bg-indigo-600 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-indigo-100'}`}>
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Di Indonesia</p>
+                <h3 className="text-4xl font-black">{stats.domisili.find(d => d[0]==='INDO')?.[1] || 0}</h3>
+             </div>
+             <div onClick={() => {setFilterType("domisili"); setFilterValue("JEPANG");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='domisili'&&filterValue==='JEPANG'?'bg-slate-900 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-slate-300'}`}>
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Di Jepang</p>
+                <h3 className="text-4xl font-black">{stats.domisili.find(d => d[0]==='JEPANG')?.[1] || 0}</h3>
+             </div>
+          </div>
 
-        {/* SEKTOR / BIDANG WORK DASHBOARD */}
-        <div className="card p-8 bg-white border border-slate-100 rounded-[3rem] shadow-xl shadow-slate-200/40 shrink-0">
-           <div className="flex flex-wrap justify-center gap-3">
-              <div onClick={() => {setFilterType(""); setFilterValue("");}} className={`cursor-pointer px-6 py-3 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${!filterType ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-transparent text-slate-400 hover:border-slate-200'}`}>Semua Bidang</div>
-              {stats.bidang.map(([b, count]) => (
-                <div key={b} onClick={() => {setFilterType("bidang"); setFilterValue(b);}} className={`cursor-pointer px-6 py-3 rounded-2xl border-2 transition-all flex items-center gap-3 ${filterType === 'bidang' && filterValue === b ? 'bg-purple-600 border-purple-200 text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-700 hover:border-purple-300'}`}>
-                   <span className="text-[10px] font-black uppercase">{b}</span>
-                   <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${filterType === 'bidang' && filterValue === b ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-600'}`}>{count}</span>
-                </div>
-              ))}
-           </div>
-        </div>
-
-        {/* SEARCH BAR */}
-        <div className="max-w-4xl mx-auto w-full shrink-0 relative">
-           <input className="w-full h-20 pl-16 pr-8 bg-white rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 font-black text-xl text-slate-900" placeholder="Cari nama kandidat spesifik..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-           <svg className="w-8 h-8 absolute left-6 top-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-           {filterType && <div className="absolute right-8 top-6 bg-purple-50 text-purple-600 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest animate-fadeIn">Filter Aktif ✕</div>}
-        </div>
-
-        {/* CANDIDATE GRID - Following layout with scroll if needed */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10 pb-20">
-          {filteredCandidates.map((c) => (
-            <div key={c.id} onClick={() => handleOpenDetail(c)} className="group bg-white rounded-[4rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 cursor-pointer flex flex-col h-full border-[6px] border-white hover:border-purple-100 active:scale-95">
-               <div className="relative aspect-[3/4.2] overflow-hidden bg-slate-200">
-                  {/* ZOOM OUT FOTO: Gunakan object-cover object-top dengan aspect ratio lebih pendek agar tidak terpotong lebar (zoom-out) */}
-                  <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top p-1" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
-                  <div className="absolute bottom-8 left-8 right-8 text-white">
-                     <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
-                     <h3 className="text-xl font-black uppercase leading-tight tracking-tighter drop-shadow-2xl">{c.namaLengkap}</h3>
-                     <div className="mt-4 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest opacity-60">
-                        <span>{c.domisiliSiswa === 'JEPANG' ? '🇯🇵 JP' : '🇮🇩 ID'}</span>
-                        <span className="w-1 h-1 rounded-full bg-white/30"></span>
-                        <span>{c.tanggalLahir ? (new Date().getFullYear() - new Date(c.tanggalLahir).getFullYear()) : "?"} THN</span>
-                     </div>
+          {/* SEKTOR / BIDANG WORK DASHBOARD */}
+          <div className="card p-8 bg-white border border-slate-100 rounded-[3rem] shadow-xl shadow-slate-200/40 shrink-0">
+             <div className="flex flex-wrap justify-center gap-3">
+                <div onClick={() => {setFilterType(""); setFilterValue("");}} className={`cursor-pointer px-6 py-3 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${!filterType ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-transparent text-slate-400 hover:border-slate-200'}`}>Semua Bidang</div>
+                {stats.bidang.map(([b, count]) => (
+                  <div key={b} onClick={() => {setFilterType("bidang"); setFilterValue(b);}} className={`cursor-pointer px-6 py-3 rounded-2xl border-2 transition-all flex items-center gap-3 ${filterType === 'bidang' && filterValue === b ? 'bg-purple-600 border-purple-200 text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-700 hover:border-purple-300'}`}>
+                     <span className="text-[10px] font-black uppercase">{b}</span>
+                     <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black ${filterType === 'bidang' && filterValue === b ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-600'}`}>{count}</span>
                   </div>
-               </div>
-               <div className="p-8 space-y-6">
-                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                     <div className="text-center flex-1 border-r border-slate-200">
-                        <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Gender</p>
-                        <p className="text-[10px] font-black text-slate-800 uppercase">{String(c.jenisKelamin).includes("LAKI")?'Pria':'Wanita'}</p>
-                     </div>
-                     <div className="text-center flex-1">
-                        <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Bahasa</p>
-                        <p className="text-[10px] font-black text-indigo-600 uppercase">{c.levelBahasa || "-"}</p>
-                     </div>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 text-purple-600 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-2 transition-transform">
-                     LIHAT PROFIL <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                  </div>
-               </div>
-            </div>
-          ))}
+                ))}
+             </div>
+          </div>
+
+          {/* SEARCH BAR */}
+          <div className="max-w-4xl mx-auto w-full shrink-0 relative">
+             <input className="w-full h-16 pl-14 pr-8 bg-white rounded-3xl border-none shadow-xl shadow-slate-200 font-bold text-lg text-slate-900" placeholder="Cari nama kandidat..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+             <svg className="w-6 h-6 absolute left-5 top-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+
+          {/* CANDIDATE GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10">
+            {filteredCandidates.map((c) => (
+              <div key={c.id} onClick={() => handleOpenDetail(c)} className="group bg-white rounded-[4rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 cursor-pointer flex flex-col h-full border-[6px] border-white hover:border-purple-100 relative active:scale-95">
+                 <div className="relative aspect-[3/4] overflow-hidden bg-slate-200 shrink-0">
+                    {/* ZOOM OUT FOTO: Gunakan object-cover object-top dengan aspect ratio lebih pendek */}
+                    <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top p-1" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
+                    <div className="absolute bottom-8 left-8 right-8 text-white">
+                       <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
+                       <h3 className="text-lg font-black uppercase leading-tight tracking-tighter drop-shadow-2xl">{c.namaLengkap}</h3>
+                    </div>
+                 </div>
+                 <div className="p-8 space-y-6 flex-grow flex flex-col justify-between">
+                    <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                       <div className="text-center flex-1 border-r border-slate-200">
+                          <p className="text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">Gender</p>
+                          <p className="text-[10px] font-black text-slate-800 uppercase">{String(c.jenisKelamin).includes("LAKI")?'Pria':'Wanita'}</p>
+                       </div>
+                       <div className="text-center flex-1">
+                          <p className="text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">Status</p>
+                          <p className="text-[10px] font-black text-emerald-500 uppercase">Ready</p>
+                       </div>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-purple-600 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-2 transition-transform">
+                       REVIEW PROFILE <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                    </div>
+                 </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -225,7 +222,7 @@ export default function PartnerCandidateSearchPage() {
                     <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Gender</p><p className="text-xl font-black text-slate-800 uppercase">{selectedStudent.jenisKelamin}</p></div>
                     <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Agama</p><p className="text-xl font-black text-slate-800 uppercase">{selectedStudent.agama || "-"}</p></div>
                     <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Nikah</p><p className="text-sm font-black text-slate-800 uppercase">{selectedStudent.statusPernikahan || "-"}</p></div>
-                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sektor SSW</p><p className="text-sm font-black text-purple-600 uppercase">{selectedStudent.bidangKerja || "-"}</p></div>
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Bidang SSW</p><p className="text-sm font-black text-purple-600 uppercase">{selectedStudent.bidangKerja || "-"}</p></div>
                     <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Bahasa</p><p className="text-sm font-black text-indigo-600 uppercase">{selectedStudent.levelBahasa || "-"}</p></div>
                  </div>
 
@@ -242,11 +239,6 @@ export default function PartnerCandidateSearchPage() {
                     <div className="space-y-4"><h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Kekurangan</h4><p className="text-xs text-slate-600 bg-rose-50/50 p-6 rounded-3xl border border-rose-100 font-medium italic">{selectedStudent.kekurangan || "---"}</p></div>
                  </div>
 
-                 <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-4"><div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>Jikoshoukai Singkat</h4>
-                    <p className="text-lg text-slate-600 leading-relaxed font-medium italic bg-purple-50/30 p-10 rounded-[3rem] border border-purple-100 shadow-inner">"{selectedStudent.promosiDiri || "---"}"</p>
-                 </div>
-
                  <div className="p-8 bg-slate-900 rounded-[3rem] text-white flex justify-between items-center relative overflow-hidden shadow-2xl">
                     <div className="relative z-10"><p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-2">Status Rekrutmen</p><h4 className="text-2xl font-black uppercase tracking-tighter">{selectedStudent.statusProgres || "Pending Nunggu Job"}</h4></div>
                     <span className="relative z-10 bg-indigo-500 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl">Ready Match</span>
@@ -254,7 +246,7 @@ export default function PartnerCandidateSearchPage() {
 
                  <div className="flex gap-6 pt-6">
                     <button onClick={() => setShowRequestModal(true)} className="flex-1 py-8 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-black rounded-[2.5rem] shadow-2xl shadow-purple-200 uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all">AJUKAN REQUEST MATCHING SEKARANG →</button>
-                    <button onClick={() => setShowDetailModal(false)} className="px-14 py-8 border-2 border-slate-100 rounded-[2.5rem] font-black text-slate-400 uppercase text-[10px] tracking-widest active:scale-95">BATAL</button>
+                    <button onClick={() => setShowDetailModal(false)} className="px-14 py-8 border-2 border-slate-100 rounded-[2.5rem] font-black text-slate-400 uppercase text-[10px] tracking-widest active:scale-95 transition-all">BATAL</button>
                  </div>
               </div>
            </div>
