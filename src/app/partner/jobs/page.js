@@ -3,7 +3,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { db, storage } from "@/lib/firebase";
-import { collection, getDocs, addDoc, query, orderBy, where } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where } from "firebase/firestore";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import Navbar from "@/components/Navbar";
 
 export default function PartnerJobListPage() {
@@ -116,6 +117,17 @@ export default function PartnerJobListPage() {
     setSaving(false);
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+    setFormData({
+      kodeJob: "", namaJob: "", perusahaan: "", lokasi: "", bidang: "", kategori: "SISWA NON IJEF : NEW COMER",
+      klasifikasiSkema: "Standard", gaji: "", keterangan: "", benefit: "", klasifikasiKandidat: "",
+      deskripsiPekerjaan: "", statusJob: "Open", domisiliKerja: "", fileUrl: "", biayaJob: "",
+      skemaPembayaran: "", benefitBiaya: "", sumberJob: "", usiaMax: "", jenisKelamin: "Pria & Wanita",
+      jumlahKandidat: "", kumiaiPartner: "", syaratKhusus: "",
+    });
+  };
+
   if (authLoading || loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
 
   return (
@@ -132,70 +144,22 @@ export default function PartnerJobListPage() {
           </button>
         </div>
 
-        {/* CLASSIFICATION DASHBOARD */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-           <div className="card p-6 border-2 border-white bg-white/80 rounded-[2.5rem] shadow-sm">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Trending Lowongan</p>
-              <div className="space-y-2.5">
-                 {dashboardStats.namaJob.map(([n, count]) => (
-                   <div key={n} onClick={() => {setFilterType("namaJob"); setFilterValue(n);}} className={`flex justify-between items-center group cursor-pointer p-1.5 rounded-lg transition-all ${filterValue === n ? 'bg-purple-600 text-white' : 'hover:bg-purple-50'}`}>
-                      <span className={`text-[10px] font-bold truncate ${filterValue === n ? 'text-white' : 'text-slate-600'}`}>{n}</span>
-                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black ${filterValue === n ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-600'}`}>{count}</span>
-                   </div>
-                 ))}
-              </div>
-           </div>
-
-           <div className="card p-6 border-2 border-white bg-white/80 rounded-[2.5rem] shadow-sm">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Top Sektor</p>
-              <div className="space-y-2.5">
-                 {dashboardStats.sektor.map(([s, count]) => (
-                   <div key={s} onClick={() => {setFilterType("bidang"); setFilterValue(s);}} className={`flex justify-between items-center group cursor-pointer p-1.5 rounded-lg transition-all ${filterValue === s ? 'bg-blue-600 text-white' : 'hover:bg-blue-50'}`}>
-                      <span className={`text-[10px] font-bold truncate ${filterValue === s ? 'text-white' : 'text-slate-600'}`}>{s}</span>
-                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black ${filterValue === s ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'}`}>{count}</span>
-                   </div>
-                 ))}
-              </div>
-           </div>
-
-           <div className="card p-6 border-2 border-white bg-white/80 rounded-[2.5rem] shadow-sm">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Top Perusahaan</p>
-              <div className="space-y-2.5">
-                 {dashboardStats.perusahaan.map(([p, count]) => (
-                   <div key={p} onClick={() => {setFilterType("perusahaan"); setFilterValue(p);}} className={`flex justify-between items-center group cursor-pointer p-1.5 rounded-lg transition-all ${filterValue === p ? 'bg-slate-800 text-white' : 'hover:bg-slate-100'}`}>
-                      <span className={`text-[10px] font-bold truncate ${filterValue === p ? 'text-white' : 'text-slate-600'}`}>{p}</span>
-                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black ${filterValue === p ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>{count}</span>
-                   </div>
-                 ))}
-              </div>
-           </div>
-
-           <div
-             onClick={() => {setFilterType("domisiliIndo"); setFilterValue(true);}}
-             className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisiliIndo' ? 'bg-indigo-600 border-indigo-200 text-white shadow-2xl scale-105' : 'bg-white border-white hover:border-indigo-100 shadow-sm'}`}
-           >
-              <h3 className="text-4xl font-black">{dashboardStats.indo}</h3>
-              <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${filterType === 'domisiliIndo' ? 'text-indigo-200' : 'text-slate-400'}`}>Domisili Indonesia</p>
-           </div>
-
-           <div
-             onClick={() => {setFilterType("domisiliJepang"); setFilterValue(true);}}
-             className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisiliJepang' ? 'bg-rose-600 border-rose-200 text-white shadow-2xl scale-105' : 'bg-white border-white hover:border-rose-100 shadow-sm'}`}
-           >
-              <h3 className="text-4xl font-black">{dashboardStats.jepang}</h3>
-              <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${filterType === 'domisiliJepang' ? 'text-rose-200' : 'text-slate-400'}`}>Domisili Jepang</p>
-           </div>
+        {/* Dashboard Klasifikasi */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+           <div className="card p-5 bg-white border-2 border-white rounded-[2rem] shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-3 tracking-widest">Trending</p>{dashboardStats.namaJob.map(([n, c]) => (<div key={n} onClick={()=>{setFilterType('namaJob');setFilterValue(n);}} className="flex justify-between text-[10px] font-bold cursor-pointer hover:text-purple-600 mb-1.5"><span>{n}</span><span>{c}</span></div>))}</div>
+           <div className="card p-5 bg-white border-2 border-white rounded-[2rem] shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-3 tracking-widest">Top Sektor</p>{dashboardStats.sektor.map(([b, c]) => (<div key={b} onClick={()=>{setFilterType('bidang');setFilterValue(b);}} className="flex justify-between text-[10px] font-bold cursor-pointer hover:text-purple-600 mb-1.5"><span>{b}</span><span>{c}</span></div>))}</div>
+           <div className="card p-5 bg-white border-2 border-white rounded-[2rem] shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-3 tracking-widest">Perusahaan</p>{dashboardStats.perusahaan.map(([p, c]) => (<div key={p} onClick={()=>{setFilterType('perusahaan');setFilterValue(p);}} className="flex justify-between text-[10px] font-bold cursor-pointer hover:text-purple-600 mb-1.5"><span>{p}</span><span>{c}</span></div>))}</div>
+           <div onClick={()=>{setFilterType('domisiliIndo');setFilterValue(true);}} className={`card p-6 rounded-[2.5rem] border-4 cursor-pointer text-center transition-all ${filterType==='domisiliIndo'?'bg-indigo-600 text-white border-indigo-200':'bg-white border-white'}`}><h3 className="text-3xl font-black">{dashboardStats.indo}</h3><p className="text-[9px] font-black uppercase mt-1">Domisili ID</p></div>
+           <div onClick={()=>{setFilterType('domisiliJepang');setFilterValue(true);}} className={`card p-6 rounded-[2.5rem] border-4 cursor-pointer text-center transition-all ${filterType==='domisiliJepang'?'bg-rose-600 text-white border-rose-200':'bg-white border-white'}`}><h3 className="text-3xl font-black">{dashboardStats.jepang}</h3><p className="text-[9px] font-black uppercase mt-1">Domisili JP</p></div>
         </div>
 
         {/* Search Bar */}
         <div className="flex gap-4 mb-8">
            <div className="flex-1 relative">
-              <input className="input-field pl-12 h-16 border-none shadow-xl bg-white rounded-3xl font-bold" placeholder="Cari nama lowongan atau kode..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input className="input-field pl-12 h-16 border-none shadow-xl bg-white rounded-3xl font-bold" placeholder="Cari lowongan atau kode..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               <svg className="w-6 h-6 absolute left-4 top-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
            </div>
-           {filterType && (
-              <button onClick={() => {setFilterType(""); setFilterValue("");}} className="bg-rose-50 text-rose-600 px-8 rounded-3xl font-black uppercase text-[10px] tracking-widest border-2 border-rose-100 hover:bg-rose-100 transition-all">✕ Hapus Filter</button>
-           )}
+           {filterType && <button onClick={()=>{setFilterType('');setFilterValue('');}} className="bg-rose-50 text-rose-600 px-8 rounded-3xl font-black uppercase text-[10px] tracking-widest border border-rose-100">✕ Hapus Filter</button>}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -243,15 +207,82 @@ export default function PartnerJobListPage() {
                    </div>
                 </div>
               ) : (
-                <div className="h-[75vh] flex flex-col items-center justify-center text-center p-12 bg-white rounded-[3.5rem] border-2 border-dashed border-slate-100">
-                   <h3 className="text-slate-800 font-black uppercase tracking-tight text-2xl">Pilih Katalog Job</h3>
-                   <p className="text-slate-400 text-sm mt-3 max-w-xs font-bold uppercase tracking-widest leading-loose">Silahkan klik salah satu kartu di panel kiri</p>
-                </div>
+                <div className="h-[75vh] flex flex-col items-center justify-center text-center p-12 bg-white rounded-[3.5rem] border-2 border-dashed border-slate-100 text-slate-300">Pilih salah satu lowongan di panel kiri.</div>
               )}
            </div>
         </div>
       </div>
-      {/* Modal is already identical and updated in previous logic */}
+
+      {/* FULL ENTRY MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-5xl overflow-hidden max-h-[95vh] flex flex-col">
+            <div className="px-10 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">ENTRY DATA LOWONGAN MITRA</h3>
+              <button onClick={closeModal} className="text-slate-300 hover:text-slate-800 text-3xl font-light">&times;</button>
+            </div>
+            <form onSubmit={handleSubmitJob} className="overflow-y-auto p-10 custom-scrollbar space-y-10">
+               {/* SEKIS 1: DASAR */}
+               <div className="p-8 border-2 border-slate-50 rounded-[2.5rem] space-y-8">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-3">1. Klasifikasi & Prioritas</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="space-y-4">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Kategori Lowongan</label>
+                        <select className="input-field h-12 bg-slate-100 border-none font-bold rounded-xl" value={formData.kategori} onChange={(e) => setFormData({...formData, kategori: e.target.value})}>
+                          <option value="SISWA NON IJEF : NEW COMER">DOMISILI INDONESIA (Siswa Daftar Dari Indonesia)</option>
+                          <option value="SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE">DOMISILI JEPANG (Siswa Daftar Dari Jepang)</option>
+                          <option value="SISWA MATCHING JOB : ENGINEERING/GIJINKOKU">DOMISILI JEPANG (Engineering)</option>
+                        </select>
+                     </div>
+                     <div className="space-y-4">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Prioritas Skema</label>
+                        <select className="input-field h-12 bg-slate-100 border-none font-bold rounded-xl" value={formData.klasifikasiSkema} onChange={(e) => setFormData({...formData, klasifikasiSkema: e.target.value})}>
+                          <option value="Urgency">URGENCY (URGENT)</option>
+                          <option value="Standard">STANDARD (REGULAR)</option>
+                          <option value="Routine">ROUTINE (MASSAL)</option>
+                        </select>
+                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <div className="md:col-span-2 space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Judul Lowongan</label>
+                        <input className="input-field h-12 bg-slate-50 border-none font-bold uppercase rounded-xl" value={formData.namaJob} onChange={(e) => setFormData({...formData, namaJob: e.target.value})} required />
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Kode Job (Optional)</label>
+                        <input className="input-field h-12 bg-slate-50 border-none font-bold rounded-xl" value={formData.kodeJob} onChange={(e) => setFormData({...formData, kodeJob: e.target.value})} />
+                     </div>
+                  </div>
+               </div>
+
+               {/* SEKSI 2: DETAIL KERJA */}
+               <div className="p-8 border-2 border-slate-50 rounded-[2.5rem] space-y-8">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-3">2. Detail Penempatan & Kriteria</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Perusahaan</label><input className="input-field h-12 bg-slate-50 border-none font-bold rounded-xl" value={formData.perusahaan} onChange={(e) => setFormData({...formData, perusahaan: e.target.value})} /></div>
+                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sektor / Bidang</label><input className="input-field h-12 bg-slate-50 border-none font-bold rounded-xl" value={formData.bidang} onChange={(e) => setFormData({...formData, bidang: e.target.value})} /></div>
+                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Prefektur / Lokasi</label><input className="input-field h-12 bg-slate-50 border-none font-bold rounded-xl" value={formData.lokasi} onChange={(e) => setFormData({...formData, lokasi: e.target.value})} /></div>
+                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Gaji</label><input className="input-field h-12 bg-slate-50 border-none font-bold rounded-xl text-emerald-600" value={formData.gaji} onChange={(e) => setFormData({...formData, gaji: e.target.value})} /></div>
+                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Usia Max</label><input className="input-field h-12 bg-slate-50 border-none font-bold rounded-xl" value={formData.usiaMax} onChange={(e) => setFormData({...formData, usiaMax: e.target.value})} /></div>
+                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Jenis Kelamin</label>
+                        <select className="input-field h-12 bg-slate-50 border-none font-bold rounded-xl" value={formData.jenisKelamin} onChange={(e) => setFormData({...formData, jenisKelamin: e.target.value})}>
+                           <option value="Pria & Wanita">Pria & Wanita</option><option value="LAKI-LAKI">Pria Saja</option><option value="PEREMPUAN">Wanita Saja</option>
+                        </select>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="flex gap-4 justify-end pt-10 border-t border-slate-50">
+                  <button type="button" onClick={closeModal} className="px-10 py-4 font-black text-slate-300 uppercase text-[10px] tracking-widest hover:text-slate-500">Batal</button>
+                  <button type="submit" className="bg-slate-900 text-white px-16 py-4 rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-indigo-600 transition-all uppercase text-[10px] tracking-widest" disabled={saving}>
+                    {saving ? "SIMPAN..." : "SIMPAN DATA LOWONGAN"}
+                  </button>
+               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

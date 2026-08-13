@@ -19,6 +19,7 @@ function CandidatesContent() {
   const [filterBidang, setFilterBidang] = useState("");
   const [filterKategori, setFilterKategori] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterGender, setFilterGender] = useState("");
   const [filterDate, setFilterDate] = useState("");
 
   // Handle URL Parameters
@@ -94,8 +95,9 @@ function CandidatesContent() {
     const matchBidang = !filterBidang || c.bidangKerja === filterBidang;
     const matchKategori = !filterKategori || c.kategoriKandidat === filterKategori;
     const matchStatus = !filterStatus || c.statusProgres === filterStatus;
+    const matchGender = !filterGender || c.jenisKelamin === filterGender;
     const matchDate = !filterDate || (c.submittedAt && c.submittedAt.startsWith(filterDate));
-    return matchSearch && matchBidang && matchKategori && matchStatus && matchDate;
+    return matchSearch && matchBidang && matchKategori && matchStatus && matchGender && matchDate;
   });
 
   const uniqueBidang = [...new Set(candidates.map((c) => c.bidangKerja).filter(Boolean))];
@@ -401,6 +403,24 @@ function CandidatesContent() {
           </div>
         )}
 
+        {/* Dashboard Gender & Status Summary */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+           <div className="card p-4 bg-blue-600 text-white rounded-2xl shadow-lg flex justify-between items-center">
+              <div>
+                 <p className="text-[10px] font-black uppercase opacity-60">Pria (Laki-laki)</p>
+                 <h3 className="text-3xl font-black">{candidates.filter(c => c.jenisKelamin === 'LAKI-LAKI').length}</h3>
+              </div>
+              <div className="p-3 bg-white/20 rounded-xl"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 00-1 1v1.172A2.992 2.992 0 007.5 4a3 3 0 00-3 3v2a3 3 0 003 3 2.991 2.991 0 001.5.172V14a1 1 0 102 0v-1.828a2.991 2.991 0 001.5-.172A3 3 0 0015.5 9V7a3 3 0 00-3-3 2.992 2.992 0 00-1.5.172V3a1 1 0 00-1-1z" /></svg></div>
+           </div>
+           <div className="card p-4 bg-rose-500 text-white rounded-2xl shadow-lg flex justify-between items-center">
+              <div>
+                 <p className="text-[10px] font-black uppercase opacity-60">Wanita (Perempuan)</p>
+                 <h3 className="text-3xl font-black">{candidates.filter(c => c.jenisKelamin === 'PEREMPUAN').length}</h3>
+              </div>
+              <div className="p-3 bg-white/20 rounded-xl"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 00-1 1v1.172A2.992 2.992 0 007.5 4a3 3 0 00-3 3v2a3 3 0 003 3 2.991 2.991 0 001.5.172V14a1 1 0 102 0v-1.828a2.991 2.991 0 001.5-.172A3 3 0 0015.5 9V7a3 3 0 00-3-3 2.992 2.992 0 00-1.5.172V3a1 1 0 00-1-1z" /></svg></div>
+           </div>
+        </div>
+
         {/* Filters */}
         <div className="card mb-6 p-4 sm:p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -409,8 +429,12 @@ function CandidatesContent() {
               <input className="input-field text-sm" placeholder="Nama / Kode Job..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <div>
-              <label className="form-label text-xs">Tanggal Submit</label>
-              <input type="date" className="input-field text-sm" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+              <label className="form-label text-xs">Jenis Kelamin</label>
+              <select className="input-field text-sm" value={filterGender} onChange={(e) => setFilterGender(e.target.value)}>
+                <option value="">Semua</option>
+                <option value="LAKI-LAKI">Laki-laki (Pria)</option>
+                <option value="PEREMPUAN">Perempuan (Wanita)</option>
+              </select>
             </div>
             <div>
               <label className="form-label text-xs">Kategori</label>
