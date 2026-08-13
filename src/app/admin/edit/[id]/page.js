@@ -1339,6 +1339,7 @@ export default function EditCandidatePage() {
                   { key: "videoSSW", label: "Video SSW (URL)" },
                   { key: "sertifikatSSW2", label: "Sertifikat SSW 2 (URL)" },
                   { key: "videoSSW2", label: "Video SSW 2 (URL)" },
+                  { key: "videoJikoshoukai", label: "Video Jikoshoukai (URL)" },
                   { key: "cvRirekisho", label: "CV/Rirekisho (URL)" },
                   { key: "sertifikatSenmonkyuu", label: "Sertifikat Senmonkyuu (URL)" },
                   { key: "sertifikatSelesaiMagang", label: "Sertifikat Selesai Magang (URL)" },

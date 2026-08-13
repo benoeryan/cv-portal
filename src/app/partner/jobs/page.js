@@ -17,6 +17,7 @@ export default function PartnerJobListPage() {
   // Dashboard & Filter State
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBidang, setFilterBidang] = useState("");
+  const [filterKategori, setFilterKategori] = useState("");
 
   // Form State for Partner Input Job
   const [showModal, setShowModal] = useState(false);
@@ -122,8 +123,18 @@ export default function PartnerJobListPage() {
   const filteredJobs = jobs.filter(j => {
     const matchSearch = !searchTerm || j.namaJob?.toLowerCase().includes(searchTerm.toLowerCase()) || j.kodeJob?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchBidang = !filterBidang || j.bidang === filterBidang;
-    return matchSearch && matchBidang;
+    const matchKategori = !filterKategori || j.kategori === filterKategori;
+    return matchSearch && matchBidang && matchKategori;
   });
+
+  const statsByKategori = useMemo(() => {
+    const counts = {};
+    jobs.forEach(j => {
+      const k = j.kategori || "Umum";
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [jobs]);
 
   const uniqueBidang = [...new Set(jobs.map(j => j.bidang).filter(Boolean))].sort();
 
@@ -143,6 +154,27 @@ export default function PartnerJobListPage() {
           <button onClick={() => setShowModal(true)} className="btn-primary bg-purple-600 hover:bg-purple-700 shadow-purple-100 uppercase text-xs font-black tracking-widest px-8 py-4 rounded-2xl transition-all">
             + Input Lowongan Baru
           </button>
+        </div>
+
+        {/* Dashboard Kategori Job */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+           <div
+             onClick={() => setFilterKategori("")}
+             className={`cursor-pointer p-4 rounded-3xl border-2 transition-all ${!filterKategori ? "bg-slate-900 border-slate-900 text-white shadow-xl" : "bg-white border-gray-100 hover:border-slate-200"}`}
+           >
+              <p className={`text-[9px] font-black uppercase tracking-widest ${!filterKategori ? "text-slate-400" : "text-gray-400"}`}>Semua Lowongan</p>
+              <h3 className="text-2xl font-black mt-1">{jobs.length}</h3>
+           </div>
+           {statsByKategori.map(([kat, count]) => (
+             <div
+               key={kat}
+               onClick={() => setFilterKategori(prev => prev === kat ? "" : kat)}
+               className={`cursor-pointer p-4 rounded-3xl border-2 transition-all ${filterKategori === kat ? "bg-purple-600 border-purple-600 text-white shadow-xl" : "bg-white border-gray-100 hover:border-purple-100"}`}
+             >
+                <p className={`text-[9px] font-black uppercase tracking-widest line-clamp-1 ${filterKategori === kat ? "text-purple-200" : "text-purple-400"}`}>{kat}</p>
+                <h3 className="text-2xl font-black mt-1">{count}</h3>
+             </div>
+           ))}
         </div>
 
         {/* Filters */}

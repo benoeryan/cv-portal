@@ -179,6 +179,7 @@ export default function CandidateFormPage() {
     videoSSW: "",
     sertifikatSSW2: "",
     videoSSW2: "",
+    videoJikoshoukai: "",
     cvRirekisho: "",
   });
 
@@ -340,6 +341,7 @@ export default function CandidateFormPage() {
       { key: "videoJFT", label: "Video JFT" },
       { key: "sertifikatSSW", label: "Sertifikat SSW" },
       { key: "videoSSW", label: "Video SSW" },
+      { key: "videoJikoshoukai", label: "Video Jikoshoukai" },
       { key: "cvRirekisho", label: "CV/Rirekisho" },
     ];
     for (const d of requiredDocs) {
@@ -664,6 +666,13 @@ export default function CandidateFormPage() {
             <UploadField label="Video Screen Recording SSW" name="videoSSW" value={formData.videoSSW} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
             <UploadField label="Sertifikat SSW 2 (Khusus KAIGO)" name="sertifikatSSW2" value={formData.sertifikatSSW2} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
             <UploadField label="Video Screen Recording SSW 2 (Khusus KAIGO)" name="videoSSW2" value={formData.videoSSW2} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
+            <div className="md:col-span-2 p-4 bg-amber-50 rounded-xl border border-amber-100 mb-2">
+              <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Instruksi Video Jikoshoukai: Berdurasi 1 menit sampai 2 menit
+              </p>
+            </div>
+            <UploadField label="Video Jikoshoukai (Self Introduction)" name="videoJikoshoukai" value={formData.videoJikoshoukai} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
             <UploadField label="CV/Rirekisho" name="cvRirekisho" value={formData.cvRirekisho} onChange={handleChange} accept={DOC_ACCEPT} userId={user?.uid} fullWidth />
           </FormSection>
 

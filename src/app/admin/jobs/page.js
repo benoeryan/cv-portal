@@ -13,6 +13,8 @@ export default function JobManagementPage() {
   const router = useRouter();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterKategori, setFilterKategori] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
@@ -60,6 +62,23 @@ export default function JobManagementPage() {
       loadJobs();
     }
   }, [user, userData, authLoading]);
+
+  const filteredJobs = useMemo(() => {
+    return jobs.filter(j => {
+      const matchSearch = !searchTerm || j.namaJob?.toLowerCase().includes(searchTerm.toLowerCase()) || j.kodeJob?.toLowerCase().includes(searchTerm.toLowerCase()) || j.perusahaan?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchKategori = !filterKategori || j.kategori === filterKategori;
+      return matchSearch && matchKategori;
+    });
+  }, [jobs, searchTerm, filterKategori]);
+
+  const statsByKategori = useMemo(() => {
+    const counts = {};
+    jobs.forEach(j => {
+      const k = j.kategori || "Umum";
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [jobs]);
 
   const loadJobs = async () => {
     setLoading(true);
@@ -372,6 +391,37 @@ export default function JobManagementPage() {
           </div>
         </div>
 
+        {/* Dashboard Kategori Job */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+           <div
+             onClick={() => setFilterKategori("")}
+             className={`cursor-pointer p-5 rounded-[2rem] border-2 transition-all ${!filterKategori ? "bg-slate-900 border-slate-900 text-white shadow-xl" : "bg-white border-slate-100 hover:border-slate-300"}`}
+           >
+              <p className={`text-[10px] font-black uppercase tracking-widest ${!filterKategori ? "text-slate-400" : "text-slate-400"}`}>Semua Lowongan</p>
+              <h3 className="text-3xl font-black mt-1">{jobs.length}</h3>
+           </div>
+           {statsByKategori.map(([kat, count]) => (
+             <div
+               key={kat}
+               onClick={() => setFilterKategori(prev => prev === kat ? "" : kat)}
+               className={`cursor-pointer p-5 rounded-[2rem] border-2 transition-all ${filterKategori === kat ? "bg-indigo-600 border-indigo-600 text-white shadow-xl" : "bg-white border-slate-100 hover:border-indigo-100"}`}
+             >
+                <p className={`text-[10px] font-black uppercase tracking-widest line-clamp-1 ${filterKategori === kat ? "text-indigo-200" : "text-slate-400"}`}>{kat}</p>
+                <h3 className="text-3xl font-black mt-1">{count}</h3>
+             </div>
+           ))}
+        </div>
+
+        <div className="mb-6 relative">
+           <input
+             className="input-field pl-12 h-14 border-none shadow-sm bg-white rounded-2xl"
+             placeholder="Cari nama lowongan, kode, atau perusahaan..."
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+           />
+           <svg className="w-6 h-6 absolute left-4 top-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </div>
+
         <div className="card overflow-hidden !p-0 border border-gray-100 shadow-xl rounded-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left border-collapse">
@@ -387,7 +437,7 @@ export default function JobManagementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {jobs.map((j) => (
+                {filteredJobs.map((j) => (
                   <tr key={j.id} className="hover:bg-indigo-50/30 transition-colors cursor-pointer group" onClick={() => {
                     setSelectedJobDetail(j);
                     setShowDetailModal(true);

@@ -105,7 +105,16 @@ export default function PartnerCandidateSearchPage() {
     });
   }, [candidates, searchTerm, filterBidang]);
 
-  const uniqueBidang = [...new Set(candidates.map(c => c.bidangKerja).filter(Boolean))].sort();
+  const statsByBidang = useMemo(() => {
+    const counts = {};
+    candidates.forEach(c => {
+      const b = c.bidangKerja || "Umum";
+      counts[b] = (counts[b] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }, [candidates]);
+
+  const uniqueBidang = useMemo(() => [...new Set(candidates.map(c => c.bidangKerja).filter(Boolean))].sort(), [candidates]);
 
   const selectedJobDetailForRequest = useMemo(() => {
     return myJobs.find(j => j.id === requestData.jobId);
@@ -124,9 +133,27 @@ export default function PartnerCandidateSearchPage() {
             <h1 className="text-2xl font-black text-gray-800 tracking-tight uppercase">Pencarian Siswa Ready Job</h1>
             <p className="text-gray-500 text-sm">List siswa yang sudah memiliki sertifikat SSW & siap disalurkan</p>
           </div>
-          <div className="bg-purple-50 text-purple-700 px-4 py-2 rounded-xl text-xs font-black border border-purple-100 uppercase tracking-widest">
-            {candidates.length} Siswa Siap Kerja
-          </div>
+        </div>
+
+        {/* Dashboard Kategori Siswa */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+           <div
+             onClick={() => setFilterBidang("")}
+             className={`cursor-pointer p-4 rounded-3xl border-2 transition-all ${!filterBidang ? "bg-slate-900 border-slate-900 text-white shadow-xl" : "bg-white border-gray-100 hover:border-slate-200"}`}
+           >
+              <p className={`text-[9px] font-black uppercase tracking-widest ${!filterBidang ? "text-slate-400" : "text-gray-400"}`}>Semua Siswa</p>
+              <h3 className="text-2xl font-black mt-1">{candidates.length}</h3>
+           </div>
+           {statsByBidang.map(([bidang, count]) => (
+             <div
+               key={bidang}
+               onClick={() => setFilterBidang(prev => prev === bidang ? "" : bidang)}
+               className={`cursor-pointer p-4 rounded-3xl border-2 transition-all ${filterBidang === bidang ? "bg-purple-600 border-purple-600 text-white shadow-xl" : "bg-white border-gray-100 hover:border-purple-100"}`}
+             >
+                <p className={`text-[9px] font-black uppercase tracking-widest line-clamp-1 ${filterBidang === bidang ? "text-purple-200" : "text-purple-400"}`}>{bidang}</p>
+                <h3 className="text-2xl font-black mt-1">{count}</h3>
+             </div>
+           ))}
         </div>
 
         {/* Filters */}
@@ -146,44 +173,52 @@ export default function PartnerCandidateSearchPage() {
             <div
               key={c.id}
               onClick={() => handleOpenDetail(c)}
-              className="card group hover:border-purple-600 transition-all duration-300 flex flex-col h-full bg-white border-2 border-gray-50 shadow-sm hover:shadow-xl rounded-[2.5rem] p-4 cursor-pointer overflow-hidden"
+              className="card group hover:border-purple-600 transition-all duration-500 flex flex-col h-full bg-white border-2 border-gray-50 shadow-sm hover:shadow-2xl rounded-[3rem] p-3 cursor-pointer overflow-hidden relative"
             >
-              {/* LARGE FULL-WIDTH IMAGE */}
-              <div className="relative aspect-[3/4.5] rounded-[2rem] overflow-hidden mb-6 bg-slate-200 shadow-inner group-hover:scale-[1.02] transition-transform duration-500">
-                <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
-                <div className="absolute bottom-6 left-6 right-6 text-white">
-                   <span className="text-[10px] font-black text-purple-300 uppercase tracking-widest block mb-1">{c.bidangKerja || "Umum"}</span>
-                   <h3 className="font-black uppercase tracking-tight text-xl leading-tight truncate">{c.namaLengkap}</h3>
-                   <div className="flex gap-2 mt-3">
-                      {c.sertifikatSSW && <span className="bg-blue-600/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-white/20">SSW 1</span>}
-                      {c.sertifikatSSW2 && <span className="bg-indigo-600/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-white/20">SSW 2</span>}
+              <div className="absolute top-0 left-0 w-full h-2 bg-gray-100 group-hover:bg-purple-600 transition-colors z-20"></div>
+
+              {/* LARGER FULL-WIDTH IMAGE WITHOUT PADDING */}
+              <div className="relative aspect-[3/4.8] rounded-[2.5rem] overflow-hidden mb-6 bg-slate-200 shadow-inner">
+                <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
+
+                <div className="absolute top-6 right-6 flex flex-col gap-2">
+                   {c.sertifikatSSW && <span className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-xl border border-white/20">SSW 1</span>}
+                   {c.sertifikatSSW2 && <span className="bg-indigo-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-xl border border-white/20">SSW 2</span>}
+                </div>
+
+                <div className="absolute bottom-8 left-8 right-8 text-white">
+                   <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Ready for Match</span>
                    </div>
+                   <span className="text-[10px] font-black text-purple-300 uppercase tracking-[0.2em] block mb-1">{c.bidangKerja || "Umum"}</span>
+                   <h3 className="font-black uppercase tracking-tight text-2xl leading-none drop-shadow-lg">{c.namaLengkap}</h3>
+                   <p className="text-xs font-bold text-white/60 uppercase tracking-widest mt-2 italic">"{c.namaPanggilan}"</p>
                 </div>
               </div>
 
-              <div className="px-2 pb-2 space-y-4">
-                 <div className="grid grid-cols-2 gap-4 text-[10px] border-b border-slate-50 pb-4">
-                    <div>
-                       <p className="font-black text-slate-300 uppercase tracking-[0.1em] mb-0.5">Umur / Kelamin</p>
+              <div className="p-5 space-y-5">
+                 <div className="grid grid-cols-2 gap-6 text-[10px] border-b border-slate-50 pb-5">
+                    <div className="space-y-1">
+                       <p className="font-black text-slate-300 uppercase tracking-widest">Identitas</p>
                        <p className="font-bold text-slate-700 uppercase">
-                          {c.tanggalLahir ? (new Date().getFullYear() - new Date(c.tanggalLahir).getFullYear()) : "?"} Thn • {c.jenisKelamin}
+                          {c.tanggalLahir ? (new Date().getFullYear() - new Date(c.tanggalLahir).getFullYear()) : "?"} THN • {c.jenisKelamin === 'LAKI-LAKI' ? 'PRIA' : 'WANITA'}
                        </p>
                     </div>
-                    <div className="text-right">
-                       <p className="font-black text-slate-300 uppercase tracking-[0.1em] mb-0.5">Bahasa</p>
-                       <p className="font-bold text-indigo-600 uppercase">{c.levelBahasa || "-"}</p>
+                    <div className="text-right space-y-1">
+                       <p className="font-black text-slate-300 uppercase tracking-widest">Bahasa</p>
+                       <p className="font-bold text-indigo-600 uppercase text-xs">{c.levelBahasa || "-"}</p>
                     </div>
                  </div>
 
-                 <div className="bg-slate-50 p-4 rounded-2xl flex-grow">
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Jikoshoukai Singkat</p>
-                    <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-2 font-medium italic">"{c.promosiDiri || "Tidak ada deskripsi singkat."}"</p>
+                 <div className="bg-slate-50 p-5 rounded-[2rem] flex-grow shadow-inner">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Self Promotion</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-3 font-medium italic">"{c.promosiDiri || "Deskripsi singkat belum tersedia."}"</p>
                  </div>
 
-                 <div className="flex items-center justify-between pt-2">
-                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">Ready for Match</span>
-                    <span className="text-[9px] font-black text-purple-600 uppercase tracking-widest group-hover:translate-x-1 transition-transform flex items-center gap-1.5">View Detail <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg></span>
+                 <div className="flex items-center justify-center pt-2">
+                    <span className="text-[10px] font-black text-purple-600 uppercase tracking-[0.2em] group-hover:translate-x-2 transition-transform flex items-center gap-2">View Profile <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg></span>
                  </div>
               </div>
             </div>
@@ -204,10 +239,15 @@ export default function PartnerCandidateSearchPage() {
             <div className="p-10 overflow-y-auto custom-scrollbar">
                <div className="flex flex-col md:flex-row gap-10">
                   {/* Left: Identity Card */}
-                  <div className="w-full md:w-1/3 space-y-6">
-                     <div className="relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
-                        <DriveImage url={selectedStudent.pasPhoto} alt={selectedStudent.namaLengkap} size="w-full h-full" />
-                        <div className="absolute bottom-4 left-4 right-4 flex gap-2">
+                  <div className="w-full md:w-2/5 space-y-6">
+                     <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white bg-slate-100 group/photo">
+                        <DriveImage url={selectedStudent.pasPhoto} alt={selectedStudent.namaLengkap} size="w-full h-full" className="object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
+                        <div className="absolute bottom-6 left-6 right-6 flex gap-2">
+                           {selectedStudent.sertifikatSSW && <span className="bg-blue-600 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase shadow-lg tracking-widest border border-white/20">SSW 1</span>}
+                           {selectedStudent.sertifikatSSW2 && <span className="bg-indigo-600 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase shadow-lg tracking-widest border border-white/20">SSW 2</span>}
+                        </div>
+                     </div>
                            {selectedStudent.sertifikatSSW && <span className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg tracking-widest">SSW 1</span>}
                            {selectedStudent.sertifikatSSW2 && <span className="bg-indigo-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg tracking-widest">SSW 2</span>}
                         </div>
