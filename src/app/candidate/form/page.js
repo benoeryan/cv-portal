@@ -669,7 +669,7 @@ export default function CandidateFormPage() {
             <div className="md:col-span-2 p-4 bg-amber-50 rounded-xl border border-amber-100 mb-2">
               <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Instruksi Video Jikoshoukai: Berdurasi 1 menit sampai 2 menit
+                UPLOAD VIDEO JIKOSHOUKAI : BERDURASI 1 MENIT SAMPAI 2 MENIT
               </p>
             </div>
             <UploadField label="Video Jikoshoukai (Self Introduction)" name="videoJikoshoukai" value={formData.videoJikoshoukai} onChange={handleChange} accept="video/*" userId={user?.uid} fullWidth />
