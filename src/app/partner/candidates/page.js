@@ -150,7 +150,7 @@ export default function PartnerCandidateSearchPage() {
             >
               {/* LARGE FULL-WIDTH IMAGE */}
               <div className="relative aspect-[3/4.5] rounded-[2rem] overflow-hidden mb-6 bg-slate-200 shadow-inner group-hover:scale-[1.02] transition-transform duration-500">
-                <DriveImage url={c.pasPhoto} alt={c.namaLengkap} />
+                <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                    <span className="text-[10px] font-black text-purple-300 uppercase tracking-widest block mb-1">{c.bidangKerja || "Umum"}</span>
@@ -205,8 +205,8 @@ export default function PartnerCandidateSearchPage() {
                <div className="flex flex-col md:flex-row gap-10">
                   {/* Left: Identity Card */}
                   <div className="w-full md:w-1/3 space-y-6">
-                     <div className="relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
-                        <DriveImage url={selectedStudent.pasPhoto} alt={selectedStudent.namaLengkap} />
+                     <div className="relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
+                        <DriveImage url={selectedStudent.pasPhoto} alt={selectedStudent.namaLengkap} size="w-full h-full" />
                         <div className="absolute bottom-4 left-4 right-4 flex gap-2">
                            {selectedStudent.sertifikatSSW && <span className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg tracking-widest">SSW 1</span>}
                            {selectedStudent.sertifikatSSW2 && <span className="bg-indigo-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg tracking-widest">SSW 2</span>}

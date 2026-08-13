@@ -461,7 +461,7 @@ export default function AdminDashboard() {
                       <td className="py-5 px-6">
                         <div className="flex items-center gap-4">
                            <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden ring-2 ring-white shadow-sm shrink-0">
-                              <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} />
+                              <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} size="w-full h-full" className="rounded-full" />
                            </div>
                            <div className="min-w-0">
                               <h4 className="text-xs font-black text-gray-800 uppercase truncate leading-tight group-hover:text-indigo-600 transition-colors">{c.namaLengkap}</h4>
