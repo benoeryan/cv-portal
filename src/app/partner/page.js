@@ -15,11 +15,11 @@ export default function PartnerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && (!user || userData?.role !== "partner")) {
+    if (!authLoading && (!user || !["partner", "admin"].includes(userData?.role))) {
       router.push("/");
       return;
     }
-    if (user && userData?.role === "partner") {
+    if (user && ["partner", "admin"].includes(userData?.role)) {
       loadDashboardData();
     }
   }, [user, userData, authLoading]);

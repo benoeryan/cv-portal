@@ -40,6 +40,8 @@ export default function JobManagementPage() {
     usiaMax: "",
     jenisKelamin: "Pria & Wanita",
     jumlahKandidat: "",
+    kumiaiPartner: "",
+    syaratKhusus: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -218,12 +220,25 @@ export default function JobManagementPage() {
     );
   };
 
+  const generateJobCode = () => {
+    const prefix = "INTL";
+    const datePart = new Date().toISOString().slice(2, 10).replace(/-/g, ""); // YYMMDD
+    const randomPart = Math.floor(1000 + Math.random() * 9000); // 4 digits
+    return `${prefix}-${datePart}-${randomPart}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      let finalKodeJob = formData.kodeJob;
+      if (!editingJob && !finalKodeJob) {
+        finalKodeJob = generateJobCode();
+      }
+
       const dataToSave = {
         ...formData,
+        kodeJob: finalKodeJob,
         updatedAt: new Date().toISOString()
       };
 
@@ -269,6 +284,8 @@ export default function JobManagementPage() {
       usiaMax: "",
       jenisKelamin: "Pria & Wanita",
       jumlahKandidat: "",
+      kumiaiPartner: "",
+      syaratKhusus: "",
     });
   };
 
@@ -296,6 +313,8 @@ export default function JobManagementPage() {
       usiaMax: job.usiaMax || "",
       jenisKelamin: job.jenisKelamin || "Pria & Wanita",
       jumlahKandidat: job.jumlahKandidat || "",
+      kumiaiPartner: job.kumiaiPartner || "",
+      syaratKhusus: job.syaratKhusus || "",
     });
     setShowModal(true);
   };
@@ -585,166 +604,135 @@ export default function JobManagementPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden max-h-[95vh] flex flex-col">
             <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center shrink-0 bg-slate-50">
-              <div>
-                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{editingJob ? "Update Data Lowongan" : "Entry Lowongan Baru"}</h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Sistem Katalog Job Matching IJEF</p>
+              <div className="flex items-center gap-3">
+                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                 </div>
+                 <div>
+                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{editingJob ? "UPDATE DATA LOWONGAN" : "ENTRY LOWONGAN BARU"}</h3>
+                    <p className="text-[10px] text-indigo-600 font-black uppercase tracking-widest mt-0.5 italic">Sistem Katalog Job Matching IJEF</p>
+                 </div>
               </div>
-              <button onClick={closeModal} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-slate-800">&times;</button>
+              <button onClick={closeModal} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">&times;</button>
             </div>
 
             <form onSubmit={handleSubmit} className="overflow-y-auto p-8 custom-scrollbar">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-8">
 
-                {/* Basic Info Section */}
-                <div className="space-y-4">
-                   <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Informasi Dasar & Lokasi</h4>
-                   <div className="grid grid-cols-2 gap-4">
+                {/* SECTION: INFORMASI DASAR & LOKASI */}
+                <div className="p-6 border-2 border-slate-50 rounded-[2rem] space-y-6">
+                   <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Informasi Dasar & Lokasi</h4>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Kode Lowongan</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.kodeJob} onChange={(e) => setFormData({...formData, kodeJob: e.target.value})} required placeholder="Contoh: IJEF-001" />
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Kode Lowongan</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.kodeJob} onChange={(e) => setFormData({...formData, kodeJob: e.target.value})} placeholder="Auto-generated if empty" />
                       </div>
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Status Lowongan</label>
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Status Lowongan</label>
                         <select className="input-field bg-slate-50 border-none font-bold" value={formData.statusJob} onChange={(e) => setFormData({...formData, statusJob: e.target.value})}>
-                          <option value="Open">OPEN</option>
-                          <option value="Closed">CLOSED</option>
-                          <option value="Full">FULL / PENUH</option>
-                          <option value="クローズ">クローズ (CLOSED)</option>
-                        </select>
-                      </div>
-                   </div>
-                   <div>
-                      <label className="form-label text-[10px] font-black uppercase text-slate-400">Nama Lowongan / Judul Job</label>
-                      <input className="input-field bg-slate-50 border-none font-bold" value={formData.namaJob} onChange={(e) => setFormData({...formData, namaJob: e.target.value})} required placeholder="Contoh: Perawat Lansia (Kaigo)" />
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Nama Perusahaan</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.perusahaan} onChange={(e) => setFormData({...formData, perusahaan: e.target.value})} required placeholder="Nama PT / Kumiai" />
-                      </div>
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Gaji (Bulan/Tahun)</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.gaji} onChange={(e) => setFormData({...formData, gaji: e.target.value})} placeholder="Contoh: ¥180.000 / bln" />
-                      </div>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Prefektur / Lokasi</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.lokasi} onChange={(e) => setFormData({...formData, lokasi: e.target.value})} required placeholder="Contoh: Tokyo, Japan" />
-                      </div>
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Domisili Kerja</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.domisiliKerja} onChange={(e) => setFormData({...formData, domisiliKerja: e.target.value})} placeholder="Contoh: Kawasan Industri Chiba" />
-                      </div>
-                   </div>
-                </div>
-
-                {/* Classification & Details Section */}
-                <div className="space-y-4">
-                   <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Klasifikasi & Dokumen</h4>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Sektor / Bidang</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.bidang} onChange={(e) => setFormData({...formData, bidang: e.target.value})} placeholder="KAIGO, PM, dll" />
-                      </div>
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Klasifikasi Kandidat</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.klasifikasiKandidat} onChange={(e) => setFormData({...formData, klasifikasiKandidat: e.target.value})} placeholder="Ex-Magang, New Comer, dll" />
-                      </div>
-                   </div>
-                   <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Usia Max</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.usiaMax} onChange={(e) => setFormData({...formData, usiaMax: e.target.value})} placeholder="Contoh: 35 Thn" />
-                      </div>
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Gender</label>
-                        <select className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.jenisKelamin} onChange={(e) => setFormData({...formData, jenisKelamin: e.target.value})}>
-                          <option value="Pria & Wanita">Pria & Wanita</option>
-                          <option value="Pria Saja">Pria Saja</option>
-                          <option value="Wanita Saja">Wanita Saja</option>
+                          <option value="Open">Aktif (OPEN)</option>
+                          <option value="Closed">Tutup (CLOSED)</option>
                         </select>
                       </div>
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Kuota</label>
-                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.jumlahKandidat} onChange={(e) => setFormData({...formData, jumlahKandidat: e.target.value})} placeholder="Jml Orang" />
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Prefektur / Lokasi</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.lokasi} onChange={(e) => setFormData({...formData, lokasi: e.target.value})} required placeholder="Tokyo, Osaka, dll" />
                       </div>
-                   </div>
-                   <div>
-                      <label className="form-label text-[10px] font-black uppercase text-slate-400">Upload File Pendukung (PDF/IMG/DOC)</label>
-                      <div className="flex gap-2">
-                         <button
-                            type="button"
-                            onClick={() => fileInputRef.current.click()}
-                            className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700 disabled:opacity-50 flex items-center gap-2"
-                            disabled={uploading}
-                         >
-                            {uploading ? "Uploading..." : "Pilih File"}
-                         </button>
-                         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
-                         {formData.fileUrl && (
-                           <div className="flex-grow flex items-center justify-between bg-emerald-50 px-3 rounded-xl border border-emerald-100 overflow-hidden">
-                              <span className="text-[10px] font-bold text-emerald-600 truncate max-w-[150px]">File Terlampir ✓</span>
-                              <a href={formData.fileUrl} target="_blank" className="text-[10px] font-black text-emerald-700 underline">LIHAT</a>
-                           </div>
-                         )}
-                      </div>
-                      {uploading && (
-                        <div className="w-full bg-slate-100 h-1 mt-2 rounded-full overflow-hidden">
-                           <div className="h-full bg-indigo-500 transition-all" style={{ width: `${uploadProgress}%` }}></div>
-                        </div>
-                      )}
-                   </div>
-                   <div>
-                      <label className="form-label text-[10px] font-black uppercase text-slate-400">Fasilitas / Benefit</label>
-                      <textarea className="input-field bg-slate-50 border-none font-bold text-xs" rows="3" value={formData.benefit} onChange={(e) => setFormData({...formData, benefit: e.target.value})} placeholder="Asrama, Transportasi, Lembur, dll" />
-                   </div>
-                </div>
-
-                <div className="md:col-span-2 space-y-4 pt-4 border-t border-slate-50">
-                   <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Informasi Biaya & Sumber</h4>
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Biaya Job</label>
-                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.biayaJob} onChange={(e) => setFormData({...formData, biayaJob: e.target.value})} placeholder="Contoh: Rp 5.000.000" />
+                      <div className="md:col-span-3">
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Nama Lowongan / Judul Job</label>
+                        <input className="input-field bg-slate-50 border-none font-bold uppercase" value={formData.namaJob} onChange={(e) => setFormData({...formData, namaJob: e.target.value})} required placeholder="Contoh: KAIGO / PETERNAKAN SAPI" />
                       </div>
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Skema Pembayaran</label>
-                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.skemaPembayaran} onChange={(e) => setFormData({...formData, skemaPembayaran: e.target.value})} placeholder="Potong Gaji / Cash" />
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Nama Perusahaan</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.perusahaan} onChange={(e) => setFormData({...formData, perusahaan: e.target.value})} placeholder="Kaisha Japan Co., Ltd" />
                       </div>
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Benefit Biaya</label>
-                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.benefitBiaya} onChange={(e) => setFormData({...formData, benefitBiaya: e.target.value})} placeholder="Free Tiket, dll" />
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Gaji (Bulan/Tahun)</label>
+                        <input className="input-field bg-slate-50 border-none font-bold text-rose-600" value={formData.gaji} onChange={(e) => setFormData({...formData, gaji: e.target.value})} placeholder="210.000円/bulan" />
                       </div>
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Sumber Job</label>
-                        <input className="input-field bg-slate-50 border-none font-bold text-xs" value={formData.sumberJob} onChange={(e) => setFormData({...formData, sumberJob: e.target.value})} placeholder="Nama Agen / TSK" />
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Kumiai / TSK Partner Rujukan</label>
+                        <input className="input-field bg-slate-50 border-none font-bold" value={formData.kumiaiPartner} onChange={(e) => setFormData({...formData, kumiaiPartner: e.target.value})} placeholder="Hibiki / Enlink / dll" />
                       </div>
                    </div>
                 </div>
 
-                {/* Descriptions Section */}
-                <div className="md:col-span-2 space-y-4 pt-4 border-t border-slate-50">
+                {/* SECTION: KLASIFIKASI & PERSYARATAN */}
+                <div className="p-6 border-2 border-slate-50 rounded-[2rem] space-y-6">
+                   <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                      <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Klasifikasi & Persyaratan Kandidat</h4>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div>
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Klasifikasi Target Kandidat</label>
+                        <select className="input-field bg-slate-50 border-none font-bold" value={formData.kategori} onChange={(e) => setFormData({...formData, kategori: e.target.value})}>
+                          <option value="NEW COMER">SISWA NON IJEF (New Comer)</option>
+                          <option value="EX-MAGANG">SISWA MATCHING JOB (Ex-Magang)</option>
+                          <option value="ENGINEERING">SISWA MATCHING JOB (Engineering)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Gender / Jenis Kelamin</label>
+                        <select className="input-field bg-slate-50 border-none font-bold" value={formData.jenisKelamin} onChange={(e) => setFormData({...formData, jenisKelamin: e.target.value})}>
+                          <option value="Pria & Wanita">Pria & Wanita (男女)</option>
+                          <option value="Pria Saja">Pria Saja (男)</option>
+                          <option value="Wanita Saja">Wanita Saja (女)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Kuota / Jumlah Kebutuhan</label>
+                        <input className="input-field bg-slate-50 border-none font-bold text-emerald-600" value={formData.jumlahKandidat} onChange={(e) => setFormData({...formData, jumlahKandidat: e.target.value})} placeholder="5" />
+                      </div>
+                      <div className="md:col-span-3">
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Kualifikasi & Syarat Khusus (JLPT, SSW, USIA, PENGALAMAN)</label>
+                        <textarea className="input-field bg-slate-50 border-none font-medium text-xs p-4" rows="3" value={formData.syaratKhusus} onChange={(e) => setFormData({...formData, syaratKhusus: e.target.value})} placeholder="Contoh: JLPT N4 / JFT-Basic A2 + SSW" />
+                      </div>
+                   </div>
+                </div>
+
+                {/* SECTION: BIAYA & FASILITAS */}
+                <div className="p-6 border-2 border-slate-50 rounded-[2rem] space-y-6">
+                   <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                      <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Informasi Biaya & Fasilitas</h4>
+                   </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Deskripsi Pekerjaan</label>
-                        <textarea className="input-field bg-slate-50 border-none font-bold text-xs" rows="4" value={formData.deskripsiPekerjaan} onChange={(e) => setFormData({...formData, deskripsiPekerjaan: e.target.value})} placeholder="Uraian tugas harian di tempat kerja..." />
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Biaya Job / Proses & Tanggungan</label>
+                        <textarea className="input-field bg-slate-50 border-none font-medium text-xs p-4" rows="2" value={formData.biayaJob} onChange={(e) => setFormData({...formData, biayaJob: e.target.value})} placeholder="Sesuai ketentuan..." />
                       </div>
                       <div>
-                        <label className="form-label text-[10px] font-black uppercase text-slate-400">Keterangan Tambahan / Syarat Khusus</label>
-                        <textarea className="input-field bg-slate-50 border-none font-bold text-xs" rows="4" value={formData.keterangan} onChange={(e) => setFormData({...formData, keterangan: e.target.value})} placeholder="Tinggi badan min. 165cm, Tidak buta warna, dll" />
+                        <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Fasilitas Asrama & Benefit</label>
+                        <textarea className="input-field bg-slate-50 border-none font-medium text-xs p-4" rows="2" value={formData.benefit} onChange={(e) => setFormData({...formData, benefit: e.target.value})} placeholder="Asrama fully furnished, dll" />
                       </div>
+                   </div>
+                </div>
+
+                {/* SECTION: DESKRIPSI DETAIL */}
+                <div className="p-6 border-2 border-slate-50 rounded-[2rem] space-y-6">
+                   <div>
+                      <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Deskripsi Pekerjaan & Tugas Harian</label>
+                      <textarea className="input-field bg-slate-50 border-none font-medium text-xs p-4" rows="4" value={formData.deskripsiPekerjaan} onChange={(e) => setFormData({...formData, deskripsiPekerjaan: e.target.value})} placeholder="Berdosisili di Jepang / Indonesia..." />
+                   </div>
+                   <div>
+                      <label className="form-label text-[9px] font-black uppercase text-slate-400 tracking-wider mb-1.5 block">Keterangan Tambahan / Syarat Khusus</label>
+                      <textarea className="input-field bg-slate-50 border-none font-medium text-xs p-4" rows="3" value={formData.keterangan} onChange={(e) => setFormData({...formData, keterangan: e.target.value})} placeholder="Catatan khusus lainnya..." />
                    </div>
                 </div>
 
               </div>
 
-              <div className="flex gap-3 justify-end pt-8 pb-4">
-                <button type="button" onClick={closeModal} className="px-6 py-2.5 rounded-xl font-bold text-slate-400 hover:bg-slate-50 transition-all uppercase text-xs tracking-widest">Batal</button>
-                <button type="submit" className="bg-slate-900 text-white px-10 py-2.5 rounded-xl font-black shadow-xl shadow-slate-200 hover:bg-indigo-600 transition-all uppercase text-xs tracking-widest" disabled={submitting || uploading}>
-                  {submitting ? "Processing..." : "Simpan Data Lowongan"}
+              <div className="flex gap-4 justify-end pt-10 pb-4">
+                <button type="button" onClick={closeModal} className="px-8 py-3 border-2 border-slate-100 rounded-2xl font-black text-slate-400 uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all">BATAL</button>
+                <button type="submit" className="bg-slate-900 text-white px-12 py-3 rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-indigo-600 transition-all uppercase text-[10px] tracking-widest flex items-center gap-2" disabled={submitting || uploading}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                  {submitting ? "SIMPAN..." : "SIMPAN DATA LOWONGAN"}
                 </button>
               </div>
             </form>
