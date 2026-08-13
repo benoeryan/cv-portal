@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 
+// Trigger re-deploy v3.1
 export default function HomePage() {
   const { user, userData, loading } = useAuth();
   const router = useRouter();
