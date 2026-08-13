@@ -40,28 +40,34 @@ export default function PartnerCandidateSearchPage() {
     try {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(c => {
+      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Filter for students with SSW and available status
+      const filtered = data.filter(c => {
           const hasSSW = (c.sertifikatSSW && String(c.sertifikatSSW).includes("http")) ||
                          (c.sertifikatSSW2 && String(c.sertifikatSSW2).includes("http"));
           const isAvailable = !c.statusProgres || c.statusProgres === "Pending Nunggu Job";
           return hasSSW && isAvailable;
-        });
-      setCandidates(data);
+      });
+      setCandidates(filtered);
     } catch (err) { console.error(err); }
     setLoading(false);
   };
 
   const loadMyJobs = async () => {
     try {
-      // Fixed: Load all available jobs if admin, or partner's own jobs
-      let q;
-      if (userData?.role === "admin") q = query(collection(db, "jobs"), where("statusJob", "==", "Open"));
-      else q = query(collection(db, "jobs"), where("createdBy", "==", user.uid));
-
+      // Sync with all jobs that are OPEN, or created by the user
+      const q = query(collection(db, "jobs"));
       const snap = await getDocs(q);
-      setMyJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const allJobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const availableJobs = allJobs.filter(j => {
+        const isOpen = j.statusJob?.toUpperCase() === "OPEN";
+        const isMine = j.createdBy === user.uid;
+        return isOpen || isMine;
+      });
+
+      setMyJobs(availableJobs);
     } catch (err) { console.error(err); }
   };
 
@@ -70,12 +76,14 @@ export default function PartnerCandidateSearchPage() {
     candidates.forEach(c => {
       const b = c.bidangKerja || "Umum"; s.bidang[b] = (s.bidang[b] || 0) + 1;
       const d = c.domisiliSiswa === "JEPANG" ? "JEPANG" : "INDO"; s.domisili[d] = (s.domisili[d] || 0) + 1;
-      const g = c.jenisKelamin?.toUpperCase();
-      if (g === "LAKI-LAKI" || g === "PRIA") s.gender["LAKI-LAKI"]++;
-      else if (g === "PEREMPUAN" || g === "WANITA") s.gender["PEREMPUAN"]++;
+
+      // Fixed Case-Insensitive Gender Logic
+      const g = String(c.jenisKelamin || "").toUpperCase();
+      if (g.includes("LAKI") || g.includes("PRIA")) s.gender["LAKI-LAKI"]++;
+      else if (g.includes("PEREMPUAN") || g.includes("WANITA")) s.gender["PEREMPUAN"]++;
     });
     return {
-      bidang: Object.entries(s.bidang).sort((a,b) => b[1]-a[1]).slice(0, 7),
+      bidang: Object.entries(s.bidang).sort((a,b) => b[1]-a[1]).slice(0, 8),
       domisili: Object.entries(s.domisili),
       gender: Object.entries(s.gender)
     };
@@ -86,11 +94,11 @@ export default function PartnerCandidateSearchPage() {
       const matchSearch = !searchTerm || c.namaLengkap?.toLowerCase().includes(searchTerm.toLowerCase());
       let matchDash = true;
       if (filterType === "bidang") matchDash = c.bidangKerja === filterValue;
-      if (filterType === "domisili") matchDash = (c.domisiliSiswa || "INDO") === filterValue;
+      if (filterType === "domisili") matchDash = (c.domisiliSiswa === "JEPANG" ? "JEPANG" : "INDO") === filterValue;
       if (filterType === "gender") {
-        const g = c.jenisKelamin?.toUpperCase();
-        if (filterValue === "LAKI-LAKI") matchDash = (g === "LAKI-LAKI" || g === "PRIA");
-        else matchDash = (g === "PEREMPUAN" || g === "WANITA");
+        const g = String(c.jenisKelamin || "").toUpperCase();
+        if (filterValue === "LAKI-LAKI") matchDash = g.includes("LAKI") || g.includes("PRIA");
+        else matchDash = g.includes("PEREMPUAN") || g.includes("WANITA");
       }
       return matchSearch && matchDash;
     });
@@ -103,7 +111,7 @@ export default function PartnerCandidateSearchPage() {
 
   const handleSubmitRequest = async (e) => {
     e.preventDefault();
-    if (!requestData.jobId) { alert("Silakan pilih lowongan Anda terlebih dahulu!"); return; }
+    if (!requestData.jobId) { alert("Pilih job terlebih dahulu!"); return; }
     setSubmitting(true);
     try {
       const selectedJob = myJobs.find(j => j.id === requestData.jobId);
@@ -113,7 +121,7 @@ export default function PartnerCandidateSearchPage() {
         jobId: selectedJob.id, jobTitle: selectedJob.namaJob,
         notes: requestData.notes, status: "Pending", createdAt: new Date().toISOString(),
       });
-      alert("Request matching berhasil diajukan!"); setShowRequestModal(false); setShowDetailModal(false);
+      alert("Request matching diajukan!"); setShowRequestModal(false); setShowDetailModal(false);
     } catch (err) { alert(err.message); }
     setSubmitting(false);
   };
@@ -131,19 +139,19 @@ export default function PartnerCandidateSearchPage() {
 
         {/* TOP DASHBOARD: GENDER & DOMISILI */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-7xl mx-auto">
-           <div onClick={() => {setFilterType("gender"); setFilterValue("LAKI-LAKI");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'gender' && filterValue === 'LAKI-LAKI' ? 'bg-blue-600 border-blue-200 text-white shadow-2xl scale-105' : 'bg-white border-white shadow-sm hover:border-blue-100'}`}>
+           <div onClick={() => {setFilterType("gender"); setFilterValue("LAKI-LAKI");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'gender' && filterValue === 'LAKI-LAKI' ? 'bg-blue-600 border-blue-200 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-blue-100'}`}>
               <h3 className="text-5xl font-black">{stats.gender.find(g => g[0]==='LAKI-LAKI')?.[1] || 0}</h3>
               <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Siswa Laki-laki</p>
            </div>
-           <div onClick={() => {setFilterType("gender"); setFilterValue("PEREMPUAN");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'gender' && filterValue === 'PEREMPUAN' ? 'bg-rose-500 border-rose-200 text-white shadow-2xl scale-105' : 'bg-white border-white shadow-sm hover:border-rose-100'}`}>
+           <div onClick={() => {setFilterType("gender"); setFilterValue("PEREMPUAN");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'gender' && filterValue === 'PEREMPUAN' ? 'bg-rose-500 border-rose-200 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-rose-100'}`}>
               <h3 className="text-5xl font-black">{stats.gender.find(g => g[0]==='PEREMPUAN')?.[1] || 0}</h3>
               <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Siswa Perempuan</p>
            </div>
-           <div onClick={() => {setFilterType("domisili"); setFilterValue("INDO");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisili' && filterValue === 'INDO' ? 'bg-indigo-600 border-indigo-200 text-white shadow-2xl scale-105' : 'bg-white border-white shadow-sm hover:border-indigo-100'}`}>
+           <div onClick={() => {setFilterType("domisili"); setFilterValue("INDO");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisili' && filterValue === 'INDO' ? 'bg-indigo-600 border-indigo-200 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-indigo-100'}`}>
               <h3 className="text-5xl font-black">{stats.domisili.find(d => d[0]==='INDO')?.[1] || 0}</h3>
               <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Daftar dari Indo</p>
            </div>
-           <div onClick={() => {setFilterType("domisili"); setFilterValue("JEPANG");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisili' && filterValue === 'JEPANG' ? 'bg-slate-900 border-slate-700 text-white shadow-2xl scale-105' : 'bg-white border-white shadow-sm hover:border-slate-800'}`}>
+           <div onClick={() => {setFilterType("domisili"); setFilterValue("JEPANG");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisili' && filterValue === 'JEPANG' ? 'bg-slate-900 border-slate-700 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-slate-800'}`}>
               <h3 className="text-5xl font-black">{stats.domisili.find(d => d[0]==='JEPANG')?.[1] || 0}</h3>
               <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Daftar dari Jepang</p>
            </div>
@@ -172,25 +180,25 @@ export default function PartnerCandidateSearchPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10">
           {filteredCandidates.map((c) => (
             <div key={c.id} onClick={() => handleOpenDetail(c)} className="group bg-white rounded-[4rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 cursor-pointer flex flex-col h-full border-[6px] border-white hover:border-purple-100 relative active:scale-95">
-               <div className="relative aspect-[3/4.5] overflow-hidden bg-slate-200">
-                  {/* FIXED: Foto Zoom Out dengan object-cover object-top agar wajah tetap proporsional dan tidak terpotong lebar */}
-                  <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-110 transition-transform duration-1000 object-cover object-top" />
+               <div className="relative aspect-[4/5] overflow-hidden bg-slate-200">
+                  {/* FIXED: Foto Zoom Out dengan object-cover object-top agar wajah tetap proporsional */}
+                  <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
 
-                  <div className="absolute bottom-10 left-10 right-10 text-white">
-                     <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
+                  <div className="absolute bottom-8 left-8 right-8 text-white">
+                     <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
                      <h3 className="text-xl font-black uppercase leading-tight tracking-tighter drop-shadow-2xl">{c.namaLengkap}</h3>
-                     <div className="mt-4 flex items-center gap-4 text-[10px] font-bold uppercase opacity-60">
+                     <div className="mt-4 flex items-center gap-4 text-[9px] font-bold uppercase opacity-60">
                         <span>{c.domisiliSiswa === 'JEPANG' ? '🇯🇵 JEPANG' : '🇮🇩 INDO'}</span>
                         <span className="w-1 h-1 rounded-full bg-white/30"></span>
                         <span>{c.tanggalLahir ? (new Date().getFullYear() - new Date(c.tanggalLahir).getFullYear()) : "?"} THN</span>
                      </div>
                   </div>
                </div>
-               <div className="p-10 space-y-6">
+               <div className="p-8 space-y-6">
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center flex items-center justify-center gap-2">
-                     <span className={`w-2 h-2 rounded-full ${c.jenisKelamin==='LAKI-LAKI'?'bg-blue-500':'bg-rose-500'}`}></span>
-                     <p className="text-[10px] font-black text-slate-600 uppercase">{c.jenisKelamin==='LAKI-LAKI'?'Pria':'Wanita'}</p>
+                     <span className={`w-2 h-2 rounded-full ${String(c.jenisKelamin).toUpperCase().includes("LAKI") ? 'bg-blue-500' : 'bg-rose-500'}`}></span>
+                     <p className="text-[10px] font-black text-slate-600 uppercase">{String(c.jenisKelamin).toUpperCase().includes("LAKI") ? 'Pria' : 'Wanita'}</p>
                   </div>
                   <div className="flex items-center justify-center gap-2 text-purple-600 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-3 transition-transform">
                      LIHAT PROFIL <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
@@ -205,7 +213,7 @@ export default function PartnerCandidateSearchPage() {
       {showDetailModal && selectedStudent && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-slate-900/95 backdrop-blur-xl animate-fadeIn font-sans">
            <div className="bg-white rounded-[4rem] shadow-2xl w-full max-w-6xl overflow-hidden max-h-[95vh] flex flex-col md:flex-row">
-              <div className="w-full md:w-2/5 relative bg-slate-100 overflow-hidden">
+              <div className="w-full md:w-2/5 relative bg-slate-100 overflow-hidden shrink-0">
                  <DriveImage url={selectedStudent.pasPhoto} alt={selectedStudent.namaLengkap} size="w-full h-full" className="object-cover object-top" />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
                  <div className="absolute bottom-12 left-12 right-12 text-white">
@@ -237,11 +245,6 @@ export default function PartnerCandidateSearchPage() {
                  <div className="grid grid-cols-2 gap-8">
                     <div className="space-y-4"><h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Kelebihan</h4><p className="text-xs text-slate-600 bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 font-medium italic">{selectedStudent.kelebihan || "---"}</p></div>
                     <div className="space-y-4"><h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Kekurangan</h4><p className="text-xs text-slate-600 bg-rose-50/50 p-6 rounded-3xl border border-rose-100 font-medium italic">{selectedStudent.kekurangan || "---"}</p></div>
-                 </div>
-
-                 <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-4"><div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>Jikoshoukai Singkat</h4>
-                    <p className="text-lg text-slate-600 leading-relaxed font-medium italic bg-purple-50/30 p-10 rounded-[3rem] border border-purple-100 shadow-inner">"{selectedStudent.promosiDiri || "---"}"</p>
                  </div>
 
                  <div className="p-8 bg-slate-900 rounded-[3rem] text-white flex justify-between items-center relative overflow-hidden">
