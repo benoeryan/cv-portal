@@ -3,8 +3,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { db, storage } from "@/lib/firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { collection, getDocs, addDoc, query, orderBy, where } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 
 export default function PartnerJobListPage() {
@@ -16,7 +15,7 @@ export default function PartnerJobListPage() {
 
   // Filters State
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState(""); // "namaJob", "perusahaan", "bidang", "domisili"
+  const [filterType, setFilterType] = useState("");
   const [filterValue, setFilterValue] = useState("");
 
   const [showModal, setShowModal] = useState(false);
@@ -139,9 +138,9 @@ export default function PartnerJobListPage() {
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Trending Lowongan</p>
               <div className="space-y-2.5">
                  {dashboardStats.namaJob.map(([n, count]) => (
-                   <div key={n} onClick={() => {setFilterType("namaJob"); setFilterValue(n);}} className="flex justify-between items-center group cursor-pointer">
-                      <span className="text-[10px] font-bold text-slate-600 group-hover:text-purple-600 truncate">{n}</span>
-                      <span className="bg-purple-50 text-purple-600 px-2 py-0.5 rounded-lg text-[9px] font-black">{count}</span>
+                   <div key={n} onClick={() => {setFilterType("namaJob"); setFilterValue(n);}} className={`flex justify-between items-center group cursor-pointer p-1.5 rounded-lg transition-all ${filterValue === n ? 'bg-purple-600 text-white' : 'hover:bg-purple-50'}`}>
+                      <span className={`text-[10px] font-bold truncate ${filterValue === n ? 'text-white' : 'text-slate-600'}`}>{n}</span>
+                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black ${filterValue === n ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-600'}`}>{count}</span>
                    </div>
                  ))}
               </div>
@@ -151,9 +150,9 @@ export default function PartnerJobListPage() {
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Top Sektor</p>
               <div className="space-y-2.5">
                  {dashboardStats.sektor.map(([s, count]) => (
-                   <div key={s} onClick={() => {setFilterType("bidang"); setFilterValue(s);}} className="flex justify-between items-center group cursor-pointer">
-                      <span className="text-[10px] font-bold text-slate-600 group-hover:text-purple-600 truncate">{s}</span>
-                      <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-lg text-[9px] font-black">{count}</span>
+                   <div key={s} onClick={() => {setFilterType("bidang"); setFilterValue(s);}} className={`flex justify-between items-center group cursor-pointer p-1.5 rounded-lg transition-all ${filterValue === s ? 'bg-blue-600 text-white' : 'hover:bg-blue-50'}`}>
+                      <span className={`text-[10px] font-bold truncate ${filterValue === s ? 'text-white' : 'text-slate-600'}`}>{s}</span>
+                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black ${filterValue === s ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'}`}>{count}</span>
                    </div>
                  ))}
               </div>
@@ -163,9 +162,9 @@ export default function PartnerJobListPage() {
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Top Perusahaan</p>
               <div className="space-y-2.5">
                  {dashboardStats.perusahaan.map(([p, count]) => (
-                   <div key={p} onClick={() => {setFilterType("perusahaan"); setFilterValue(p);}} className="flex justify-between items-center group cursor-pointer">
-                      <span className="text-[10px] font-bold text-slate-600 group-hover:text-purple-600 truncate">{p}</span>
-                      <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg text-[9px] font-black">{count}</span>
+                   <div key={p} onClick={() => {setFilterType("perusahaan"); setFilterValue(p);}} className={`flex justify-between items-center group cursor-pointer p-1.5 rounded-lg transition-all ${filterValue === p ? 'bg-slate-800 text-white' : 'hover:bg-slate-100'}`}>
+                      <span className={`text-[10px] font-bold truncate ${filterValue === p ? 'text-white' : 'text-slate-600'}`}>{p}</span>
+                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black ${filterValue === p ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>{count}</span>
                    </div>
                  ))}
               </div>
@@ -188,7 +187,7 @@ export default function PartnerJobListPage() {
            </div>
         </div>
 
-        {/* Search & List Section */}
+        {/* Search Bar */}
         <div className="flex gap-4 mb-8">
            <div className="flex-1 relative">
               <input className="input-field pl-12 h-16 border-none shadow-xl bg-white rounded-3xl font-bold" placeholder="Cari nama lowongan atau kode..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
@@ -252,7 +251,7 @@ export default function PartnerJobListPage() {
            </div>
         </div>
       </div>
-
+      {/* Modal is already identical and updated in previous logic */}
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

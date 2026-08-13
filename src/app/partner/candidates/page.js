@@ -234,32 +234,101 @@ export default function PartnerCandidateSearchPage() {
               </div>
 
               <div className="flex-1 p-14 overflow-y-auto custom-scrollbar space-y-12 bg-white">
-                 <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 flex flex-col items-center justify-center space-y-1">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Usia Sekarang</p>
-                       <p className="text-3xl font-black text-slate-800">{selectedStudent.tanggalLahir ? (new Date().getFullYear() - new Date(selectedStudent.tanggalLahir).getFullYear()) : "?"} Thn</p>
-                    </div>
-                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 flex flex-col items-center justify-center space-y-1">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jenis Kelamin</p>
-                       <p className="text-2xl font-black text-slate-800 uppercase tracking-tighter">{selectedStudent.jenisKelamin}</p>
-                    </div>
-                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 flex flex-col items-center justify-center space-y-1">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sertifikasi Bahasa</p>
-                       <p className="text-3xl font-black text-indigo-600 uppercase">{selectedStudent.levelBahasa || "-"}</p>
-                    </div>
-                 </div>
-
-                 <div className="space-y-6">
-                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-[0.2em] flex items-center gap-4"><div className="w-1.5 h-6 bg-purple-600 rounded-full"></div>Promosi Diri (Self-PR)</h4>
-                    <div className="relative">
-                       <p className="text-xl text-slate-600 leading-relaxed font-medium italic bg-purple-50/30 p-12 rounded-[3.5rem] border border-purple-100 shadow-inner">
-                         "{selectedStudent.promosiDiri || "Tidak ada promosi diri khusus."}"
+                 {/* identity Grid */}
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Usia Sekarang</p>
+                       <p className="text-2xl font-black text-slate-800">
+                         {selectedStudent.tanggalLahir ? (new Date().getFullYear() - new Date(selectedStudent.tanggalLahir).getFullYear()) : "---"} THN
                        </p>
-                       <svg className="w-20 h-20 absolute -bottom-6 -right-6 text-purple-100 opacity-50" fill="currentColor" viewBox="0 0 20 20"><path d="M14.017 21L14.017 18C14.017 16.8954 13.1216 16 12.017 16L9.017 16V10L14.017 10L14.017 21ZM4.017 21L4.017 18C4.017 16.8954 3.12157 16 2.017 16L0.017 16V10L5.017 10L5.017 21H4.017Z" /></svg>
+                    </div>
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Jenis Kelamin</p>
+                       <p className="text-xl font-black text-slate-800 uppercase">{selectedStudent.jenisKelamin}</p>
+                    </div>
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Agama</p>
+                       <p className="text-xl font-black text-slate-800 uppercase">{selectedStudent.agama || "-"}</p>
+                    </div>
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Nikah</p>
+                       <p className="text-sm font-black text-slate-800 uppercase">{selectedStudent.statusPernikahan || "-"}</p>
+                    </div>
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Bidang SSW</p>
+                       <p className="text-sm font-black text-purple-600 uppercase">{selectedStudent.bidangKerja || "-"}</p>
+                    </div>
+                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Bahasa</p>
+                       <p className="text-sm font-black text-indigo-600 uppercase">{selectedStudent.levelBahasa || "-"}</p>
                     </div>
                  </div>
 
-                 <div className="flex gap-6 pt-10">
+                 {/* Fisik Section */}
+                 <div className="p-8 bg-indigo-50/30 rounded-[2.5rem] border border-indigo-50 flex justify-around items-center">
+                    <div className="text-center">
+                       <p className="text-[10px] font-black text-indigo-400 uppercase mb-1">Tinggi Badan</p>
+                       <p className="text-2xl font-black text-slate-700">{selectedStudent.tinggiBadan} <span className="text-xs">CM</span></p>
+                    </div>
+                    <div className="w-px h-10 bg-indigo-100"></div>
+                    <div className="text-center">
+                       <p className="text-[10px] font-black text-indigo-400 uppercase mb-1">Berat Badan</p>
+                       <p className="text-2xl font-black text-slate-700">{selectedStudent.beratBadan} <span className="text-xs">KG</span></p>
+                    </div>
+                    <div className="w-px h-10 bg-indigo-100"></div>
+                    <div className="text-center">
+                       <p className="text-[10px] font-black text-indigo-400 uppercase mb-1">Domisili</p>
+                       <p className="text-sm font-black text-slate-700 uppercase">{selectedStudent.domisiliSiswa || "INDO"}</p>
+                    </div>
+                 </div>
+
+                 {/* S & W Section */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500"></span> KELEBIHAN (STRENGTHS)
+                       </h4>
+                       <p className="text-xs text-slate-600 leading-relaxed bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 font-medium italic">
+                          {selectedStudent.kelebihan || "---"}
+                       </p>
+                    </div>
+                    <div className="space-y-4">
+                       <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-rose-500"></span> KEKURANGAN (WEAKNESSES)
+                       </h4>
+                       <p className="text-xs text-slate-600 leading-relaxed bg-rose-50/50 p-6 rounded-3xl border border-rose-100 font-medium italic">
+                          {selectedStudent.kekurangan || "---"}
+                       </p>
+                    </div>
+                 </div>
+
+                 {/* Jikoshoukai Section */}
+                 <div className="space-y-6">
+                    <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-4"><div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>Promosi Diri (Jikoshoukai)</h4>
+                    <div className="relative">
+                       <p className="text-lg text-slate-600 leading-relaxed font-medium italic bg-purple-50/30 p-12 rounded-[3.5rem] border border-purple-100 shadow-inner">
+                         "{selectedStudent.promosiDiri || "Siswa siap memberikan performa terbaik dan belajar dengan giat di Jepang."}"
+                       </p>
+                       <svg className="w-16 h-16 absolute -bottom-4 -right-4 text-purple-100 opacity-50" fill="currentColor" viewBox="0 0 20 20"><path d="M14.017 21L14.017 18C14.017 16.8954 13.1216 16 12.017 16L9.017 16V10L14.017 10L14.017 21ZM4.017 21L4.017 18C4.017 16.8954 3.12157 16 2.017 16L0.017 16V10L5.017 10L5.017 21H4.017Z" /></svg>
+                    </div>
+                 </div>
+
+                 {/* Progress Status */}
+                 <div className="p-8 bg-slate-900 rounded-[3rem] text-white flex justify-between items-center overflow-hidden relative">
+                    <div className="relative z-10">
+                       <p className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-2">Status Rekrutmen Saat Ini</p>
+                       <h4 className="text-2xl font-black uppercase tracking-tighter">{selectedStudent.statusProgres || "Pending Nunggu Job"}</h4>
+                    </div>
+                    <div className="text-right relative z-10">
+                       <p className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-2">Matching Progress</p>
+                       <span className="bg-indigo-500 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-indigo-900/50">Ready Match</span>
+                    </div>
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.05] pointer-events-none">
+                       <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" /></svg>
+                    </div>
+                 </div>
+
+                 <div className="flex gap-6 pt-6">
                     <button onClick={() => setShowRequestModal(true)} className="flex-1 py-8 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-black rounded-[2.5rem] shadow-2xl shadow-purple-200 uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all">AJUKAN REQUEST MATCHING SEKARANG →</button>
                     <button onClick={() => setShowDetailModal(false)} className="px-14 py-8 border-2 border-slate-100 rounded-[2.5rem] font-black text-slate-400 uppercase text-[10px] tracking-widest hover:bg-slate-50">TUTUP PROFIL</button>
                  </div>
