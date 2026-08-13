@@ -107,6 +107,10 @@ export default function PartnerCandidateSearchPage() {
 
   const uniqueBidang = [...new Set(candidates.map(c => c.bidangKerja).filter(Boolean))].sort();
 
+  const selectedJobDetailForRequest = useMemo(() => {
+    return myJobs.find(j => j.id === requestData.jobId);
+  }, [requestData.jobId, myJobs]);
+
   if (authLoading || loading) {
     return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
   }
@@ -142,47 +146,45 @@ export default function PartnerCandidateSearchPage() {
             <div
               key={c.id}
               onClick={() => handleOpenDetail(c)}
-              className="card group hover:border-purple-600 transition-all duration-300 flex flex-col h-full bg-white border-2 border-gray-50 shadow-sm hover:shadow-xl rounded-[2rem] p-6 cursor-pointer overflow-hidden relative"
+              className="card group hover:border-purple-600 transition-all duration-300 flex flex-col h-full bg-white border-2 border-gray-50 shadow-sm hover:shadow-xl rounded-[2.5rem] p-4 cursor-pointer overflow-hidden"
             >
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-100 group-hover:bg-purple-600 transition-colors"></div>
+              {/* LARGE FULL-WIDTH IMAGE */}
+              <div className="relative aspect-[3/4.5] rounded-[2rem] overflow-hidden mb-6 bg-slate-200 shadow-inner group-hover:scale-[1.02] transition-transform duration-500">
+                <DriveImage url={c.pasPhoto} alt={c.namaLengkap} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+                <div className="absolute bottom-6 left-6 right-6 text-white">
+                   <span className="text-[10px] font-black text-purple-300 uppercase tracking-widest block mb-1">{c.bidangKerja || "Umum"}</span>
+                   <h3 className="font-black uppercase tracking-tight text-xl leading-tight truncate">{c.namaLengkap}</h3>
+                   <div className="flex gap-2 mt-3">
+                      {c.sertifikatSSW && <span className="bg-blue-600/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-white/20">SSW 1</span>}
+                      {c.sertifikatSSW2 && <span className="bg-indigo-600/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-white/20">SSW 2</span>}
+                   </div>
+                </div>
+              </div>
 
-              <div className="flex gap-4 mb-6">
-                 <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-slate-100 shrink-0 shadow-md">
-                    <DriveImage url={c.pasPhoto} alt={c.namaLengkap} />
-                 </div>
-                 <div className="min-w-0 flex-grow pt-1">
-                    <span className="text-[9px] font-black text-purple-600 uppercase tracking-widest truncate block mb-1">{c.bidangKerja || "Umum"}</span>
-                    <h3 className="font-black text-gray-900 uppercase tracking-tight truncate text-base leading-tight">{c.namaLengkap}</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">"{c.namaPanggilan}"</p>
-
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                       {c.sertifikatSSW && <span className="bg-blue-600 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">SSW 1</span>}
-                       {c.sertifikatSSW2 && <span className="bg-indigo-600 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">SSW 2</span>}
+              <div className="px-2 pb-2 space-y-4">
+                 <div className="grid grid-cols-2 gap-4 text-[10px] border-b border-slate-50 pb-4">
+                    <div>
+                       <p className="font-black text-slate-300 uppercase tracking-[0.1em] mb-0.5">Umur / Kelamin</p>
+                       <p className="font-bold text-slate-700 uppercase">
+                          {c.tanggalLahir ? (new Date().getFullYear() - new Date(c.tanggalLahir).getFullYear()) : "?"} Thn • {c.jenisKelamin}
+                       </p>
+                    </div>
+                    <div className="text-right">
+                       <p className="font-black text-slate-300 uppercase tracking-[0.1em] mb-0.5">Bahasa</p>
+                       <p className="font-bold text-indigo-600 uppercase">{c.levelBahasa || "-"}</p>
                     </div>
                  </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6 text-[9px] border-t border-slate-50 pt-4">
-                 <div>
-                    <p className="font-black text-slate-300 uppercase tracking-[0.1em] mb-0.5">Umur / Kelamin</p>
-                    <p className="font-bold text-slate-700 uppercase">
-                       {c.tanggalLahir ? (new Date().getFullYear() - new Date(c.tanggalLahir).getFullYear()) : "?"} Thn • {c.jenisKelamin}
-                    </p>
+                 <div className="bg-slate-50 p-4 rounded-2xl flex-grow">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Jikoshoukai Singkat</p>
+                    <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-2 font-medium italic">"{c.promosiDiri || "Tidak ada deskripsi singkat."}"</p>
                  </div>
-                 <div className="text-right">
-                    <p className="font-black text-slate-300 uppercase tracking-[0.1em] mb-0.5">Bahasa</p>
-                    <p className="font-bold text-indigo-600 uppercase">{c.levelBahasa || "-"}</p>
+
+                 <div className="flex items-center justify-between pt-2">
+                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">Ready for Match</span>
+                    <span className="text-[9px] font-black text-purple-600 uppercase tracking-widest group-hover:translate-x-1 transition-transform flex items-center gap-1.5">View Detail <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg></span>
                  </div>
-              </div>
-
-              <div className="bg-slate-50 p-4 rounded-2xl flex-grow">
-                 <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">Jikoshoukai Singkat</p>
-                 <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-3 font-medium">{c.promosiDiri || "-"}</p>
-              </div>
-
-              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                 <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded-lg">READY</span>
-                 <span className="text-[9px] font-black text-purple-600 uppercase tracking-widest group-hover:translate-x-1 transition-transform flex items-center gap-1">VIEW DETAIL <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" /></svg></span>
               </div>
             </div>
           ))}
@@ -198,16 +200,16 @@ export default function PartnerCandidateSearchPage() {
       {/* Detail Modal */}
       {showDetailModal && selectedStudent && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn">
-          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-4xl overflow-hidden max-h-[95vh] flex flex-col">
+          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-5xl overflow-hidden max-h-[95vh] flex flex-col">
             <div className="p-10 overflow-y-auto custom-scrollbar">
                <div className="flex flex-col md:flex-row gap-10">
                   {/* Left: Identity Card */}
                   <div className="w-full md:w-1/3 space-y-6">
-                     <div className="relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+                     <div className="relative aspect-[3/4.2] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
                         <DriveImage url={selectedStudent.pasPhoto} alt={selectedStudent.namaLengkap} />
                         <div className="absolute bottom-4 left-4 right-4 flex gap-2">
-                           {selectedStudent.sertifikatSSW && <span className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg">SSW 1</span>}
-                           {selectedStudent.sertifikatSSW2 && <span className="bg-indigo-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg">SSW 2</span>}
+                           {selectedStudent.sertifikatSSW && <span className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg tracking-widest">SSW 1</span>}
+                           {selectedStudent.sertifikatSSW2 && <span className="bg-indigo-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase shadow-lg tracking-widest">SSW 2</span>}
                         </div>
                      </div>
                      <div className="bg-slate-50 p-6 rounded-3xl space-y-4">
@@ -231,7 +233,7 @@ export default function PartnerCandidateSearchPage() {
                      <div>
                         <div className="flex justify-between items-start mb-2">
                            <span className="text-[10px] font-black text-purple-600 uppercase tracking-[0.3em] bg-purple-50 px-3 py-1 rounded-full">{selectedStudent.bidangKerja || "UMUM"}</span>
-                           <button onClick={() => setShowDetailModal(false)} className="text-slate-300 hover:text-slate-800 text-2xl">&times;</button>
+                           <button onClick={() => setShowDetailModal(false)} className="text-slate-300 hover:text-slate-800 text-2xl transition-colors">&times;</button>
                         </div>
                         <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{selectedStudent.namaLengkap}</h2>
                         <p className="text-lg font-bold text-slate-400 uppercase tracking-[0.1em]">Panggilan: {selectedStudent.namaPanggilan}</p>
@@ -259,12 +261,12 @@ export default function PartnerCandidateSearchPage() {
                               Kelebihan & Kekurangan
                            </h4>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="bg-white p-3 rounded-2xl border border-slate-100">
-                                 <p className="text-[9px] font-black text-emerald-500 uppercase mb-1">Strengths (Kelebihan)</p>
+                              <div className="bg-white p-4 rounded-2xl border border-slate-100">
+                                 <p className="text-[9px] font-black text-emerald-500 uppercase mb-2 tracking-widest">Strengths (Kelebihan)</p>
                                  <p className="text-xs text-slate-600 font-medium leading-relaxed">{selectedStudent.kelebihan}</p>
                               </div>
-                              <div className="bg-white p-3 rounded-2xl border border-slate-100">
-                                 <p className="text-[9px] font-black text-rose-500 uppercase mb-1">Weaknesses (Kekurangan)</p>
+                              <div className="bg-white p-4 rounded-2xl border border-slate-100">
+                                 <p className="text-[9px] font-black text-rose-500 uppercase mb-2 tracking-widest">Weaknesses (Kekurangan)</p>
                                  <p className="text-xs text-slate-600 font-medium leading-relaxed">{selectedStudent.kekurangan}</p>
                               </div>
                            </div>
@@ -275,7 +277,7 @@ export default function PartnerCandidateSearchPage() {
                               <span className="w-1 h-3 bg-purple-600 rounded-full"></span>
                               Jikoshoukai (Self Promotion)
                            </h4>
-                           <p className="text-sm text-slate-600 leading-relaxed bg-indigo-50/30 p-6 rounded-3xl border border-indigo-50 font-medium italic">
+                           <p className="text-sm text-slate-600 leading-relaxed bg-indigo-50/30 p-8 rounded-[2rem] border border-indigo-50 font-medium italic">
                               "{selectedStudent.promosiDiri || "Tidak ada promosi diri khusus."}"
                            </p>
                         </div>
@@ -284,14 +286,14 @@ export default function PartnerCandidateSearchPage() {
                      <div className="flex gap-4 pt-6">
                         <button
                            onClick={() => setShowRequestModal(true)}
-                           className="flex-1 py-4 bg-purple-600 text-white font-black rounded-[1.5rem] uppercase text-xs tracking-widest shadow-2xl shadow-purple-200 hover:bg-purple-700 transition-all flex items-center justify-center gap-3"
+                           className="flex-1 py-4 bg-purple-600 text-white font-black rounded-2xl uppercase text-xs tracking-[0.1em] shadow-2xl shadow-purple-200 hover:bg-purple-700 transition-all flex items-center justify-center gap-3"
                         >
                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                           AJUKAN REQUEST SISWA (REQUEST MATCHING)
+                           AJUKAN REQUEST MATCHING SISWA INI
                         </button>
                         <button
                            onClick={() => setShowDetailModal(false)}
-                           className="px-10 py-4 border-2 border-slate-100 text-slate-400 font-black rounded-[1.5rem] uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all"
+                           className="px-10 py-4 border-2 border-slate-100 text-slate-400 font-black rounded-2xl uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all"
                         >
                            Tutup Detail
                         </button>
@@ -306,29 +308,71 @@ export default function PartnerCandidateSearchPage() {
       {/* Request Modal */}
       {showRequestModal && selectedStudent && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-md p-10">
-            <h3 className="text-xl font-black text-gray-800 uppercase tracking-tight mb-2 text-center">Request Matching Siswa</h3>
-            <p className="text-[11px] text-center text-slate-400 mb-8 px-4">Ajukan kandidat <span className="font-black text-purple-600 uppercase">{selectedStudent.namaLengkap}</span> ke admin untuk Matching Job Anda.</p>
+          <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
+            <div className="p-10 overflow-y-auto custom-scrollbar space-y-8">
+               <div className="text-center">
+                  <h3 className="text-2xl font-black text-gray-800 uppercase tracking-tight mb-2">Request Matching Siswa</h3>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest font-bold">Ajukan <span className="text-purple-600">{selectedStudent.namaLengkap}</span> untuk Matching Job</p>
+               </div>
 
-            <form onSubmit={handleSubmitRequest} className="space-y-5">
-               <div>
-                  <label className="form-label text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5 block">Pilih Lowongan Anda</label>
-                  <select className="input-field bg-slate-50 border-none font-bold text-sm h-14 px-5 rounded-2xl shadow-inner" value={requestData.jobId} onChange={(e) => setRequestData({...requestData, jobId: e.target.value})} required>
-                     <option value="">-- Pilih Job --</option>
-                     {myJobs.map(j => <option key={j.id} value={j.id}>[{j.kodeJob}] {j.namaJob}</option>)}
-                  </select>
-               </div>
-               <div>
-                  <label className="form-label text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5 block">Catatan untuk Admin</label>
-                  <textarea className="input-field bg-slate-50 border-none font-bold text-xs p-5 rounded-2xl shadow-inner" rows="4" value={requestData.notes} onChange={(e) => setRequestData({...requestData, notes: e.target.value})} placeholder="Alasan memilih siswa ini atau detail lainnya..." />
-               </div>
-               <div className="flex gap-4 pt-6">
-                  <button type="button" onClick={() => setShowRequestModal(false)} className="flex-1 py-4 font-black text-slate-300 uppercase text-[10px] tracking-[0.2em] hover:text-slate-500 transition-colors">Batal</button>
-                  <button type="submit" className="flex-2 py-4 px-10 bg-purple-600 text-white font-black rounded-2xl uppercase text-[10px] tracking-[0.2em] shadow-2xl shadow-purple-200 hover:bg-purple-700 disabled:opacity-50" disabled={submitting}>
-                    {submitting ? "Processing..." : "Submit Request →"}
-                  </button>
-               </div>
-            </form>
+               <form onSubmit={handleSubmitRequest} className="space-y-6">
+                  <div>
+                     <label className="form-label text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">1. Pilih Lowongan Tersedia</label>
+                     <select
+                        className="input-field bg-slate-50 border-none font-bold text-sm h-14 px-6 rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-purple-500"
+                        value={requestData.jobId}
+                        onChange={(e) => setRequestData({...requestData, jobId: e.target.value})}
+                        required
+                     >
+                        <option value="">-- Pilih Lowongan Kerja Anda --</option>
+                        {myJobs.map(j => <option key={j.id} value={j.id}>[{j.kodeJob}] {j.namaJob} - {j.lokasi}</option>)}
+                     </select>
+                  </div>
+
+                  {/* Dynamic Job Preview when selected */}
+                  {selectedJobDetailForRequest && (
+                    <div className="p-6 bg-purple-50 rounded-[2rem] border border-purple-100 space-y-4 animate-fadeIn">
+                       <div className="flex justify-between items-start">
+                          <div>
+                             <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Preview Detail Job</p>
+                             <h4 className="font-black text-purple-900 uppercase text-lg leading-tight">{selectedJobDetailForRequest.namaJob}</h4>
+                          </div>
+                          <span className="bg-white px-3 py-1 rounded-full text-[9px] font-black text-purple-600 uppercase border border-purple-100">{selectedJobDetailForRequest.kodeJob}</span>
+                       </div>
+                       <div className="grid grid-cols-2 gap-4 text-[10px]">
+                          <div>
+                             <p className="text-slate-400 font-bold uppercase">Penempatan</p>
+                             <p className="font-black text-slate-700">{selectedJobDetailForRequest.lokasi}</p>
+                          </div>
+                          <div>
+                             <p className="text-slate-400 font-bold uppercase">Estimasi Gaji</p>
+                             <p className="font-black text-emerald-600">{selectedJobDetailForRequest.gaji || "-"}</p>
+                          </div>
+                          <div className="col-span-2 pt-2">
+                             <p className="text-slate-400 font-bold uppercase mb-1">Syarat Khusus</p>
+                             <p className="text-slate-600 leading-relaxed italic">{selectedJobDetailForRequest.syaratKhusus || "-"}</p>
+                          </div>
+                       </div>
+                    </div>
+                  )}
+
+                  <div>
+                     <label className="form-label text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">2. Catatan untuk Admin (Optional)</label>
+                     <textarea className="input-field bg-slate-50 border-none font-medium text-xs p-6 rounded-2xl shadow-inner outline-none focus:ring-2 focus:ring-purple-500" rows="4" value={requestData.notes} onChange={(e) => setRequestData({...requestData, notes: e.target.value})} placeholder="Berikan alasan atau keterangan tambahan untuk admin..." />
+                  </div>
+
+                  <div className="flex gap-4 pt-6">
+                     <button type="button" onClick={() => setShowRequestModal(false)} className="flex-1 py-4 font-black text-slate-300 uppercase text-[10px] tracking-[0.2em] hover:text-slate-500 transition-colors">KEMBALI</button>
+                     <button
+                        type="submit"
+                        className="flex-2 py-4 px-12 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-black rounded-2xl uppercase text-[10px] tracking-[0.2em] shadow-2xl shadow-purple-200 hover:scale-[1.02] transition-all disabled:opacity-50"
+                        disabled={submitting}
+                     >
+                        {submitting ? "SUBMITTING..." : "SUBMIT REQUEST MATCHING →"}
+                     </button>
+                  </div>
+               </form>
+            </div>
           </div>
         </div>
       )}

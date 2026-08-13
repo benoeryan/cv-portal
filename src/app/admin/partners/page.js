@@ -19,6 +19,7 @@ export default function AdminPartnersPage() {
     address: "",
     contactPerson: "",
     phone: "",
+    whatsapp: "",
     email: ""
   });
   const [saving, setSaving] = useState(false);
@@ -55,10 +56,11 @@ export default function AdminPartnersPage() {
         address: partner.address || "",
         contactPerson: partner.contactPerson || "",
         phone: partner.phone || "",
+        whatsapp: partner.whatsapp || "",
         email: partner.email || ""
       });
     } else {
-      setFormData({ name: "", description: "", address: "", contactPerson: "", phone: "", email: "" });
+      setFormData({ name: "", description: "", address: "", contactPerson: "", phone: "", whatsapp: "", email: "" });
     }
     setShowModal(true);
   };
@@ -134,7 +136,10 @@ export default function AdminPartnersPage() {
                   </td>
                   <td className="py-4 px-4">
                     <p className="text-xs font-bold text-indigo-600 uppercase">{p.contactPerson || "-"}</p>
-                    <p className="text-[10px] text-gray-400">{p.phone || "-"}</p>
+                    <div className="flex gap-2 mt-1">
+                       <p className="text-[10px] text-gray-400">Telp: {p.phone || "-"}</p>
+                       <p className="text-[10px] text-emerald-500 font-bold">WA: {p.whatsapp || "-"}</p>
+                    </div>
                   </td>
                   <td className="py-4 px-4">
                     <p className="text-[10px] text-slate-500 line-clamp-1">{p.address || "-"}</p>
@@ -164,8 +169,12 @@ export default function AdminPartnersPage() {
                       <input type="email" className="input-field bg-slate-50 border-none font-bold" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="mitra@email.com" />
                    </div>
                    <div>
-                      <label className="form-label uppercase text-[10px] font-black tracking-widest text-slate-400">Nomor Telepon / WA</label>
+                      <label className="form-label uppercase text-[10px] font-black tracking-widest text-slate-400">Nomor Telepon</label>
                       <input className="input-field bg-slate-50 border-none font-bold" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="+62..." />
+                   </div>
+                   <div>
+                      <label className="form-label uppercase text-[10px] font-black tracking-widest text-slate-400">Nomor WhatsApp</label>
+                      <input className="input-field bg-slate-50 border-none font-bold" value={formData.whatsapp} onChange={(e) => setFormData({...formData, whatsapp: e.target.value})} placeholder="+62..." />
                    </div>
                    <div className="md:col-span-2">
                       <label className="form-label uppercase text-[10px] font-black tracking-widest text-slate-400">Contact Person</label>
