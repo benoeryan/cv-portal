@@ -235,66 +235,30 @@ export default function AdminDashboard() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                </div>
                <div>
-                  <h2 className="text-lg font-bold text-gray-800">Distribusi Progres Pipeline Kandidat</h2>
-                  <p className="text-xs text-gray-400">Visualisasi tahapan seleksi & status seluruh kandidat</p>
+                  <h2 className="text-lg font-bold text-gray-800">Siswa Ready Match Berdasarkan Sektor (SSW)</h2>
+                  <p className="text-xs text-gray-400">Dashboard cepat distribusi siswa per bidang kerja</p>
                </div>
             </div>
-            <div className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold">
-               Total: {stats.total} Kandidat
-            </div>
           </div>
 
-          {/* Pipeline Bar */}
-          <div className="w-full h-8 bg-gray-100 rounded-lg overflow-hidden flex mb-8 shadow-inner border border-gray-50">
-            {Object.entries(stats.byStatus).map(([status, count]) => {
-              if (count === 0) return null;
-              const config = statusConfig[status] || statusConfig["Belum Ada Status"];
-              const percent = (count / stats.total) * 100;
-              return (
-                <div
-                  key={status}
-                  className={`${config.color} h-full border-r border-white/20 last:border-0 relative group cursor-help`}
-                  style={{ width: `${percent}%` }}
-                >
-                  <div className="hidden group-hover:flex absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10 shadow-xl">
-                    {status}: {count} ({Math.round(percent)}%)
-                  </div>
-                  {percent > 5 && (
-                    <span className="flex items-center justify-center h-full text-[10px] font-bold text-white drop-shadow-md">
-                      {Math.round(percent)}%
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Pipeline Legend Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {Object.entries(stats.byStatus).map(([status, count]) => {
-              const config = statusConfig[status];
-              const percent = stats.total > 0 ? (count / stats.total) * 100 : 0;
-              return (
-                <div
-                  key={status}
-                  onClick={() => toggleStatusFilter(status)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer ${
-                    filterStatus === status ? `${config.bg} ${config.border} ring-1 ring-offset-0 ring-indigo-200` : "bg-white border-gray-50 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-2.5 h-2.5 rounded-full ${config.color}`}></div>
-                    <span className="text-[10px] font-bold text-gray-600 truncate">{status}</span>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <div className={`${config.bg} ${config.text} px-2 py-0.5 rounded text-[10px] font-bold`}>
-                      {count} Orang
-                    </div>
-                    <span className="text-[10px] font-bold text-gray-400">{percent.toFixed(1)}%</span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex flex-wrap gap-3">
+             <div
+               onClick={() => setFilterBidang("")}
+               className={`cursor-pointer px-5 py-3 rounded-2xl border transition-all ${!filterBidang ? "bg-slate-900 text-white shadow-lg" : "bg-white border-gray-100 hover:border-slate-200"}`}
+             >
+                <p className="text-[8px] font-black uppercase opacity-60">Semua</p>
+                <h4 className="text-xl font-black">{candidates.length}</h4>
+             </div>
+             {Object.entries(stats.byBidang).sort((a,b) => b[1]-a[1]).map(([bidang, count]) => (
+               <div
+                 key={bidang}
+                 onClick={() => setFilterBidang(prev => prev === bidang ? "" : bidang)}
+                 className={`cursor-pointer px-5 py-3 rounded-2xl border transition-all ${filterBidang === bidang ? "bg-indigo-600 text-white shadow-lg" : "bg-white border-gray-100 hover:border-indigo-100"}`}
+               >
+                  <p className="text-[8px] font-black uppercase opacity-60 line-clamp-1">{bidang}</p>
+                  <h4 className="text-xl font-black">{count}</h4>
+               </div>
+             ))}
           </div>
         </div>
 
