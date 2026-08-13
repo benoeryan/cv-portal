@@ -42,7 +42,6 @@ export default function PartnerCandidateSearchPage() {
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Filter for students with SSW and available status
       const filtered = data.filter(c => {
           const hasSSW = (c.sertifikatSSW && String(c.sertifikatSSW).includes("http")) ||
                          (c.sertifikatSSW2 && String(c.sertifikatSSW2).includes("http"));
@@ -56,17 +55,10 @@ export default function PartnerCandidateSearchPage() {
 
   const loadMyJobs = async () => {
     try {
-      // Sync with all jobs that are OPEN, or created by the user
       const q = query(collection(db, "jobs"));
       const snap = await getDocs(q);
       const allJobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const availableJobs = allJobs.filter(j => {
-        const isOpen = j.statusJob?.toUpperCase() === "OPEN";
-        const isMine = j.createdBy === user.uid;
-        return isOpen || isMine;
-      });
-
+      const availableJobs = allJobs.filter(j => (j.statusJob?.toUpperCase() === "OPEN" || j.createdBy === user.uid));
       setMyJobs(availableJobs);
     } catch (err) { console.error(err); }
   };
@@ -76,14 +68,12 @@ export default function PartnerCandidateSearchPage() {
     candidates.forEach(c => {
       const b = c.bidangKerja || "Umum"; s.bidang[b] = (s.bidang[b] || 0) + 1;
       const d = c.domisiliSiswa === "JEPANG" ? "JEPANG" : "INDO"; s.domisili[d] = (s.domisili[d] || 0) + 1;
-
-      // Fixed Case-Insensitive Gender Logic
       const g = String(c.jenisKelamin || "").toUpperCase();
       if (g.includes("LAKI") || g.includes("PRIA")) s.gender["LAKI-LAKI"]++;
       else if (g.includes("PEREMPUAN") || g.includes("WANITA")) s.gender["PEREMPUAN"]++;
     });
     return {
-      bidang: Object.entries(s.bidang).sort((a,b) => b[1]-a[1]).slice(0, 8),
+      bidang: Object.entries(s.bidang).sort((a,b) => b[1]-a[1]).slice(0, 10),
       domisili: Object.entries(s.domisili),
       gender: Object.entries(s.gender)
     };
@@ -105,8 +95,7 @@ export default function PartnerCandidateSearchPage() {
   }, [candidates, searchTerm, filterType, filterValue]);
 
   const handleOpenDetail = (student) => {
-    setSelectedStudent(student);
-    setShowDetailModal(true);
+    setSelectedStudent(student); setShowDetailModal(true);
   };
 
   const handleSubmitRequest = async (e) => {
@@ -131,38 +120,38 @@ export default function PartnerCandidateSearchPage() {
   return (
     <>
       <Navbar />
-      <div className="max-w-full mx-auto px-8 py-12 bg-[#F8F9FC] min-h-screen font-sans">
-        <div className="text-center mb-12">
-            <h1 className="text-4xl font-black text-slate-800 uppercase tracking-tighter">Pencarian Siswa Ready Match v5.0</h1>
-            <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.3em] mt-2 italic">Daftar Kandidat Unggulan Bersertifikat SSW</p>
+      <div className="max-w-full mx-auto px-6 py-10 bg-[#F8F9FC] min-h-screen font-sans flex flex-col space-y-10">
+        <div className="text-center shrink-0">
+            <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">PENCARIAN SISWA READY MATCH v6.0</h1>
+            <p className="text-slate-500 text-xs font-black uppercase tracking-[0.3em] mt-2">Daftar Kandidat Bersertifikat SSW & Siap Matching Job</p>
         </div>
 
-        {/* TOP DASHBOARD: GENDER & DOMISILI */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-7xl mx-auto">
-           <div onClick={() => {setFilterType("gender"); setFilterValue("LAKI-LAKI");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'gender' && filterValue === 'LAKI-LAKI' ? 'bg-blue-600 border-blue-200 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-blue-100'}`}>
-              <h3 className="text-5xl font-black">{stats.gender.find(g => g[0]==='LAKI-LAKI')?.[1] || 0}</h3>
-              <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Siswa Laki-laki</p>
+        {/* DASHBOARD: GENDER & DOMISILI (Interaktif) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-7xl mx-auto w-full shrink-0">
+           <div onClick={() => {setFilterType("gender"); setFilterValue("LAKI-LAKI");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='gender'&&filterValue==='LAKI-LAKI'?'bg-blue-600 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-blue-100'}`}>
+              <p className="text-[10px] font-black uppercase opacity-60">Siswa Laki-laki</p>
+              <h3 className="text-4xl font-black">{stats.gender.find(g => g[0]==='LAKI-LAKI')?.[1] || 0}</h3>
            </div>
-           <div onClick={() => {setFilterType("gender"); setFilterValue("PEREMPUAN");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'gender' && filterValue === 'PEREMPUAN' ? 'bg-rose-500 border-rose-200 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-rose-100'}`}>
-              <h3 className="text-5xl font-black">{stats.gender.find(g => g[0]==='PEREMPUAN')?.[1] || 0}</h3>
-              <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Siswa Perempuan</p>
+           <div onClick={() => {setFilterType("gender"); setFilterValue("PEREMPUAN");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='gender'&&filterValue==='PEREMPUAN'?'bg-rose-500 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-rose-100'}`}>
+              <p className="text-[10px] font-black uppercase opacity-60">Siswa Perempuan</p>
+              <h3 className="text-4xl font-black">{stats.gender.find(g => g[0]==='PEREMPUAN')?.[1] || 0}</h3>
            </div>
-           <div onClick={() => {setFilterType("domisili"); setFilterValue("INDO");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisili' && filterValue === 'INDO' ? 'bg-indigo-600 border-indigo-200 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-indigo-100'}`}>
-              <h3 className="text-5xl font-black">{stats.domisili.find(d => d[0]==='INDO')?.[1] || 0}</h3>
-              <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Daftar dari Indo</p>
+           <div onClick={() => {setFilterType("domisili"); setFilterValue("INDO");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='domisili'&&filterValue==='INDO'?'bg-indigo-600 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-indigo-100'}`}>
+              <p className="text-[10px] font-black uppercase opacity-60">Di Indonesia</p>
+              <h3 className="text-4xl font-black">{stats.domisili.find(d => d[0]==='INDO')?.[1] || 0}</h3>
            </div>
-           <div onClick={() => {setFilterType("domisili"); setFilterValue("JEPANG");}} className={`card p-8 rounded-[3rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType === 'domisili' && filterValue === 'JEPANG' ? 'bg-slate-900 border-slate-700 text-white shadow-xl scale-105' : 'bg-white border-white shadow-sm hover:border-slate-800'}`}>
-              <h3 className="text-5xl font-black">{stats.domisili.find(d => d[0]==='JEPANG')?.[1] || 0}</h3>
-              <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Daftar dari Jepang</p>
+           <div onClick={() => {setFilterType("domisili"); setFilterValue("JEPANG");}} className={`card p-6 rounded-[2.5rem] border-4 transition-all cursor-pointer flex flex-col justify-center items-center text-center ${filterType==='domisili'&&filterValue==='JEPANG'?'bg-slate-900 text-white shadow-2xl scale-105':'bg-white border-white shadow-sm hover:border-slate-300'}`}>
+              <p className="text-[10px] font-black uppercase opacity-60">Di Jepang</p>
+              <h3 className="text-4xl font-black">{stats.domisili.find(d => d[0]==='JEPANG')?.[1] || 0}</h3>
            </div>
         </div>
 
-        {/* SEKTOR DASHBOARD */}
-        <div className="card p-8 bg-white border-2 border-white rounded-[3rem] shadow-xl shadow-slate-200/40 mb-12">
+        {/* SEKTOR / BIDANG WORK DASHBOARD */}
+        <div className="card p-8 bg-white border border-slate-100 rounded-[3rem] shadow-xl shadow-slate-200/40 shrink-0">
            <div className="flex flex-wrap justify-center gap-3">
-              <div onClick={() => {setFilterType(""); setFilterValue("");}} className={`cursor-pointer px-8 py-4 rounded-3xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${!filterType ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-slate-50 border-transparent text-slate-400 hover:border-slate-200'}`}>Semua Bidang</div>
+              <div onClick={() => {setFilterType(""); setFilterValue("");}} className={`cursor-pointer px-6 py-3 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${!filterType ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-transparent text-slate-400 hover:border-slate-200'}`}>Semua Bidang</div>
               {stats.bidang.map(([b, count]) => (
-                <div key={b} onClick={() => {setFilterType("bidang"); setFilterValue(b);}} className={`cursor-pointer px-8 py-4 rounded-3xl border-2 transition-all flex items-center gap-4 ${filterType === 'bidang' && filterValue === b ? 'bg-purple-600 border-purple-200 text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-700 hover:border-purple-300'}`}>
+                <div key={b} onClick={() => {setFilterType("bidang"); setFilterValue(b);}} className={`cursor-pointer px-6 py-3 rounded-2xl border-2 transition-all flex items-center gap-3 ${filterType === 'bidang' && filterValue === b ? 'bg-purple-600 border-purple-200 text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-700 hover:border-purple-300'}`}>
                    <span className="text-[10px] font-black uppercase">{b}</span>
                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${filterType === 'bidang' && filterValue === b ? 'bg-white/20 text-white' : 'bg-purple-50 text-purple-600'}`}>{count}</span>
                 </div>
@@ -171,36 +160,42 @@ export default function PartnerCandidateSearchPage() {
         </div>
 
         {/* SEARCH BAR */}
-        <div className="max-w-4xl mx-auto relative mb-12">
-           <input className="w-full h-20 pl-16 pr-8 bg-white rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 font-black text-xl outline-none" placeholder="Cari nama kandidat..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        <div className="max-w-4xl mx-auto w-full shrink-0 relative">
+           <input className="w-full h-20 pl-16 pr-8 bg-white rounded-[2.5rem] border-none shadow-2xl shadow-slate-200 font-black text-xl text-slate-900" placeholder="Cari nama kandidat spesifik..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
            <svg className="w-8 h-8 absolute left-6 top-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+           {filterType && <div className="absolute right-8 top-6 bg-purple-50 text-purple-600 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest animate-fadeIn">Filter Aktif ✕</div>}
         </div>
 
-        {/* CANDIDATE LIST */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10">
+        {/* CANDIDATE GRID - Following layout with scroll if needed */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-10 pb-20">
           {filteredCandidates.map((c) => (
-            <div key={c.id} onClick={() => handleOpenDetail(c)} className="group bg-white rounded-[4rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 cursor-pointer flex flex-col h-full border-[6px] border-white hover:border-purple-100 relative active:scale-95">
-               <div className="relative aspect-[4/5] overflow-hidden bg-slate-200">
-                  {/* FIXED: Foto Zoom Out dengan object-cover object-top agar wajah tetap proporsional */}
-                  <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top" />
+            <div key={c.id} onClick={() => handleOpenDetail(c)} className="group bg-white rounded-[4rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 cursor-pointer flex flex-col h-full border-[6px] border-white hover:border-purple-100 active:scale-95">
+               <div className="relative aspect-[3/4.2] overflow-hidden bg-slate-200">
+                  {/* ZOOM OUT FOTO: Gunakan object-cover object-top dengan aspect ratio lebih pendek agar tidak terpotong lebar (zoom-out) */}
+                  <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top p-1" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
-
                   <div className="absolute bottom-8 left-8 right-8 text-white">
-                     <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
+                     <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
                      <h3 className="text-xl font-black uppercase leading-tight tracking-tighter drop-shadow-2xl">{c.namaLengkap}</h3>
-                     <div className="mt-4 flex items-center gap-4 text-[9px] font-bold uppercase opacity-60">
-                        <span>{c.domisiliSiswa === 'JEPANG' ? '🇯🇵 JEPANG' : '🇮🇩 INDO'}</span>
+                     <div className="mt-4 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest opacity-60">
+                        <span>{c.domisiliSiswa === 'JEPANG' ? '🇯🇵 JP' : '🇮🇩 ID'}</span>
                         <span className="w-1 h-1 rounded-full bg-white/30"></span>
                         <span>{c.tanggalLahir ? (new Date().getFullYear() - new Date(c.tanggalLahir).getFullYear()) : "?"} THN</span>
                      </div>
                   </div>
                </div>
                <div className="p-8 space-y-6">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center flex items-center justify-center gap-2">
-                     <span className={`w-2 h-2 rounded-full ${String(c.jenisKelamin).toUpperCase().includes("LAKI") ? 'bg-blue-500' : 'bg-rose-500'}`}></span>
-                     <p className="text-[10px] font-black text-slate-600 uppercase">{String(c.jenisKelamin).toUpperCase().includes("LAKI") ? 'Pria' : 'Wanita'}</p>
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                     <div className="text-center flex-1 border-r border-slate-200">
+                        <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Gender</p>
+                        <p className="text-[10px] font-black text-slate-800 uppercase">{String(c.jenisKelamin).includes("LAKI")?'Pria':'Wanita'}</p>
+                     </div>
+                     <div className="text-center flex-1">
+                        <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Bahasa</p>
+                        <p className="text-[10px] font-black text-indigo-600 uppercase">{c.levelBahasa || "-"}</p>
+                     </div>
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-purple-600 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-3 transition-transform">
+                  <div className="flex items-center justify-center gap-2 text-purple-600 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-2 transition-transform">
                      LIHAT PROFIL <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                   </div>
                </div>
@@ -209,7 +204,7 @@ export default function PartnerCandidateSearchPage() {
         </div>
       </div>
 
-      {/* DETAIL MODAL (FULL UI) */}
+      {/* DETAIL MODAL FULL UI */}
       {showDetailModal && selectedStudent && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-slate-900/95 backdrop-blur-xl animate-fadeIn font-sans">
            <div className="bg-white rounded-[4rem] shadow-2xl w-full max-w-6xl overflow-hidden max-h-[95vh] flex flex-col md:flex-row">
@@ -247,21 +242,26 @@ export default function PartnerCandidateSearchPage() {
                     <div className="space-y-4"><h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Kekurangan</h4><p className="text-xs text-slate-600 bg-rose-50/50 p-6 rounded-3xl border border-rose-100 font-medium italic">{selectedStudent.kekurangan || "---"}</p></div>
                  </div>
 
-                 <div className="p-8 bg-slate-900 rounded-[3rem] text-white flex justify-between items-center relative overflow-hidden">
+                 <div className="space-y-6">
+                    <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-4"><div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>Jikoshoukai Singkat</h4>
+                    <p className="text-lg text-slate-600 leading-relaxed font-medium italic bg-purple-50/30 p-10 rounded-[3rem] border border-purple-100 shadow-inner">"{selectedStudent.promosiDiri || "---"}"</p>
+                 </div>
+
+                 <div className="p-8 bg-slate-900 rounded-[3rem] text-white flex justify-between items-center relative overflow-hidden shadow-2xl">
                     <div className="relative z-10"><p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-2">Status Rekrutmen</p><h4 className="text-2xl font-black uppercase tracking-tighter">{selectedStudent.statusProgres || "Pending Nunggu Job"}</h4></div>
-                    <span className="relative z-10 bg-indigo-500 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest">Ready Match</span>
+                    <span className="relative z-10 bg-indigo-500 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl">Ready Match</span>
                  </div>
 
                  <div className="flex gap-6 pt-6">
                     <button onClick={() => setShowRequestModal(true)} className="flex-1 py-8 bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-black rounded-[2.5rem] shadow-2xl shadow-purple-200 uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all">AJUKAN REQUEST MATCHING SEKARANG →</button>
-                    <button onClick={() => setShowDetailModal(false)} className="px-14 py-8 border-2 border-slate-100 rounded-[2.5rem] font-black text-slate-400 uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all">BATAL</button>
+                    <button onClick={() => setShowDetailModal(false)} className="px-14 py-8 border-2 border-slate-100 rounded-[2.5rem] font-black text-slate-400 uppercase text-[10px] tracking-widest active:scale-95">BATAL</button>
                  </div>
               </div>
            </div>
         </div>
       )}
 
-      {/* REQUEST MODAL WITH SYNCED JOBS */}
+      {/* REQUEST MODAL */}
       {showRequestModal && selectedStudent && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-[3.5rem] shadow-2xl w-full max-w-2xl p-14 space-y-10">
@@ -272,19 +272,18 @@ export default function PartnerCandidateSearchPage() {
              <form onSubmit={handleSubmitRequest} className="space-y-8">
                 <div className="space-y-4">
                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">1. Pilih Lowongan Anda</label>
-                   <select className="input-field h-16 bg-slate-50 border-none font-black rounded-2xl text-indigo-600 px-8 outline-none focus:ring-4 focus:ring-indigo-100" value={requestData.jobId} onChange={(e) => setRequestData({...requestData, jobId: e.target.value})} required>
+                   <select className="input-field h-16 bg-slate-50 border-none font-black rounded-2xl text-indigo-600 px-8 outline-none focus:ring-4 focus:ring-indigo-100 shadow-inner" value={requestData.jobId} onChange={(e) => setRequestData({...requestData, jobId: e.target.value})} required>
                       <option value="">-- PILIH DAFTAR JOB AKTIF --</option>
                       {myJobs.map(j => <option key={j.id} value={j.id}>[{j.kodeJob}] {j.namaJob}</option>)}
                    </select>
-                   {myJobs.length === 0 && <p className="text-[10px] text-rose-500 font-bold uppercase italic">Peringatan: Anda belum memiliki lowongan aktif yang 'Open'.</p>}
                 </div>
                 <div className="space-y-4">
                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">2. Catatan (Opsional)</label>
-                   <textarea className="input-field bg-slate-50 border-none font-medium p-8 rounded-3xl text-sm" rows="4" value={requestData.notes} onChange={(e) => setRequestData({...requestData, notes: e.target.value})} placeholder="Alasan mengapa kandidat ini cocok..." />
+                   <textarea className="input-field bg-slate-50 border-none font-medium p-8 rounded-3xl text-sm shadow-inner" rows="4" value={requestData.notes} onChange={(e) => setRequestData({...requestData, notes: e.target.value})} placeholder="Tambahkan alasan mengapa kandidat ini cocok..." />
                 </div>
                 <div className="flex gap-4 pt-4">
                    <button type="button" onClick={() => setShowRequestModal(false)} className="flex-1 py-5 font-black text-slate-300 uppercase text-[10px] tracking-widest">Batal</button>
-                   <button type="submit" className="flex-[2] py-5 bg-slate-900 text-white font-black rounded-2xl shadow-2xl shadow-slate-200 uppercase text-[10px] tracking-widest hover:bg-indigo-600 transition-all active:scale-95" disabled={submitting || myJobs.length === 0}>{submitting ? "SUBMITTING..." : "CONFIRM REQUEST MATCHING →"}</button>
+                   <button type="submit" className="flex-[2] py-5 bg-slate-900 text-white font-black rounded-2xl shadow-2xl uppercase text-[10px] tracking-widest hover:bg-indigo-600 transition-all active:scale-95" disabled={submitting || myJobs.length === 0}>CONFIRM REQUEST MATCHING →</button>
                 </div>
              </form>
           </div>
