@@ -11,7 +11,7 @@ export default function PartnerJobListPage() {
   const router = useRouter();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("card"); // Default to card as requested
+  const [viewMode, setViewMode] = useState("card");
   const [searchTerm, setSearchTerm] = useState("");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -29,7 +29,6 @@ export default function PartnerJobListPage() {
       const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Filter only Open jobs or jobs created by the user
       setJobs(data.filter(j => j.statusJob?.toUpperCase() === "OPEN" || j.createdBy === user.uid));
     } catch (err) { console.error(err); }
     setLoading(false);
@@ -99,7 +98,7 @@ export default function PartnerJobListPage() {
             </div>
           </div>
         ) : (
-          /* CARD VIEW - EXACTLY AS IMAGE 1 */
+          /* CARD VIEW - HIDING TSK */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
              {filteredJobs.map((j) => (
                <div key={j.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-500">
@@ -112,9 +111,9 @@ export default function PartnerJobListPage() {
                         <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight">{j.lokasi || "Berbagai Prefektur di Jepang"}</span>
                      </div>
                      <div>
-                        <h3 className="font-black text-slate-800 text-lg uppercase leading-tight">{j.namaJob || "---"}</h3>
+                        <h3 className="font-black text-slate-800 text-lg uppercase leading-tight">{j.perusahaan || "---"}</h3>
                         <p className="text-[10px] font-bold text-slate-400 uppercase mt-1.5">{j.kategori || "Semua Non-IJEF"}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">TSK / Partner: {j.kumiaiPartner || "-"}</p>
+                        {/* TSK HIDDEN FOR PARTNER */}
                      </div>
                      <div className="bg-slate-50/70 rounded-2xl p-6 space-y-4 border border-slate-50 shadow-inner">
                         <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-tighter"><span className="text-slate-400">Gaji:</span><span className="text-orange-600 text-right">{j.gaji || "-"}</span></div>
@@ -143,7 +142,7 @@ export default function PartnerJobListPage() {
         )}
       </div>
 
-      {/* DETAIL VIEW MODAL - EXACTLY AS IMAGE 2 */}
+      {/* DETAIL VIEW MODAL - HIDING TSK */}
       {showDetailModal && selectedJob && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-md animate-fadeIn font-sans">
            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[95vh] flex flex-col">
@@ -160,13 +159,17 @@ export default function PartnerJobListPage() {
                     <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest">{selectedJob.kategori || "Semua Non-IJEF"}</p>
                  </div>
                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">PREFEKTUR / DAERAH</p><p className="text-[11px] font-black text-slate-800 uppercase">{selectedJob.lokasi || "Berbagai Prefektur di Jepang"}</p></div>
+                    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">PREFEKTUR / DAERAH</p><p className="text-[11px] font-black text-slate-800 uppercase">{selectedJob.lokasi || "Berbagai Prefektur di Jepang"}</p></div>
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">GAJI STANDAR / RATE</p><p className="text-[11px] font-black text-orange-600 uppercase italic">{selectedJob.gaji || "-"}</p></div>
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">KEBUTUHAN KUOTA</p><p className="text-[11px] font-black text-emerald-600 uppercase">{selectedJob.jumlahKandidat || "1"} Orang Kandidat</p></div>
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">JENIS KELAMIN TARGET</p><p className="text-[11px] font-black text-slate-800 uppercase">{selectedJob.jenisKelamin || "-"}</p></div>
                  </div>
-                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">TSK / SUMBER JOB PARTNER</p><p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">{selectedJob.kumiaiPartner || "-"}</p></div>
-                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">MITRA PERUSAHAAN & KUMIAI</p><p className="text-[11px] font-black text-slate-800 uppercase">Mitra Perusahaan ({selectedJob.perusahaan || "-"}) • TSK / Sumber: {selectedJob.kumiaiPartner || "-"}</p></div>
+
+                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">MITRA PERUSAHAAN</p>
+                    <p className="text-[11px] font-black text-slate-800 uppercase">Mitra Perusahaan ({selectedJob.perusahaan || "-"})</p>
+                 </div>
+
                  <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-amber-50 px-5 py-2.5 border-b border-amber-100"><p className="text-[9px] font-black text-amber-700 uppercase">KUALIFIKASI PERSYARATAN</p></div>
                     <div className="p-5"><p className="text-[11px] font-black text-amber-900 uppercase leading-relaxed">{selectedJob.syaratKhusus || "-"}</p></div>
@@ -194,7 +197,7 @@ export default function PartnerJobListPage() {
                        <p>• Target Gender: {selectedJob.jenisKelamin}</p>
                        <p>• Standar Gaji: {selectedJob.gaji}</p>
                        <p>• Kuota Penerimaan: {selectedJob.jumlahKandidat} Orang Candidate</p>
-                       <p>• Partner TSK / Sumber: {selectedJob.kumiaiPartner}</p>
+                       {/* Partner TSK line removed for partner portal */}
                        <p className="mt-4">📑 KUALIFIKASI & PERSYARATAN:</p>
                        <p className="normal-case font-medium">{selectedJob.syaratKhusus}</p>
                        <p className="mt-4">💰 BIAYA PROSES & TANGGUNGAN:</p>
