@@ -72,23 +72,38 @@ export default function PartnerJobListPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white uppercase font-black text-[10px] tracking-widest">
-                    <th className="py-7 px-8">Lowongan</th>
-                    <th className="py-7 px-8">Perusahaan</th>
-                    <th className="py-7 px-8 text-center">Status</th>
-                    <th className="py-7 px-8 text-center">Tindakan</th>
+                  <tr className="bg-slate-900 text-white uppercase font-black text-[9px] tracking-widest text-center">
+                    <th className="py-5 px-4">STATUS</th>
+                    <th className="py-5 px-4">KODE JOB</th>
+                    <th className="py-5 px-4 text-left">JUDUL PEKERJAAN (LIST JOB)</th>
+                    <th className="py-5 px-4">DAERAH</th>
+                    <th className="py-5 px-4">GENDER</th>
+                    <th className="py-5 px-4">GAJI</th>
+                    <th className="py-5 px-4">KUOTA</th>
+                    <th className="py-5 px-4 text-left">KUALIFIKASI</th>
+                    <th className="py-5 px-4">BIAYA PROSES</th>
+                    {/* TSK HIDDEN FOR PARTNER */}
+                    <th className="py-5 px-4">KETERANGAN</th>
+                    <th className="py-5 px-4">AKSI</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {filteredJobs.map((j) => (
-                    <tr key={j.id} className="hover:bg-slate-50 transition-all">
-                      <td className="py-6 px-8"><div className="font-black text-slate-900 uppercase text-xs">{j.namaJob}</div><div className="text-[10px] text-slate-400 font-bold mt-1 uppercase">{j.kodeJob}</div></td>
-                      <td className="py-6 px-8"><div className="font-black text-slate-700 text-xs">{j.perusahaan}</div></td>
-                      <td className="py-6 px-8 text-center"><span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border-2 ${j.statusJob?.toUpperCase() === 'OPEN' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>Aktif</span></td>
-                      <td className="py-6 px-8 text-center">
-                        <div className="flex justify-center gap-3">
-                           <button onClick={() => { setSelectedJob(j); setShowDetailModal(true); }} className="px-5 py-2 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm">Lihat Detail</button>
-                           <button onClick={() => router.push(`/candidate/form?jobCode=${j.kodeJob}`)} className="px-5 py-2 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-sm">Daftar</button>
+                    <tr key={j.id} className="hover:bg-slate-50 transition-all text-center">
+                      <td className="py-5 px-4"><span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-md text-[8px] font-black uppercase border border-emerald-100">Aktif</span></td>
+                      <td className="py-5 px-4"><span className="bg-purple-50 text-purple-600 px-2.5 py-1 rounded-md text-[8px] font-black uppercase border border-purple-100">{j.kodeJob || "-"}</span></td>
+                      <td className="py-5 px-4 text-left"><div className="font-black text-slate-800 text-[11px] uppercase leading-none">{j.namaJob}</div><div className="text-[9px] text-slate-400 font-bold mt-1.5 uppercase">{j.kategori}</div></td>
+                      <td className="py-5 px-4"><span className="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-md text-[8px] font-black uppercase border border-indigo-100">{j.lokasi}</span></td>
+                      <td className="py-5 px-4 text-[11px] font-black text-slate-700">{j.jenisKelamin?.charAt(0) || "P"}</td>
+                      <td className="py-5 px-4 text-[11px] font-black text-orange-600">{j.gaji || "-"}</td>
+                      <td className="py-5 px-4 text-[11px] font-black text-slate-800">{j.jumlahKandidat || "0"} Org</td>
+                      <td className="py-5 px-4 text-left"><div className="bg-amber-50/30 border border-amber-100 rounded-lg px-3 py-1.5 text-[9px] font-black text-amber-700 line-clamp-1 max-w-[150px]">Kualifikasi: {j.syaratKhusus}</div></td>
+                      <td className="py-5 px-4 text-[10px] font-bold text-slate-400">{j.biayaJob || "-"}</td>
+                      <td className="py-5 px-4 text-[10px] font-bold text-slate-400">{j.keterangan || "0"}</td>
+                      <td className="py-5 px-4">
+                        <div className="flex justify-center gap-1.5">
+                           <button onClick={() => { setSelectedJob(j); setShowDetailModal(true); }} className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 font-black text-[8px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm">Detail</button>
+                           <button onClick={() => router.push(`/candidate/form?jobCode=${j.kodeJob}`)} className="px-4 py-1.5 bg-[#0F172A] text-white rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-sm">Daftar</button>
                         </div>
                       </td>
                     </tr>

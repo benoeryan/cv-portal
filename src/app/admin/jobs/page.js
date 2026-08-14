@@ -200,24 +200,40 @@ export default function JobManagementPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white uppercase font-black text-[10px] tracking-widest">
-                    <th className="py-7 px-8">Lowongan</th>
-                    <th className="py-7 px-8">Perusahaan</th>
-                    <th className="py-7 px-8 text-center">Status</th>
-                    <th className="py-7 px-8 text-center">Tindakan</th>
+                  <tr className="bg-slate-900 text-white uppercase font-black text-[9px] tracking-widest text-center">
+                    <th className="py-5 px-4">STATUS</th>
+                    <th className="py-5 px-4">KODE JOB</th>
+                    <th className="py-5 px-4 text-left">JUDUL PEKERJAAN (LIST JOB)</th>
+                    <th className="py-5 px-4">DAERAH</th>
+                    <th className="py-5 px-4">GENDER</th>
+                    <th className="py-5 px-4">GAJI</th>
+                    <th className="py-5 px-4">KUOTA</th>
+                    <th className="py-5 px-4 text-left">KUALIFIKASI</th>
+                    <th className="py-5 px-4">BIAYA PROSES</th>
+                    <th className="py-5 px-4">TSK / SUMBER</th>
+                    <th className="py-5 px-4">KETERANGAN</th>
+                    <th className="py-5 px-4">AKSI</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {filteredJobs.map((j) => (
-                    <tr key={j.id} className="hover:bg-slate-50 transition-all group">
-                      <td className="py-6 px-8"><div className="font-black text-slate-900 uppercase text-xs">{j.namaJob}</div><div className="text-[10px] text-slate-400 font-bold mt-1 uppercase">{j.kodeJob}</div></td>
-                      <td className="py-6 px-8"><div className="font-black text-slate-700 text-xs">{j.perusahaan}</div></td>
-                      <td className="py-6 px-8 text-center"><span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border-2 ${j.statusJob?.toUpperCase() === 'OPEN' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>{j.statusJob}</span></td>
-                      <td className="py-6 px-8 text-center">
-                        <div className="flex justify-center gap-3">
-                           <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-                           <button onClick={() => handleEdit(j)} className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
-                           <button onClick={() => handleDelete(j.id)} className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                    <tr key={j.id} className="hover:bg-slate-50 transition-all text-center">
+                      <td className="py-5 px-4"><span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-md text-[8px] font-black uppercase border border-emerald-100">Aktif</span></td>
+                      <td className="py-5 px-4"><span className="bg-purple-50 text-purple-600 px-2.5 py-1 rounded-md text-[8px] font-black uppercase border border-purple-100">{j.kodeJob || "-"}</span></td>
+                      <td className="py-5 px-4 text-left"><div className="font-black text-slate-800 text-[11px] uppercase leading-none">{j.namaJob}</div><div className="text-[9px] text-slate-400 font-bold mt-1.5 uppercase">{j.kategori}</div></td>
+                      <td className="py-5 px-4"><span className="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-md text-[8px] font-black uppercase border border-indigo-100">{j.lokasi}</span></td>
+                      <td className="py-5 px-4 text-[11px] font-black text-slate-700">{j.jenisKelamin?.charAt(0) || "P"}</td>
+                      <td className="py-5 px-4 text-[11px] font-black text-orange-600">{j.gaji || "-"}</td>
+                      <td className="py-5 px-4 text-[11px] font-black text-slate-800">{j.jumlahKandidat || "0"} Org</td>
+                      <td className="py-5 px-4 text-left"><div className="bg-amber-50/30 border border-amber-100 rounded-lg px-3 py-1.5 text-[9px] font-black text-amber-700 line-clamp-1 max-w-[150px]">Kualifikasi: {j.syaratKhusus}</div></td>
+                      <td className="py-5 px-4 text-[10px] font-bold text-slate-400">{j.biayaJob || "-"}</td>
+                      <td className="py-5 px-4 text-[10px] font-bold text-slate-600">{j.kumiaiPartner || "-"}</td>
+                      <td className="py-5 px-4 text-[10px] font-bold text-slate-400">{j.keterangan || "0"}</td>
+                      <td className="py-5 px-4">
+                        <div className="flex justify-center gap-1.5">
+                           <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="View Detail"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                           <button onClick={() => handleEdit(j)} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Edit"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
+                           <button onClick={() => handleDelete(j.id)} className="p-1.5 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 hover:bg-rose-600 hover:text-white transition-all shadow-sm" title="Hapus"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </div>
                       </td>
                     </tr>
