@@ -259,7 +259,7 @@ export default function JobManagementPage() {
 
                      {/* Titles */}
                      <div>
-                        <h3 className="font-black text-slate-800 text-lg uppercase leading-tight">{j.perusahaan || "---"}</h3>
+                        <h3 className="font-black text-slate-800 text-lg uppercase leading-tight">{j.namaJob || "---"}</h3>
                         <p className="text-[10px] font-bold text-slate-400 uppercase mt-1.5">{j.kategori || "Semua Non-IJEF"}</p>
                         <p className="text-[10px] font-bold text-slate-400 uppercase">TSK / Partner: {j.kumiaiPartner || "-"}</p>
                      </div>
