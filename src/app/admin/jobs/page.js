@@ -73,51 +73,51 @@ export default function JobManagementPage() {
 
       if (rows.length < 2) throw new Error("Format sheet tidak valid atau kosong.");
 
-      const headers = rows[0];
       const dataRows = rows.slice(1);
+      const snapshot = await getDocs(query(collection(db, "jobs")));
+      const existingJobs = snapshot.docs.map(d => ({ id: d.id, kodeJob: d.data().kodeJob }));
 
       let count = 0;
       for (const row of dataRows) {
-        if (row.length === 0 || !row[0]) continue;
-
-        const getVal = (keywords) => {
-          const idx = headers.findIndex(h => keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
-          return idx !== -1 ? row[idx] : "";
-        };
+        if (!row[1] && !row[3]) continue; // Skip empty rows
 
         const jobData = {
-          kodeJob: getVal(["Kode", "Job Code"]) || row[0],
-          namaJob: getVal(["Nama Lowongan", "Job Name", "Title"]),
-          perusahaan: getVal(["Perusahaan", "Company"]),
-          lokasi: getVal(["Lokasi", "Prefektur", "Location"]),
-          bidang: getVal(["Sektor", "Bidang", "Field"]),
-          kategori: getVal(["Kategori", "Category"]),
-          gaji: getVal(["Gaji", "Salary"]),
-          keterangan: getVal(["Keterangan", "Note", "Syarat"]),
-          benefit: getVal(["Benefit", "Fasilitas"]),
-          klasifikasiKandidat: getVal(["Klasifikasi", "Kriteria"]),
-          deskripsiPekerjaan: getVal(["Deskripsi", "Description"]),
-          statusJob: getVal(["Status"]) || "Open",
-          domisiliKerja: getVal(["Domisili", "Area"]),
-          biayaJob: getVal(["Biaya", "Fee"]),
-          skemaPembayaran: getVal(["Skema", "Payment"]),
-          benefitBiaya: getVal(["Benefit Biaya"]),
-          sumberJob: getVal(["Sumber", "TSK", "Source"]),
-          usiaMax: getVal(["Usia", "Age"]),
-          jenisKelamin: getVal(["Gender", "Jenis Kelamin"]) || "Pria & Wanita",
-          jumlahKandidat: getVal(["Jumlah", "Kuota", "Need"]),
+          statusJob: row[0] || "Open",
+          namaJob: row[1] || "",
+          lokasi: row[2] || "Jepang",
+          kodeJob: row[3] || String(Date.now()),
+          jenisKelamin: row[4] || "Pria & Wanita",
+          gaji: row[5] || "-",
+          jumlahKandidat: row[6] || "1",
+          syaratKhusus: row[7] || "-",
+          biayaJob: row[8] || "-",
+          keterangan: row[9] || "-",
+          kumiaiPartner: row[10] || "-",
+          // Mandatory fields for system consistency
+          bidang: "Umum",
+          perusahaan: row[1] || "-",
+          kategori: "SISWA NON IJEF : NEW COMER",
+          klasifikasiSkema: "Standard",
+          klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
+          deskripsiPekerjaan: row[9] || "-",
+          benefit: "-",
           updatedAt: new Date().toISOString()
         };
 
-        const snapshot = await getDocs(query(collection(db, "jobs")));
-        const existing = snapshot.docs.find(d => d.data().kodeJob === jobData.kodeJob);
+        const existing = existingJobs.find(j => j.kodeJob === jobData.kodeJob);
 
-        if (existing) await updateDoc(doc(db, "jobs", existing.id), jobData);
-        else await addDoc(collection(db, "jobs"), { ...jobData, createdAt: new Date().toISOString() });
+        if (existing) {
+          await updateDoc(doc(db, "jobs", existing.id), jobData);
+        } else {
+          await addDoc(collection(db, "jobs"), {
+            ...jobData,
+            createdAt: new Date().toISOString()
+          });
+        }
         count++;
       }
 
-      alert(`Berhasil mengimpor ${count} data job.`);
+      alert(`Berhasil sinkronisasi ${count} data job.`);
       loadJobs();
     } catch (err) {
       console.error("Import error:", err);
