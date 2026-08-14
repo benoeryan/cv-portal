@@ -27,6 +27,7 @@ export default function JobManagementPage() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || userData?.role !== "admin")) {
@@ -53,6 +54,77 @@ export default function JobManagementPage() {
       j.perusahaan?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [jobs, searchTerm]);
+
+  const handleImportGoogleSheets = async () => {
+    if (!window.confirm("Import data job dari Google Sheets? Data dengan Kode Job yang sama akan diupdate.")) return;
+    setImporting(true);
+    try {
+      const sheetId = "1P2P6Z_-11udONGzjSDIBVcX-OfnT8jeUwAPYL-p12yY";
+      const sheetName = "LIST JOB AVAILABLE";
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+      const response = await fetch(csvUrl);
+      const csvText = await response.text();
+
+      const rows = csvText.split("\n").map(row => {
+        const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        return matches ? matches.map(m => m.replace(/^"|"$/g, "")) : [];
+      });
+
+      if (rows.length < 2) throw new Error("Format sheet tidak valid atau kosong.");
+
+      const headers = rows[0];
+      const dataRows = rows.slice(1);
+
+      let count = 0;
+      for (const row of dataRows) {
+        if (row.length === 0 || !row[0]) continue;
+
+        const getVal = (keywords) => {
+          const idx = headers.findIndex(h => keywords.some(k => h.toLowerCase().includes(k.toLowerCase())));
+          return idx !== -1 ? row[idx] : "";
+        };
+
+        const jobData = {
+          kodeJob: getVal(["Kode", "Job Code"]) || row[0],
+          namaJob: getVal(["Nama Lowongan", "Job Name", "Title"]),
+          perusahaan: getVal(["Perusahaan", "Company"]),
+          lokasi: getVal(["Lokasi", "Prefektur", "Location"]),
+          bidang: getVal(["Sektor", "Bidang", "Field"]),
+          kategori: getVal(["Kategori", "Category"]),
+          gaji: getVal(["Gaji", "Salary"]),
+          keterangan: getVal(["Keterangan", "Note", "Syarat"]),
+          benefit: getVal(["Benefit", "Fasilitas"]),
+          klasifikasiKandidat: getVal(["Klasifikasi", "Kriteria"]),
+          deskripsiPekerjaan: getVal(["Deskripsi", "Description"]),
+          statusJob: getVal(["Status"]) || "Open",
+          domisiliKerja: getVal(["Domisili", "Area"]),
+          biayaJob: getVal(["Biaya", "Fee"]),
+          skemaPembayaran: getVal(["Skema", "Payment"]),
+          benefitBiaya: getVal(["Benefit Biaya"]),
+          sumberJob: getVal(["Sumber", "TSK", "Source"]),
+          usiaMax: getVal(["Usia", "Age"]),
+          jenisKelamin: getVal(["Gender", "Jenis Kelamin"]) || "Pria & Wanita",
+          jumlahKandidat: getVal(["Jumlah", "Kuota", "Need"]),
+          updatedAt: new Date().toISOString()
+        };
+
+        const snapshot = await getDocs(query(collection(db, "jobs")));
+        const existing = snapshot.docs.find(d => d.data().kodeJob === jobData.kodeJob);
+
+        if (existing) await updateDoc(doc(db, "jobs", existing.id), jobData);
+        else await addDoc(collection(db, "jobs"), { ...jobData, createdAt: new Date().toISOString() });
+        count++;
+      }
+
+      alert(`Berhasil mengimpor ${count} data job.`);
+      loadJobs();
+    } catch (err) {
+      console.error("Import error:", err);
+      alert("Gagal impor: " + err.message);
+    }
+    setImporting(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setSubmitting(true);
@@ -95,9 +167,18 @@ export default function JobManagementPage() {
               <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Manajemen Lowongan Kerja</h1>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">IJEF Portal</p>
            </div>
-           <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white px-10 py-5 rounded-[2rem] font-black shadow-2xl hover:bg-indigo-600 transition-all uppercase text-[10px] tracking-widest active:scale-95">
-            + Tambah Lowongan Baru
-          </button>
+           <div className="flex gap-3">
+             <button
+               onClick={handleImportGoogleSheets}
+               disabled={importing}
+               className="bg-emerald-600 text-white px-8 py-5 rounded-[2rem] font-black shadow-2xl hover:bg-emerald-700 transition-all uppercase text-[10px] tracking-widest active:scale-95 flex items-center gap-2"
+             >
+                {importing ? "Importing..." : "+ Import Sheets"}
+             </button>
+             <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white px-10 py-5 rounded-[2rem] font-black shadow-2xl hover:bg-indigo-600 transition-all uppercase text-[10px] tracking-widest active:scale-95">
+                + Tambah Lowongan Baru
+             </button>
+           </div>
         </div>
 
         {/* Action Bar */}
