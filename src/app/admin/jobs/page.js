@@ -173,10 +173,11 @@ export default function JobManagementPage() {
                disabled={importing}
                className="bg-emerald-600 text-white px-8 py-5 rounded-[2rem] font-black shadow-2xl hover:bg-emerald-700 transition-all uppercase text-[10px] tracking-widest active:scale-95 flex items-center gap-2"
              >
-                {importing ? "Importing..." : "+ Import Sheets"}
+                <svg className={`w-4 h-4 ${importing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                {importing ? "Sinkronisasi..." : "Sinkron Data Spreadsheet"}
              </button>
              <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white px-10 py-5 rounded-[2rem] font-black shadow-2xl hover:bg-indigo-600 transition-all uppercase text-[10px] tracking-widest active:scale-95">
-                + Tambah Lowongan Baru
+                + Tambah Lowongan
              </button>
            </div>
         </div>
