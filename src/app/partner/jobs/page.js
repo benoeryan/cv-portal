@@ -180,11 +180,6 @@ export default function PartnerJobListPage() {
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">JENIS KELAMIN TARGET</p><p className="text-[11px] font-black text-slate-800 uppercase">{selectedJob.jenisKelamin || "-"}</p></div>
                  </div>
 
-                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">MITRA PERUSAHAAN</p>
-                    <p className="text-[11px] font-black text-slate-800 uppercase">Mitra Perusahaan ({selectedJob.perusahaan || "-"})</p>
-                 </div>
-
                  <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-amber-50 px-5 py-2.5 border-b border-amber-100"><p className="text-[9px] font-black text-amber-700 uppercase">KUALIFIKASI PERSYARATAN</p></div>
                     <div className="p-5"><p className="text-[11px] font-black text-amber-900 uppercase leading-relaxed">{selectedJob.syaratKhusus || "-"}</p></div>
