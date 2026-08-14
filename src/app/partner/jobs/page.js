@@ -43,6 +43,7 @@ export default function PartnerJobListPage() {
     benefitBiaya: "",
     sumberJob: "",
     usiaMax: "",
+    jenisKelamin: "Pria & Wanita",
     jumlahKandidat: "",
     kumiaiPartner: "",
     syaratKhusus: "",
@@ -118,7 +119,7 @@ export default function PartnerJobListPage() {
       kodeJob: "", namaJob: "", perusahaan: "", lokasi: "", bidang: "", kategori: "SISWA NON IJEF : NEW COMER",
       klasifikasiSkema: "Standard", gaji: "", keterangan: "", benefit: "", klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
       deskripsiPekerjaan: "", statusJob: "Open", domisiliKerja: "", fileUrl: "", biayaJob: "",
-      skemaPembayaran: "", benefitBiaya: "", sumberJob: "", usiaMax: "", jumlahKandidat: "",
+      skemaPembayaran: "", benefitBiaya: "", sumberJob: "", usiaMax: "", jenisKelamin: "Pria & Wanita", jumlahKandidat: "",
       kumiaiPartner: "", syaratKhusus: "",
     });
   };
@@ -235,10 +236,11 @@ export default function PartnerJobListPage() {
                {/* 2. KLASIFIKASI & PRIORITAS */}
                <div className="p-8 border-2 border-slate-50 rounded-[2.5rem] space-y-8">
                   <h4 className="text-xs font-black text-purple-500 uppercase tracking-[0.2em] border-b border-slate-100 pb-3 flex items-center gap-2">2. KLASIFIKASI & PRIORITAS</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                      <div><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Kategori Domisili</label><select className="input-field h-12 bg-slate-100 border-none font-black rounded-xl text-indigo-600" value={formData.kategori} onChange={(e) => setFormData({...formData, kategori: e.target.value})}><option value="SISWA NON IJEF : NEW COMER">DOMISILI INDONESIA (Daftar Dari Indonesia)</option><option value="SISWA MATCHING JOB : EX-MAGANG/EX-TRAINEE">DOMISILI JEPANG (Daftar Dari Jepang)</option></select></div>
                      <div><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Prioritas Skema</label><select className="input-field h-12 bg-slate-100 border-none font-black rounded-xl text-rose-600" value={formData.klasifikasiSkema} onChange={(e) => setFormData({...formData, klasifikasiSkema: e.target.value})}><option value="Urgency">URGENCY (URGENT)</option><option value="Standard">STANDARD (REGULAR)</option><option value="Routine">ROUTINE (MASSAL)</option></select></div>
-                     <div className="md:col-span-1"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1">Klasifikasi Target</label><select className="input-field h-12 bg-slate-50 border-none font-black rounded-xl" value={formData.klasifikasiKandidat} onChange={(e) => setFormData({...formData, klasifikasiKandidat: e.target.value})}><option value="SISWA NON IJEF : NEW COMER">New Comer</option><option value="SISWA MATCHING JOB : EX-MAGANG">Ex-Magang</option></select></div>
+                     <div><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Jenis Kelamin</label><select className="input-field h-12 bg-slate-100 border-none font-black rounded-xl" value={formData.jenisKelamin} onChange={(e) => setFormData({...formData, jenisKelamin: e.target.value})}><option value="Pria">Pria</option><option value="Wanita">Wanita</option><option value="Pria & Wanita">Pria & Wanita</option></select></div>
+                     <div className="md:col-span-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1">Klasifikasi Target</label><select className="input-field h-12 bg-slate-50 border-none font-black rounded-xl" value={formData.klasifikasiKandidat} onChange={(e) => setFormData({...formData, klasifikasiKandidat: e.target.value})}><option value="SISWA NON IJEF : NEW COMER">New Comer</option><option value="SISWA MATCHING JOB : EX-MAGANG">Ex-Magang</option></select></div>
                      <div className="md:col-span-1"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1">Kuota / Kebutuhan</label><input className="input-field h-12 bg-slate-50 border-none font-black rounded-xl text-indigo-600" value={formData.jumlahKandidat} onChange={(e) => setFormData({...formData, jumlahKandidat: e.target.value})} placeholder="4" /></div>
                   </div>
                   <div className="md:col-span-3"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1">Syarat Khusus (JLPT, SSW, Usia)</label><textarea className="input-field bg-slate-50 border-none font-medium p-6 rounded-2xl text-sm" rows="3" value={formData.syaratKhusus} onChange={(e) => setFormData({...formData, syaratKhusus: e.target.value})} /></div>
