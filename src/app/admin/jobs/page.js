@@ -20,10 +20,23 @@ export default function JobManagementPage() {
   const [selectedJobDetail, setSelectedJobDetail] = useState(null);
 
   const [formData, setFormData] = useState({
-    kodeJob: "", namaJob: "", perusahaan: "", lokasi: "", bidang: "", kategori: "SISWA NON IJEF : NEW COMER",
-    klasifikasiSkema: "Standard", gaji: "", keterangan: "", benefit: "", klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
-    deskripsiPekerjaan: "", statusJob: "Open", jenisKelamin: "Pria & Wanita", jumlahKandidat: "",
-    kumiaiPartner: "", syaratKhusus: "",
+    kodeJob: "",
+    namaJob: "",
+    perusahaan: "",
+    lokasi: "",
+    bidang: "Umum",
+    kategori: "SISWA NON IJEF : NEW COMER",
+    klasifikasiSkema: "Standard",
+    gaji: "",
+    keterangan: "",
+    benefit: "-",
+    klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
+    deskripsiPekerjaan: "",
+    statusJob: "Open",
+    jenisKelamin: "Pria & Wanita",
+    jumlahKandidat: "",
+    kumiaiPartner: "",
+    syaratKhusus: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -55,6 +68,17 @@ export default function JobManagementPage() {
     );
   }, [jobs, searchTerm]);
 
+  const translateGender = (val) => {
+    if (!val) return "Pria & Wanita";
+    const v = val.toString().trim();
+    if (v === "男") return "Pria";
+    if (v === "女") return "Wanita";
+    if (v === "男女") return "Pria & Wanita";
+    if (v.toUpperCase() === "L") return "Pria";
+    if (v.toUpperCase() === "P") return "Wanita";
+    return v;
+  };
+
   const handleImportGoogleSheets = async () => {
     if (!window.confirm("Import data job dari Google Sheets? Data dengan Kode Job yang sama akan diupdate.")) return;
     setImporting(true);
@@ -82,24 +106,24 @@ export default function JobManagementPage() {
         if (!row[1] && !row[3]) continue; // Skip empty rows
 
         const jobData = {
-          statusJob: row[0] || "Open",
-          namaJob: row[1] || "",
-          lokasi: row[2] || "Jepang",
-          kodeJob: row[3] || String(Date.now()),
-          jenisKelamin: row[4] || "Pria & Wanita",
-          gaji: row[5] || "-",
-          jumlahKandidat: row[6] || "1",
-          syaratKhusus: row[7] || "-",
-          biayaJob: row[8] || "-",
-          keterangan: row[9] || "-",
-          kumiaiPartner: row[10] || "-",
-          // Mandatory fields for system consistency
+          statusJob: (row[0] || "Open").toString().trim(),
+          namaJob: (row[1] || "Untitled Job").toString().trim(),
+          lokasi: (row[2] || "Jepang").toString().trim(),
+          kodeJob: (row[3] || String(Date.now())).toString().trim(),
+          jenisKelamin: translateGender(row[4]),
+          gaji: (row[5] || "-").toString().trim(),
+          jumlahKandidat: (row[6] || "1").toString().trim(),
+          syaratKhusus: (row[7] || "-").toString().trim(),
+          biayaJob: (row[8] || "-").toString().trim(),
+          keterangan: (row[9] || "-").toString().trim(),
+          kumiaiPartner: (row[10] || "-").toString().trim(),
+          // Mandatory fields for system consistency (prevent undefined)
           bidang: "Umum",
-          perusahaan: row[1] || "-",
+          perusahaan: (row[1] || "-").toString().trim(),
           kategori: "SISWA NON IJEF : NEW COMER",
           klasifikasiSkema: "Standard",
           klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
-          deskripsiPekerjaan: row[9] || "-",
+          deskripsiPekerjaan: (row[9] || "-").toString().trim(),
           benefit: "-",
           updatedAt: new Date().toISOString()
         };
@@ -129,9 +153,19 @@ export default function JobManagementPage() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setSubmitting(true);
     try {
-      const dataToSave = { ...formData, updatedAt: new Date().toISOString() };
+      const dataToSave = {
+        ...formData,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Ensure no undefined values
+      Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === undefined) dataToSave[key] = "";
+      });
+
       if (editingJob) await updateDoc(doc(db, "jobs", editingJob.id), dataToSave);
       else await addDoc(collection(db, "jobs"), { ...dataToSave, createdAt: new Date().toISOString() });
+
       closeModal(); loadJobs();
     } catch (err) { alert(err.message); }
     setSubmitting(false);
@@ -140,8 +174,8 @@ export default function JobManagementPage() {
   const closeModal = () => {
     setShowModal(false); setEditingJob(null);
     setFormData({
-      kodeJob: "", namaJob: "", perusahaan: "", lokasi: "", bidang: "", kategori: "SISWA NON IJEF : NEW COMER",
-      klasifikasiSkema: "Standard", gaji: "", keterangan: "", benefit: "", klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
+      kodeJob: "", namaJob: "", perusahaan: "", lokasi: "", bidang: "Umum", kategori: "SISWA NON IJEF : NEW COMER",
+      klasifikasiSkema: "Standard", gaji: "", keterangan: "", benefit: "-", klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
       deskripsiPekerjaan: "", statusJob: "Open", jenisKelamin: "Pria & Wanita", jumlahKandidat: "",
       kumiaiPartner: "", syaratKhusus: "",
     });
@@ -248,7 +282,6 @@ export default function JobManagementPage() {
              {filteredJobs.map((j) => (
                <div key={j.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-500">
                   <div className="p-8 space-y-5">
-                     {/* Header Badges */}
                      <div className="flex justify-between items-start">
                         <div className="flex gap-2">
                            <span className="bg-purple-50 text-purple-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase">{j.kodeJob || "-"}</span>
@@ -257,14 +290,12 @@ export default function JobManagementPage() {
                         <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight">{j.lokasi || "Berbagai Prefektur di Jepang"}</span>
                      </div>
 
-                     {/* Titles */}
                      <div>
                         <h3 className="font-black text-slate-800 text-lg uppercase leading-tight">{j.perusahaan || "---"}</h3>
                         <p className="text-[10px] font-bold text-slate-400 uppercase mt-1.5">{j.kategori || "Semua Non-IJEF"}</p>
                         <p className="text-[10px] font-bold text-slate-400 uppercase">TSK / Partner: {j.kumiaiPartner || "-"}</p>
                      </div>
 
-                     {/* Main Detail Box */}
                      <div className="bg-slate-50/70 rounded-2xl p-6 space-y-4 border border-slate-50 shadow-inner">
                         <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-tighter">
                            <span className="text-slate-400">Gaji:</span>
@@ -280,20 +311,17 @@ export default function JobManagementPage() {
                         </div>
                      </div>
 
-                     {/* Qualification Card */}
                      <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4">
                         <p className="text-[8px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1.5">Kualifikasi:</p>
                         <p className="text-[10px] font-bold text-amber-900 line-clamp-1">{j.syaratKhusus || "-"}</p>
                      </div>
 
-                     {/* Description Card */}
                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5">Keterangan:</p>
                         <p className="text-[10px] font-bold text-slate-800 line-clamp-1">{j.keterangan || "-"}</p>
                      </div>
                   </div>
 
-                  {/* Actions Footer */}
                   <div className="px-8 py-5 bg-slate-50/30 border-t border-slate-100/50 flex justify-between items-center">
                      <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-800 transition-all">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -321,7 +349,6 @@ export default function JobManagementPage() {
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-md animate-fadeIn font-sans">
            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[95vh] flex flex-col">
               <div className="p-10 overflow-y-auto custom-scrollbar space-y-7">
-                 {/* Modal Header */}
                  <div className="flex justify-between items-start">
                     <div className="flex gap-2">
                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-md text-[10px] font-black uppercase">KODE: {selectedJobDetail.kodeJob || "0"}</span>
@@ -330,13 +357,11 @@ export default function JobManagementPage() {
                     <button onClick={() => setShowDetailModal(false)} className="text-slate-300 hover:text-slate-800 text-4xl font-light transition-all leading-none">&times;</button>
                  </div>
 
-                 {/* Title & Category */}
                  <div>
                     <h2 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tighter">{selectedJobDetail.namaJob}</h2>
                     <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest">{selectedJobDetail.kategori || "Semua Non-IJEF"}</p>
                  </div>
 
-                 {/* 4-Grid Stats */}
                  <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">PREFEKTUR / DAERAH</p>
@@ -351,24 +376,21 @@ export default function JobManagementPage() {
                        <p className="text-[11px] font-black text-emerald-600 uppercase">{selectedJobDetail.jumlahKandidat || "1"} Orang Kandidat</p>
                     </div>
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
-                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">JENIS KELAMIN TARGET</p>
+                       <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">JENIS KELAMIN TARGET</p>
                        <p className="text-[11px] font-black text-slate-800 uppercase">{selectedJobDetail.jenisKelamin || "0"}</p>
                     </div>
                  </div>
 
-                 {/* TSK / Partner */}
                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">TSK / SUMBER JOB PARTNER</p>
                     <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">{selectedJobDetail.kumiaiPartner || "-"}</p>
                  </div>
 
-                 {/* Mitra Perusahaan */}
                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">MITRA PERUSAHAAN & KUMIAI</p>
                     <p className="text-[11px] font-black text-slate-800 uppercase">Mitra Perusahaan ({selectedJobDetail.perusahaan || "-"}) • TSK / Sumber: {selectedJobDetail.kumiaiPartner || "-"}</p>
                  </div>
 
-                 {/* Qualification Box (Yellow) */}
                  <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-amber-50 px-5 py-2.5 border-b border-amber-100">
                        <p className="text-[9px] font-black text-amber-700 uppercase">KUALIFIKASI PERSYARATAN</p>
@@ -376,7 +398,6 @@ export default function JobManagementPage() {
                     <div className="p-5"><p className="text-[11px] font-black text-amber-900 uppercase leading-relaxed">{selectedJobDetail.syaratKhusus || "-"}</p></div>
                  </div>
 
-                 {/* Costs Box (Blue) */}
                  <div className="bg-white border border-indigo-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-indigo-50 px-5 py-2.5 border-b border-indigo-100">
                        <p className="text-[9px] font-black text-indigo-700 uppercase">BIAYA PROSES & TANGGUNGAN</p>
@@ -384,7 +405,6 @@ export default function JobManagementPage() {
                     <div className="p-5"><p className="text-[11px] font-black text-indigo-900 uppercase leading-relaxed">{selectedJobDetail.biayaJob || "-"}</p></div>
                  </div>
 
-                 {/* Facilities Box (Green) */}
                  <div className="bg-white border border-emerald-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-emerald-50 px-5 py-2.5 border-b border-emerald-100">
                        <p className="text-[9px] font-black text-emerald-700 uppercase">FASILITAS ASRAMA & TUNJANGAN</p>
@@ -392,7 +412,6 @@ export default function JobManagementPage() {
                     <div className="p-5"><p className="text-[11px] font-black text-emerald-900 uppercase leading-relaxed">{selectedJobDetail.benefit || "-"}</p></div>
                  </div>
 
-                 {/* Additional Box (Grey) */}
                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-slate-50 px-5 py-2.5 border-b border-slate-100">
                        <p className="text-[9px] font-black text-slate-700 uppercase">KETERANGAN & CATATAN TAMBAHAN</p>
@@ -400,7 +419,6 @@ export default function JobManagementPage() {
                     <div className="p-5"><p className="text-[11px] font-black text-slate-800 uppercase leading-relaxed">{selectedJobDetail.keterangan || "-"}</p></div>
                  </div>
 
-                 {/* Summary Summary Box */}
                  <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 space-y-4">
                     <p className="text-[10px] font-black text-slate-400 uppercase border-b border-slate-200 pb-3 mb-4 tracking-widest">RINCIAN RINGKASAN LOWONGAN</p>
                     <div className="text-[11px] font-bold text-slate-600 space-y-2 uppercase leading-relaxed font-mono">
@@ -431,7 +449,7 @@ export default function JobManagementPage() {
         </div>
       )}
 
-      {/* ENTRY MODAL */}
+      {/* ENTRY MODAL - MATCHING SCREENSHOT */}
       {showModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn font-sans">
           <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-5xl overflow-hidden max-h-[95vh] flex flex-col">
