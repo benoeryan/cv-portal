@@ -126,7 +126,7 @@ export default function PartnerJobListPage() {
                         <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight">{j.lokasi || "Berbagai Prefektur di Jepang"}</span>
                      </div>
                      <div>
-                        <h3 className="font-black text-slate-800 text-lg uppercase leading-tight">{j.perusahaan || "---"}</h3>
+                        <h3 className="font-black text-slate-800 text-lg uppercase leading-tight">{j.namaJob || "---"}</h3>
                         <p className="text-[10px] font-bold text-slate-400 uppercase mt-1.5">{j.kategori || "Semua Non-IJEF"}</p>
                         {/* TSK HIDDEN FOR PARTNER */}
                      </div>
