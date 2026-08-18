@@ -127,7 +127,6 @@ export default function JobManagementPage() {
           biayaJob: getCell(8),
           keterangan: getCell(9),
           kumiaiPartner: getCell(10),
-          // System Fields
           bidang: "Umum",
           perusahaan: getCell(1, "-"),
           kategori: "SISWA NON IJEF : NEW COMER",
@@ -219,7 +218,7 @@ export default function JobManagementPage() {
                 <svg className={`w-5 h-5 ${importing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 {importing ? "SINKRONISASI..." : "SINKRON DATA SPREADSHEET"}
              </button>
-             <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white px-10 py-5 rounded-[2.5rem] font-black shadow-2xl hover:bg-indigo-600 transition-all uppercase text-[11px] tracking-widest active:scale-95">
+             <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white px-10 py-5 rounded-[2rem] font-black shadow-2xl hover:bg-indigo-600 transition-all uppercase text-[11px] tracking-widest active:scale-95">
                 + TAMBAH LOWONGAN
              </button>
            </div>
@@ -236,46 +235,45 @@ export default function JobManagementPage() {
            </div>
         </div>
 
-        {/* LISTING DATA VIEW - IMPROVED CONTRAST */}
         {viewMode === "table" ? (
           <div className="card overflow-hidden !p-0 border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[3.5rem] bg-white border-4 border-white">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white uppercase font-black text-[10px] tracking-[0.15em] text-center border-b-4 border-white">
-                    <th className="py-7 px-4">STATUS</th>
-                    <th className="py-7 px-4">KODE JOB</th>
-                    <th className="py-7 px-4 text-left">JUDUL PEKERJAAN (LIST JOB)</th>
-                    <th className="py-7 px-4">DAERAH</th>
-                    <th className="py-7 px-4">GENDER</th>
-                    <th className="py-7 px-4">GAJI</th>
-                    <th className="py-7 px-4">KUOTA</th>
-                    <th className="py-7 px-4 text-left">KUALIFIKASI</th>
-                    <th className="py-7 px-4">BIAYA PROSES</th>
-                    <th className="py-7 px-4">TSK / SUMBER</th>
-                    <th className="py-7 px-4">KETERANGAN</th>
-                    <th className="py-7 px-4">AKSI</th>
+                  <tr className="bg-slate-900 text-white uppercase font-black text-[13px] tracking-[0.15em] text-center border-b-4 border-white">
+                    <th className="py-8 px-4">STATUS</th>
+                    <th className="py-8 px-4">KODE JOB</th>
+                    <th className="py-8 px-4 text-left">JUDUL PEKERJAAN (LIST JOB)</th>
+                    <th className="py-8 px-4">DAERAH</th>
+                    <th className="py-8 px-4">GENDER</th>
+                    <th className="py-8 px-4">GAJI</th>
+                    <th className="py-8 px-4">KUOTA</th>
+                    <th className="py-8 px-4 text-left">KUALIFIKASI</th>
+                    <th className="py-8 px-4">BIAYA PROSES</th>
+                    <th className="py-8 px-4">TSK / SUMBER</th>
+                    <th className="py-8 px-4">KETERANGAN</th>
+                    <th className="py-8 px-4">AKSI</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredJobs.map((j) => (
                     <tr key={j.id} className="hover:bg-indigo-50/40 transition-all text-center group">
-                      <td className="py-7 px-4"><span className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase border-2 ${j.statusJob === 'Open' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{j.statusJob || "Aktif"}</span></td>
-                      <td className="py-7 px-4"><span className="bg-purple-100 text-purple-800 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase border border-purple-200 shadow-sm">{j.kodeJob || "-"}</span></td>
-                      <td className="py-7 px-4 text-left"><div className="font-black text-slate-950 text-[13px] uppercase leading-tight">{j.namaJob}</div><div className="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-wide">{j.kategori}</div></td>
-                      <td className="py-7 px-4"><span className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase border border-indigo-200">{j.lokasi}</span></td>
-                      <td className="py-7 px-4 text-[13px] font-black text-slate-900">{j.jenisKelamin?.charAt(0) || "P"}</td>
-                      <td className="py-7 px-4 text-[13px] font-black text-orange-700">{j.gaji || "-"}</td>
-                      <td className="py-7 px-4 text-[13px] font-black text-slate-950 whitespace-nowrap">{j.jumlahKandidat || "0"} Org</td>
-                      <td className="py-7 px-4 text-left"><div className="bg-amber-100/50 border-2 border-amber-200 rounded-xl px-4 py-2.5 text-[10px] font-black text-amber-900 line-clamp-1 max-w-[180px] shadow-sm italic">Kualifikasi: {j.syaratKhusus}</div></td>
-                      <td className="py-7 px-4 text-[11px] font-black text-slate-500">{j.biayaJob || "-"}</td>
-                      <td className="py-7 px-4 text-[11px] font-black text-slate-800">{j.kumiaiPartner || "-"}</td>
-                      <td className="py-7 px-4 text-[11px] font-black text-slate-400">{j.keterangan || "0"}</td>
-                      <td className="py-7 px-4">
-                        <div className="flex justify-center gap-2">
-                           <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="p-2.5 bg-blue-100 text-blue-800 rounded-xl border border-blue-200 hover:bg-blue-600 hover:text-white transition-all shadow-md active:scale-90" title="View Detail"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
-                           <button onClick={() => handleEdit(j)} className="p-2.5 bg-indigo-100 text-indigo-800 rounded-xl border border-indigo-200 hover:bg-indigo-600 hover:text-white transition-all shadow-md active:scale-90" title="Edit"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
-                           <button onClick={() => handleDelete(j.id)} className="p-2.5 bg-rose-100 text-rose-800 rounded-xl border border-rose-200 hover:bg-rose-600 hover:text-white transition-all shadow-md active:scale-90" title="Hapus"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                      <td className="py-8 px-4"><span className={`px-4 py-2 rounded-lg text-[11px] font-black uppercase border-2 ${j.statusJob === 'Open' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{j.statusJob || "Aktif"}</span></td>
+                      <td className="py-8 px-4"><span className="bg-purple-100 text-purple-800 px-4 py-2 rounded-lg text-[11px] font-black uppercase border border-purple-200 shadow-sm">{j.kodeJob || "-"}</span></td>
+                      <td className="py-8 px-4 text-left"><div className="font-black text-slate-950 text-[17px] uppercase leading-tight">{j.namaJob}</div><div className="text-[12px] text-slate-500 font-black mt-2 uppercase tracking-widest">{j.kategori}</div></td>
+                      <td className="py-8 px-4"><span className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-lg text-[11px] font-black uppercase border border-indigo-200">{j.lokasi}</span></td>
+                      <td className="py-8 px-4 text-[17px] font-black text-slate-900">{j.jenisKelamin?.charAt(0) || "P"}</td>
+                      <td className="py-8 px-4 text-[17px] font-black text-orange-700">{j.gaji || "-"}</td>
+                      <td className="py-8 px-4 text-[17px] font-black text-slate-950 whitespace-nowrap">{j.jumlahKandidat || "0"} Org</td>
+                      <td className="py-8 px-4 text-left"><div className="bg-amber-100/50 border-2 border-amber-200 rounded-xl px-5 py-3 text-[13px] font-black text-amber-950 line-clamp-1 max-w-[200px] shadow-sm italic">Kualifikasi: {j.syaratKhusus}</div></td>
+                      <td className="py-8 px-4 text-[14px] font-black text-slate-600">{j.biayaJob || "-"}</td>
+                      <td className="py-8 px-4 text-[14px] font-black text-slate-800">{j.kumiaiPartner || "-"}</td>
+                      <td className="py-8 px-4 text-[14px] font-black text-slate-500">{j.keterangan || "0"}</td>
+                      <td className="py-8 px-4">
+                        <div className="flex justify-center gap-3">
+                           <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="p-3.5 bg-blue-100 text-blue-800 rounded-xl border border-blue-200 hover:bg-blue-600 hover:text-white transition-all shadow-md active:scale-90" title="View Detail"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                           <button onClick={() => handleEdit(j)} className="p-3.5 bg-indigo-100 text-indigo-800 rounded-xl border border-indigo-200 hover:bg-indigo-600 hover:text-white transition-all shadow-md active:scale-90" title="Edit"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
+                           <button onClick={() => handleDelete(j.id)} className="p-3.5 bg-rose-100 text-rose-800 rounded-xl border border-rose-200 hover:bg-rose-600 hover:text-white transition-all shadow-md active:scale-90" title="Hapus"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </div>
                       </td>
                     </tr>
@@ -285,65 +283,59 @@ export default function JobManagementPage() {
             </div>
           </div>
         ) : (
-          /* CARD VIEW - BOLDER FONTS & CONTRAST */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          /* CARD VIEW - 4 CARDS PER ROW, LARGER FONTS & HIGH CONTRAST */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
              {filteredJobs.map((j) => (
                <div key={j.id} className="bg-white rounded-[3.5rem] shadow-2xl border-4 border-white hover:border-indigo-400 transition-all duration-500 overflow-hidden flex flex-col group relative">
-                  <div className="p-10 space-y-6">
+                  <div className="p-8 space-y-6">
                      <div className="flex justify-between items-start">
                         <div className="flex gap-2.5">
-                           <span className="bg-purple-100 text-purple-900 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase shadow-sm border border-purple-200">{j.kodeJob || "-"}</span>
-                           <span className="bg-emerald-100 text-emerald-900 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase shadow-sm border border-emerald-200">Aktif</span>
+                           <span className="bg-purple-100 text-purple-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm border border-purple-200">{j.kodeJob || "-"}</span>
+                           <span className="bg-emerald-100 text-emerald-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm border border-emerald-200">Aktif</span>
                         </div>
-                        <span className="bg-indigo-50 text-indigo-900 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100">{j.lokasi || "Berbagai Prefektur di Jepang"}</span>
+                        <span className="bg-indigo-50 text-indigo-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100">{j.lokasi || "Jepang"}</span>
                      </div>
 
                      <div>
-                        <h3 className="font-black text-slate-950 text-2xl uppercase leading-none tracking-tighter">{j.namaJob || "---"}</h3>
-                        <p className="text-[11px] font-black text-slate-400 uppercase mt-2 tracking-widest">{j.kategori || "Semua Non-IJEF"}</p>
-                        <p className="text-[11px] font-black text-slate-400 uppercase mt-0.5">TSK / Partner: {j.kumiaiPartner || "-"}</p>
+                        <h3 className="font-black text-slate-950 text-[21px] uppercase leading-tight tracking-tighter line-clamp-2 min-h-[3.5rem]">{j.namaJob || "---"}</h3>
+                        <p className="text-[12px] font-black text-slate-400 uppercase mt-2 tracking-widest">{j.kategori || "Semua Non-IJEF"}</p>
+                        <p className="text-[12px] font-black text-slate-400 uppercase mt-1">TSK / Partner: {j.kumiaiPartner || "-"}</p>
                      </div>
 
-                     <div className="bg-slate-100/50 rounded-[2rem] p-7 space-y-5 border-2 border-slate-50 shadow-inner">
-                        <div className="flex justify-between items-center text-[12px] font-black uppercase">
-                           <span className="text-slate-400 tracking-widest">GAJI:</span>
-                           <span className="text-orange-700 text-right text-base">{j.gaji || "-"}</span>
+                     <div className="bg-slate-100/60 rounded-[2rem] p-7 space-y-5 border-2 border-slate-50 shadow-inner">
+                        <div className="flex justify-between items-center text-[14px] font-black uppercase">
+                           <span className="text-slate-400 tracking-tighter">GAJI:</span>
+                           <span className="text-orange-700 text-right text-[17px]">{j.gaji || "-"}</span>
                         </div>
-                        <div className="flex justify-between items-center text-[12px] font-black uppercase">
-                           <span className="text-slate-400 tracking-widest">GENDER & KUOTA:</span>
+                        <div className="flex justify-between items-center text-[14px] font-black uppercase">
+                           <span className="text-slate-400 tracking-tighter">KUOTA:</span>
                            <span className="text-slate-950 text-right">{j.jenisKelamin?.charAt(0) || "P"} • {j.jumlahKandidat || "0"} ORG</span>
                         </div>
-                        <div className="flex justify-between items-center text-[12px] font-black uppercase">
-                           <span className="text-slate-400 tracking-widest">BIAYA PROSES:</span>
+                        <div className="flex justify-between items-center text-[14px] font-black uppercase">
+                           <span className="text-slate-400 tracking-tighter">BIAYA:</span>
                            <span className="text-indigo-800 text-right">{j.biayaJob || "-"}</span>
                         </div>
                      </div>
 
                      <div className="bg-amber-100/40 border-2 border-amber-200/50 rounded-2xl p-5">
-                        <p className="text-[9px] font-black text-amber-600 uppercase tracking-[0.25em] mb-2">Kualifikasi:</p>
-                        <p className="text-[11px] font-black text-amber-950 line-clamp-1 italic">"{j.syaratKhusus || "-"}"</p>
+                        <p className="text-[9px] font-black text-amber-600 uppercase tracking-[0.2em] mb-2">Kualifikasi:</p>
+                        <p className="text-[12px] font-black text-amber-950 line-clamp-1 italic">"{j.syaratKhusus || "-"}"</p>
                      </div>
 
-                     <div className="bg-slate-100/50 border-2 border-slate-200/50 rounded-2xl p-5">
-                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] mb-2">Keterangan:</p>
-                        <p className="text-[11px] font-black text-slate-900 line-clamp-1">{j.keterangan || "-"}</p>
+                     <div className="bg-slate-100 border-2 border-slate-200/50 rounded-2xl p-5">
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Keterangan:</p>
+                        <p className="text-[12px] font-black text-slate-900 line-clamp-1">{j.keterangan || "-"}</p>
                      </div>
                   </div>
 
-                  <div className="px-10 py-7 bg-slate-50 border-t-2 border-slate-100 flex justify-between items-center">
-                     <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="flex items-center gap-2 text-indigo-700 font-black text-[11px] uppercase tracking-[0.2em] hover:text-indigo-900">
+                  <div className="px-10 py-7 bg-slate-50 border-t-2 border-slate-100 flex justify-between items-center mt-auto">
+                     <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="flex items-center gap-2 text-indigo-700 font-black text-[12px] uppercase tracking-widest hover:text-indigo-950 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        LIHAT DETAIL
+                        DETAIL
                      </button>
                      <div className="flex gap-6">
-                        <button onClick={() => handleEdit(j)} className="flex items-center gap-1.5 text-purple-700 font-black text-[11px] uppercase tracking-widest hover:scale-110 transition-transform">
-                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                           EDIT
-                        </button>
-                        <button onClick={() => handleDelete(j.id)} className="flex items-center gap-1.5 text-rose-600 font-black text-[11px] uppercase tracking-widest hover:scale-110 transition-transform">
-                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                           HAPUS
-                        </button>
+                        <button onClick={() => handleEdit(j)} className="text-purple-700 font-black text-[12px] uppercase tracking-tighter hover:scale-110 transition-transform">EDIT</button>
+                        <button onClick={() => handleDelete(j.id)} className="text-rose-600 font-black text-[12px] uppercase tracking-tighter hover:scale-110 transition-transform">HAPUS</button>
                      </div>
                   </div>
                </div>
@@ -457,7 +449,6 @@ export default function JobManagementPage() {
         </div>
       )}
 
-      {/* ENTRY MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn font-sans">
           <div className="bg-white rounded-[3.5rem] shadow-2xl w-full max-w-5xl overflow-hidden max-h-[95vh] flex flex-col border-8 border-white">
