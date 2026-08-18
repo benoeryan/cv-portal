@@ -199,31 +199,31 @@ export default function PartnerJobListPage() {
                     <div className="bg-slate-50 px-6 py-3 border-b-2 border-slate-200"><p className="text-[9px] font-black text-slate-700 uppercase tracking-widest">KETERANGAN & CATATAN TAMBAHAN</p></div>
                     <div className="p-6"><p className="text-[13px] font-black text-slate-800 uppercase leading-relaxed">{selectedJob.keterangan || "-"}</p></div>
                  </div>
-                 <div className="bg-slate-950 p-10 rounded-[3rem] border-4 border-slate-800 space-y-6 shadow-2xl">
-                    <p className="text-[12px] font-black text-slate-500 uppercase border-b-2 border-slate-800 pb-4 mb-6 tracking-[0.3em]">RINCIAN RINGKASAN LOWONGAN</p>
-                    <div className="text-[12px] font-bold text-slate-200 space-y-3 uppercase leading-relaxed font-mono">
-                       <p className="text-indigo-400">📌 DETAIL LOWONGAN PEKERJAAN</p>
-                       <p>• POSISI / LIST JOB: <span className="text-white">{selectedJob.namaJob}</span></p>
-                       <p>• KODE JOB: <span className="text-white">{selectedJob.kodeJob || "0"}</span></p>
-                       <p>• KATEGORI TARGET: <span className="text-white">{selectedJob.kategori}</span></p>
-                       <p>• LOKASI / PREFEKTUR: <span className="text-white">{selectedJob.lokasi}</span></p>
-                       <p>• TARGET GENDER: <span className="text-white">{selectedJob.jenisKelamin}</span></p>
-                       <p>• STANDAR GAJI: <span className="text-white">{selectedJob.gaji}</span></p>
-                       <p>• KUOTA PENERIMAAN: <span className="text-white">{selectedJob.jumlahKandidat} ORANG CANDIDATE</span></p>
-                       <p className="mt-8 text-indigo-400 font-black">📑 KUALIFIKASI & PERSYARATAN:</p>
-                       <p className="normal-case font-medium text-slate-300 italic">{selectedJob.syaratKhusus}</p>
-                       <p className="mt-6 text-indigo-400 font-black">💰 BIAYA PROSES & TANGGUNGAN:</p>
-                       <p className="normal-case font-medium text-slate-300 italic">{selectedJob.biayaJob || "-"}</p>
-                       <p className="mt-6 text-indigo-400 font-black">🏢 FASILITAS & ASRAMA:</p>
-                       <p className="normal-case font-medium text-slate-300 italic">{selectedJob.benefit}</p>
-                       <p className="mt-6 text-indigo-400 font-black">ℹ️ KETERANGAN TAMBAHAN:</p>
-                       <p className="normal-case font-medium text-slate-300 italic">{selectedJob.keterangan}</p>
+                 <div className="bg-slate-50 p-10 rounded-[3rem] border-4 border-slate-100 space-y-6 shadow-inner">
+                    <p className="text-[12px] font-black text-slate-400 uppercase border-b-2 border-slate-100 pb-4 mb-6 tracking-[0.3em]">RINCIAN RINGKASAN LOWONGAN</p>
+                    <div className="text-[12px] font-bold text-slate-600 space-y-3 uppercase leading-relaxed font-mono">
+                       <p className="text-indigo-600">📌 DETAIL LOWONGAN PEKERJAAN</p>
+                       <p>• POSISI / LIST JOB: <span className="text-slate-900">{selectedJob.namaJob}</span></p>
+                       <p>• KODE JOB: <span className="text-slate-900">{selectedJob.kodeJob || "0"}</span></p>
+                       <p>• KATEGORI TARGET: <span className="text-slate-900">{selectedJob.kategori}</span></p>
+                       <p>• LOKASI / PREFEKTUR: <span className="text-slate-900">{selectedJob.lokasi}</span></p>
+                       <p>• TARGET GENDER: <span className="text-slate-900">{selectedJob.jenisKelamin}</span></p>
+                       <p>• STANDAR GAJI: <span className="text-slate-900">{selectedJob.gaji}</span></p>
+                       <p>• KUOTA PENERIMAAN: <span className="text-slate-900">{selectedJob.jumlahKandidat} ORANG CANDIDATE</span></p>
+                       <p className="mt-8 text-indigo-600 font-black">📑 KUALIFIKASI & PERSYARATAN:</p>
+                       <p className="normal-case font-medium text-slate-700 italic">{selectedJob.syaratKhusus}</p>
+                       <p className="mt-6 text-indigo-600 font-black">💰 BIAYA PROSES & TANGGUNGAN:</p>
+                       <p className="normal-case font-medium text-slate-700 italic">{selectedJob.biayaJob || "-"}</p>
+                       <p className="mt-6 text-indigo-600 font-black">🏢 FASILITAS & ASRAMA:</p>
+                       <p className="normal-case font-medium text-slate-700 italic">{selectedJob.benefit}</p>
+                       <p className="mt-6 text-indigo-600 font-black">ℹ️ KETERANGAN TAMBAHAN:</p>
+                       <p className="normal-case font-medium text-slate-700 italic">{selectedJob.keterangan}</p>
                     </div>
                  </div>
               </div>
               <div className="px-12 py-8 bg-slate-50 border-t border-slate-100 flex justify-between">
                  <button onClick={() => router.push(`/candidate/form?jobCode=${selectedJob.kodeJob}`)} className="bg-emerald-600 text-white px-12 py-5 rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all">DAFTARKAN SISWA SEKARANG →</button>
-                 <button onClick={() => setShowDetailModal(false)} className="bg-[#0F172A] text-white px-12 py-5 rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all">Tutup Detail</button>
+                 <button onClick={() => setShowDetailModal(false)} className="bg-indigo-600 text-white px-12 py-5 rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all">Tutup Detail</button>
               </div>
            </div>
         </div>
