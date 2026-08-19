@@ -95,7 +95,9 @@ function CandidatesContent() {
     const matchBidang = !filterBidang || c.bidangKerja === filterBidang;
     const matchKategori = !filterKategori || c.kategoriKandidat === filterKategori;
     const matchStatus = !filterStatus || c.statusProgres === filterStatus;
-    const matchGender = !filterGender || c.jenisKelamin === filterGender;
+    const matchGender = !filterGender ||
+      (filterGender === "LAKI-LAKI" && (c.jenisKelamin?.toUpperCase().includes("LAKI") || c.jenisKelamin?.toUpperCase().includes("PRIA"))) ||
+      (filterGender === "PEREMPUAN" && (c.jenisKelamin?.toUpperCase().includes("PEREMPUAN") || c.jenisKelamin?.toUpperCase().includes("WANITA")));
     const matchDate = !filterDate || (c.submittedAt && c.submittedAt.startsWith(filterDate));
     return matchSearch && matchBidang && matchKategori && matchStatus && matchGender && matchDate;
   });
@@ -403,23 +405,6 @@ function CandidatesContent() {
           </div>
         )}
 
-        {/* Dashboard Gender & Status Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-           <div className="card p-4 bg-blue-600 text-white rounded-2xl shadow-lg flex justify-between items-center">
-              <div>
-                 <p className="text-[10px] font-black uppercase opacity-60">Pria (Laki-laki)</p>
-                 <h3 className="text-3xl font-black">{candidates.filter(c => c.jenisKelamin === 'LAKI-LAKI').length}</h3>
-              </div>
-              <div className="p-3 bg-white/20 rounded-xl"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 00-1 1v1.172A2.992 2.992 0 007.5 4a3 3 0 00-3 3v2a3 3 0 003 3 2.991 2.991 0 001.5.172V14a1 1 0 102 0v-1.828a2.991 2.991 0 001.5-.172A3 3 0 0015.5 9V7a3 3 0 00-3-3 2.992 2.992 0 00-1.5.172V3a1 1 0 00-1-1z" /></svg></div>
-           </div>
-           <div className="card p-4 bg-rose-500 text-white rounded-2xl shadow-lg flex justify-between items-center">
-              <div>
-                 <p className="text-[10px] font-black uppercase opacity-60">Wanita (Perempuan)</p>
-                 <h3 className="text-3xl font-black">{candidates.filter(c => c.jenisKelamin === 'PEREMPUAN').length}</h3>
-              </div>
-              <div className="p-3 bg-white/20 rounded-xl"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 00-1 1v1.172A2.992 2.992 0 007.5 4a3 3 0 00-3 3v2a3 3 0 003 3 2.991 2.991 0 001.5.172V14a1 1 0 102 0v-1.828a2.991 2.991 0 001.5-.172A3 3 0 0015.5 9V7a3 3 0 00-3-3 2.992 2.992 0 00-1.5.172V3a1 1 0 00-1-1z" /></svg></div>
-           </div>
-        </div>
 
         {/* Filters */}
         <div className="card mb-6 p-4 sm:p-6">
@@ -518,7 +503,18 @@ function CandidatesContent() {
                       </td>
                       <td className="py-3 px-2">
                         <div className="font-medium text-gray-800 line-clamp-2">{c.namaLengkap}</div>
-                        <div className="text-xs text-gray-400">{c.namaPanggilan}</div>
+                        <div className="text-xs text-gray-400 flex items-center gap-2">
+                           <span>{c.namaPanggilan}</span>
+                           {c.jenisKelamin && (
+                             <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${
+                               (c.jenisKelamin.toUpperCase().includes("LAKI") || c.jenisKelamin.toUpperCase().includes("PRIA"))
+                               ? "bg-blue-100 text-blue-700"
+                               : "bg-rose-100 text-rose-700"
+                             }`}>
+                               {(c.jenisKelamin.toUpperCase().includes("LAKI") || c.jenisKelamin.toUpperCase().includes("PRIA")) ? "♂ Laki-laki" : "♀ Perempuan"}
+                             </span>
+                           )}
+                        </div>
                       </td>
                       <td className="py-3 px-1">
                         <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] whitespace-nowrap">{c.bidangKerja}</span>
