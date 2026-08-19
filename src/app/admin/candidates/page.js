@@ -478,6 +478,7 @@ function CandidatesContent() {
                   </th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Foto</th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Nama Lengkap</th>
+                  <th className="text-left py-3 px-2 font-medium text-gray-600">Jenis Kelamin</th>
                   <th className="text-left py-3 px-1 font-medium text-gray-600">Bidang</th>
                   <th className="text-left py-3 px-1 font-medium text-gray-600">Kategori</th>
                   <th className="text-left py-3 px-2 font-medium text-gray-600">Kode Job</th>
@@ -503,18 +504,12 @@ function CandidatesContent() {
                       </td>
                       <td className="py-3 px-2">
                         <div className="font-medium text-gray-800 line-clamp-2">{c.namaLengkap}</div>
-                        <div className="text-xs text-gray-400 flex items-center gap-2">
-                           <span>{c.namaPanggilan}</span>
-                           {c.jenisKelamin && (
-                             <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${
-                               (c.jenisKelamin.toUpperCase().includes("LAKI") || c.jenisKelamin.toUpperCase().includes("PRIA"))
-                               ? "bg-blue-100 text-blue-700"
-                               : "bg-rose-100 text-rose-700"
-                             }`}>
-                               {(c.jenisKelamin.toUpperCase().includes("LAKI") || c.jenisKelamin.toUpperCase().includes("PRIA")) ? "♂ Laki-laki" : "♀ Perempuan"}
-                             </span>
-                           )}
-                        </div>
+                        <div className="text-xs text-gray-400">{c.namaPanggilan}</div>
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className="text-xs font-bold text-gray-600 uppercase tracking-tighter">
+                          {(c.jenisKelamin?.toUpperCase().includes("LAKI") || c.jenisKelamin?.toUpperCase().includes("PRIA")) ? "LAKI-LAKI" : "PEREMPUAN"}
+                        </span>
                       </td>
                       <td className="py-3 px-1">
                         <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] whitespace-nowrap">{c.bidangKerja}</span>
