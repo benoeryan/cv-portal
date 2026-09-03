@@ -206,6 +206,19 @@ export default function CandidateFormPage() {
 
   const loadExistingData = async () => {
     try {
+      const localDraft = localStorage.getItem(`candidate_form_draft_${user.uid}`);
+      if (localDraft) {
+        try {
+          const parsedDraft = JSON.parse(localDraft);
+          if (parsedDraft && typeof parsedDraft === 'object') {
+            setFormData((prev) => ({ ...prev, ...parsedDraft }));
+            return;
+          }
+        } catch (e) {
+          console.error("Error parsing local draft:", e);
+        }
+      }
+
       const docRef = doc(db, "candidates", user.uid);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
@@ -216,6 +229,17 @@ export default function CandidateFormPage() {
       console.error("Error loading data:", err);
     }
   };
+
+  // Auto-save draft to localStorage on formData change
+  useEffect(() => {
+    if (user && formData) {
+      try {
+        localStorage.setItem(`candidate_form_draft_${user.uid}`, JSON.stringify(formData));
+      } catch (err) {
+        console.error("Error saving draft to localStorage:", err);
+      }
+    }
+  }, [formData, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -366,6 +390,9 @@ export default function CandidateFormPage() {
         submittedAt: new Date().toISOString(),
       });
       setSaved(true);
+      try {
+        localStorage.removeItem(`candidate_form_draft_${user.uid}`);
+      } catch (e) {}
       // Redirect to status page after successful save
       setTimeout(() => {
         router.push("/candidate/status");
