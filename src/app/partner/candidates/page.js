@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, addDoc, query, where, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
-import DriveImage from "@/components/DriveImage";
+import DriveImage, { safeText } from "@/components/DriveImage";
 
 export default function PartnerCandidateSearchPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -176,8 +176,8 @@ export default function PartnerCandidateSearchPage() {
                     <DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top p-1" />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
                     <div className="absolute bottom-8 left-8 right-8 text-white">
-                       <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
-                       <h3 className="text-lg font-black uppercase leading-tight tracking-tighter drop-shadow-2xl">{c.namaLengkap}</h3>
+                       <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{safeText(c.bidangKerja)}</span>
+                       <h3 className="text-lg font-black uppercase leading-tight tracking-tighter drop-shadow-2xl">{safeText(c.namaLengkap)}</h3>
                     </div>
                  </div>
                  <div className="p-8 space-y-6 flex-grow flex flex-col justify-between">
@@ -209,9 +209,9 @@ export default function PartnerCandidateSearchPage() {
                  <DriveImage url={selectedStudent.pasPhoto} alt={selectedStudent.namaLengkap} size="w-full h-full" className="object-cover object-top" />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
                  <div className="absolute bottom-12 left-12 right-12 text-white">
-                    <span className="text-xs font-black text-purple-400 uppercase tracking-[0.4em]">{selectedStudent.bidangKerja}</span>
-                    <h2 className="text-5xl font-black uppercase leading-none tracking-tighter mt-2">{selectedStudent.namaLengkap}</h2>
-                    <p className="text-xl font-bold opacity-60 uppercase tracking-widest italic pt-3">"{selectedStudent.namaPanggilan}"</p>
+                    <span className="text-xs font-black text-purple-400 uppercase tracking-[0.4em]">{safeText(selectedStudent.bidangKerja)}</span>
+                    <h2 className="text-5xl font-black uppercase leading-none tracking-tighter mt-2">{safeText(selectedStudent.namaLengkap)}</h2>
+                    <p className="text-xl font-bold opacity-60 uppercase tracking-widest italic pt-3">"{safeText(selectedStudent.namaPanggilan, "")}"</p>
                  </div>
                  <button onClick={() => setShowDetailModal(false)} className="absolute top-10 right-10 w-14 h-14 bg-white/20 backdrop-blur-md rounded-full text-white text-4xl font-light hover:bg-white/40 transition-all flex items-center justify-center">&times;</button>
               </div>

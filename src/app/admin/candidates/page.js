@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { translateToJapanese } from "@/lib/translateHelper";
 import Navbar from "@/components/Navbar";
-import DriveImage from "@/components/DriveImage";
+import DriveImage, { safeText } from "@/components/DriveImage";
 import Link from "next/link";
 
 function CandidatesContent() {
@@ -503,8 +503,8 @@ function CandidatesContent() {
                         <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} />
                       </td>
                       <td className="py-3 px-2">
-                        <div className="font-medium text-gray-800 line-clamp-2">{c.namaLengkap}</div>
-                        <div className="text-xs text-gray-400">{c.namaPanggilan}</div>
+                        <div className="font-medium text-gray-800 line-clamp-2">{safeText(c.namaLengkap)}</div>
+                        <div className="text-xs text-gray-400">{safeText(c.namaPanggilan, "")}</div>
                       </td>
                       <td className="py-3 px-2">
                         <span className="text-xs font-bold text-gray-600 uppercase tracking-tighter">
@@ -596,8 +596,8 @@ function CandidatesContent() {
                   <div className="flex-grow min-w-0">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-bold text-gray-800 text-sm sm:text-base truncate leading-tight">{c.namaLengkap}</h3>
-                        <p className="text-xs text-gray-400">{c.namaPanggilan}</p>
+                        <h3 className="font-bold text-gray-800 text-sm sm:text-base truncate leading-tight">{safeText(c.namaLengkap)}</h3>
+                        <p className="text-xs text-gray-400">{safeText(c.namaPanggilan, "")}</p>
                       </div>
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
                         c.statusProgres === "Nihongo check" ? "bg-indigo-100 text-indigo-700" :
@@ -672,7 +672,7 @@ function CandidatesContent() {
             <h3 className="text-lg font-bold text-red-600 mb-2">Konfirmasi Hapus</h3>
             <p className="text-sm text-gray-600 mb-4">
               {deleteTarget
-                ? `Apakah Anda yakin ingin menghapus data "${deleteTarget.namaLengkap}"?`
+                ? `Apakah Anda yakin ingin menghapus data "${safeText(deleteTarget.namaLengkap)}"?`
                 : `Apakah Anda yakin ingin menghapus ${selected.length} data kandidat?`
               }
             </p>
