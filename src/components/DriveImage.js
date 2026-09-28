@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-// Convert Google Drive sharing link or extract direct URL from various formats/objects
+// Convert Google Drive sharing link to direct image URL without breaking Firebase Storage or direct URLs
 export function getDriveImageUrl(url, size = 1000) {
   if (!url) return null;
   if (Array.isArray(url)) {
@@ -17,19 +17,21 @@ export function getDriveImageUrl(url, size = 1000) {
   }
   if (typeof targetUrl !== 'string') return null;
 
-  // Extract file ID from various Google Drive URL formats
-  const patterns = [
-    /\/open\?id=([a-zA-Z0-9_-]+)/,
-    /\/file\/d\/([a-zA-Z0-9_-]+)/,
-    /id=([a-zA-Z0-9_-]+)/,
-    /uc\?id=([a-zA-Z0-9_-]+)/,
-  ];
-  for (const pattern of patterns) {
-    const match = targetUrl.match(pattern);
-    if (match) {
-      return `https://lh3.googleusercontent.com/d/${match[1]}=s${size}`;
+  // Only convert Google Drive URLs
+  if (targetUrl.includes('drive.google.com') || targetUrl.includes('docs.google.com')) {
+    const patterns = [
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,
+      /\/open\?id=([a-zA-Z0-9_-]+)/,
+      /[?&]id=([a-zA-Z0-9_-]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = targetUrl.match(pattern);
+      if (match) {
+        return `https://lh3.googleusercontent.com/d/${match[1]}=s${size}`;
+      }
     }
   }
+
   return targetUrl;
 }
 
