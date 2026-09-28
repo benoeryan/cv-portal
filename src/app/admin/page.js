@@ -308,7 +308,7 @@ export default function AdminDashboard() {
                     <tr key={c.id} className="hover:bg-slate-50 transition-all cursor-default">
                       <td className="py-5 px-8">
                         <div className="flex items-center gap-5">
-                           <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
+                           <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
                            <div><h4 className="text-sm font-black text-slate-900 uppercase">{safeText(c.namaLengkap)}</h4><p className="text-[10px] text-slate-400 font-bold uppercase mt-2">{safeText(c.namaPanggilan, "")} • {safeText(c.bidangKerja, "")}</p></div>
                         </div>
                       </td>

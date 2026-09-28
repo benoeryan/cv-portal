@@ -1,12 +1,19 @@
 "use client";
 import { useState } from "react";
 
-// Convert Google Drive sharing link to direct image URL
+// Convert Google Drive sharing link or extract direct URL from various formats/objects
 export function getDriveImageUrl(url, size = 1000) {
   if (!url) return null;
+  if (Array.isArray(url)) {
+    for (const u of url) {
+      const res = getDriveImageUrl(u, size);
+      if (res) return res;
+    }
+    return null;
+  }
   let targetUrl = url;
   if (typeof url === 'object') {
-    targetUrl = url.url || url.pasPhoto || url.path || "";
+    targetUrl = url.url || url.pasPhoto || url.sertifikatBahasaJepang || url.fotoKtp || url.foto || url.path || url.firebaseUrl || url.downloadURL || "";
   }
   if (typeof targetUrl !== 'string') return null;
 
