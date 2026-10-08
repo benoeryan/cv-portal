@@ -500,7 +500,7 @@ function CandidatesContent() {
                         <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="rounded" />
                       </td>
                       <td className="py-3 px-2">
-                        <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} />
+                        <DriveImage url={c.pasPhoto || c.foto || c.pasFoto || c.photo || c.urlFoto || c.linkFoto || c.pasPhoto3x4 || c.foto3x4} alt={c.namaLengkap} />
                       </td>
                       <td className="py-3 px-2">
                         <div className="font-medium text-gray-800 line-clamp-2">{safeText(c.namaLengkap)}</div>
@@ -586,7 +586,7 @@ function CandidatesContent() {
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 relative">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100">
-                      <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang} alt={c.namaLengkap} />
+                      <DriveImage url={c.pasPhoto || c.foto || c.pasFoto || c.photo || c.urlFoto || c.linkFoto || c.pasPhoto3x4 || c.foto3x4} alt={c.namaLengkap} />
                     </div>
                     <div className="absolute -top-2 -left-2">
                       <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="w-5 h-5 rounded" />

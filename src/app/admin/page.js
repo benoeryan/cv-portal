@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import DriveImage, { safeText } from "@/components/DriveImage";
+import DriveImage from "@/components/DriveImage";
 
 export default function AdminDashboard() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -308,8 +308,8 @@ export default function AdminDashboard() {
                     <tr key={c.id} className="hover:bg-slate-50 transition-all cursor-default">
                       <td className="py-5 px-8">
                         <div className="flex items-center gap-5">
-                           <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
-                           <div><h4 className="text-sm font-black text-slate-900 uppercase">{safeText(c.namaLengkap)}</h4><p className="text-[10px] text-slate-400 font-bold uppercase mt-2">{safeText(c.namaPanggilan, "")} • {safeText(c.bidangKerja, "")}</p></div>
+                           <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={c.pasPhoto} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
+                           <div><h4 className="text-sm font-black text-slate-900 uppercase">{c.namaLengkap}</h4><p className="text-[10px] text-slate-400 font-bold uppercase mt-2">{c.namaPanggilan} • {c.bidangKerja}</p></div>
                         </div>
                       </td>
                       <td className="py-5 px-8 text-center"><span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase border ${config.bg} ${config.text} ${config.border}`}>{c.statusProgres || "BELUM ADA"}</span></td>

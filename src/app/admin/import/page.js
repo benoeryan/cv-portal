@@ -125,7 +125,7 @@ function getFieldDefinitions() {
     "Nomor Paspor": ["nomor paspor", "no paspor", "no. paspor"],
     "Masa Berlaku Paspor": ["masa berlaku paspor", "berlaku paspor", "expired paspor"],
     "Memiliki SIM": ["apakah memiliki sim", "memiliki sim", "sim"],
-    "Pas Photo": ["pas photo 3x4", "pas foto", "pas photo", "photo", "foto 3x4", "pas foto 3x4"],
+    "Pas Photo": ["pas photo 3x4", "pas foto", "pas photo", "photo", "foto 3x4", "pas foto 3x4", "foto", "pasfoto", "link foto", "url foto", "drive foto", "foto kandidate", "foto kandidat", "foto siswa", "pas photo 3 x 4", "pas foto 3 x 4", "link pas photo", "link pas foto", "pasphoto"],
     "Sertifikat Bahasa Jepang": ["sertifikat bahasa jepang", "sertifikat jlpt", "sertifikat nat"],
     "Video JFT": ["video screen recording jft", "video jft", "screen recording jft"],
     "Sertifikat SSW": ["sertifikat ssw", "sertifikat ssw / senmonkyu", "sertifikat ssw/senmonkyu"],
@@ -812,7 +812,7 @@ function parseRow(headers, values) {
     namaPemilikDarurat: get("NOMOR DARURAT : NAMA LENGKAP PEMILIK NOMOR HP", "NAMA LENGKAP PEMILIK NOMOR DARURAT", "NAMA PEMILIK NOMOR DARURAT", "NAMA KONTAK DARURAT"),
     hubunganDarurat: get("NOMOR DARURAT : HUBUNGAN DENGAN PELAMAR", "HUBUNGAN DENGAN PELAMAR", "HUBUNGAN DARURAT"),
     // Documents
-    pasPhoto: get("PAS PHOTO 3X4", "PAS FOTO", "PAS PHOTO", "PHOTO", "FOTO 3X4", "PAS FOTO 3X4"),
+    pasPhoto: get("PAS PHOTO 3X4", "PAS FOTO", "PAS PHOTO", "PHOTO", "FOTO 3X4", "PAS FOTO 3X4", "FOTO", "PASFOTO", "LINK FOTO", "URL FOTO", "DRIVE FOTO", "PAS PHOTO 3 X 4", "PAS FOTO 3 X 4", "LINK PAS PHOTO", "LINK PAS FOTO", "PASPHOTO"),
     sertifikatBahasaJepang: get("SERTIFIKAT BAHASA JEPANG", "SERTIFIKAT JLPT", "SERTIFIKAT NAT"),
     videoJFT: get("VIDEO SCREEN RECORDING JFT", "VIDEO JFT", "SCREEN RECORDING JFT"),
     sertifikatSSW: get("SERTIFIKAT SSW", "SERTIFIKAT SSW / SENMONKYU", "SERTIFIKAT SSW/SENMONKYU"),
