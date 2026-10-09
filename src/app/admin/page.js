@@ -8,6 +8,15 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import DriveImage from "@/components/DriveImage";
 
+function safeText(val, fallback = "-") {
+  if (!val) return fallback;
+  if (typeof val === "string") return val;
+  if (typeof val === "object") {
+    return val.namaLengkap || val.nama || val.name || val.text || JSON.stringify(val);
+  }
+  return String(val);
+}
+
 export default function AdminDashboard() {
   const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();

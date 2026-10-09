@@ -6,8 +6,17 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { translateToJapanese } from "@/lib/translateHelper";
 import Navbar from "@/components/Navbar";
-import DriveImage, { safeText } from "@/components/DriveImage";
+import DriveImage from "@/components/DriveImage";
 import Link from "next/link";
+
+function safeText(val, fallback = "-") {
+  if (!val) return fallback;
+  if (typeof val === "string") return val;
+  if (typeof val === "object") {
+    return val.namaLengkap || val.nama || val.name || val.text || JSON.stringify(val);
+  }
+  return String(val);
+}
 
 function CandidatesContent() {
   const { user, userData, loading: authLoading } = useAuth();
