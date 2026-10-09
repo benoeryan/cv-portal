@@ -649,95 +649,11 @@ function CandidatesContent() {
             </table>
           </div>
         </div>
+      )}
 
-        {/* Mobile/Tablet Card View */}
-        <div className="lg:hidden space-y-4">
-          {filtered.map((c) => {
-            const submitDate = c.submittedAt ? new Date(c.submittedAt) : null;
-            const isValidDate = submitDate && !isNaN(submitDate);
-
-            return (
-              <div key={c.id} className={`card p-4 relative ${selected.includes(c.id) ? "border-blue-500 ring-1 ring-blue-500" : ""}`}>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 relative">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-gray-100">
-                      <DriveImage url={c.pasPhoto || c.foto || c.pasFoto || c.photo || c.urlFoto || c.linkFoto || c.pasPhoto3x4 || c.foto3x4} alt={c.namaLengkap} />
-                    </div>
-                    <div className="absolute -top-2 -left-2">
-                      <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="w-5 h-5 rounded" />
-                    </div>
-                  </div>
-
-                  <div className="flex-grow min-w-0">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-gray-800 text-sm sm:text-base truncate leading-tight">{safeText(c.namaLengkap)}</h3>
-                        <p className="text-xs text-gray-400">{safeText(c.namaPanggilan, "")}</p>
-                      </div>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                        c.statusProgres === "Nihongo check" ? "bg-indigo-100 text-indigo-700" :
-                        c.statusProgres === "Belum Lolos Nihongo check" ? "bg-gray-200 text-gray-700" :
-                        c.statusProgres === "Pending Nunggu Job" ? "bg-amber-100 text-amber-700" :
-                        c.statusProgres === "Penjadwalan Interview" ? "bg-violet-100 text-violet-700" :
-                        c.statusProgres === "On Proses" ? "bg-sky-100 text-sky-700" :
-                        c.statusProgres === "Tidak Lolos Interview" ? "bg-orange-100 text-orange-700" :
-                        c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-100 text-emerald-700" :
-                        c.statusProgres === "Cancel" ? "bg-rose-100 text-rose-700" :
-                        "bg-gray-100 text-gray-600"
-                      }`}>
-                        {c.statusProgres || "NEW"}
-                      </span>
-                    </div>
-
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-medium">{c.bidangKerja}</span>
-                      <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded text-[10px] font-medium">{c.kodeJob || "-"}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-gray-50 grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <p className="text-gray-400 text-[10px] font-medium uppercase">Kategori</p>
-                    <p className="font-semibold text-gray-700">{c.kategoriKandidat}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-[10px] font-medium uppercase text-right">Tanggal Submit</p>
-                    <p className="font-semibold text-gray-700 text-right">
-                      {isValidDate ? submitDate.toLocaleDateString('id-ID') : "-"}
-                      {isValidDate && (new Date() - submitDate) < 24 * 60 * 60 * 1000 && (
-                        <span className="ml-1 text-[8px] text-red-500 font-bold">BARU</span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-gray-400 text-[10px] font-medium uppercase">No HP</p>
-                    <p className="font-semibold text-gray-700">{c.noHp}</p>
-                  </div>
-                  {c.namaTsk && (
-                    <div className="col-span-2 bg-gray-50 p-2 rounded">
-                      <p className="text-[10px] text-gray-500">TSK: <span className="text-gray-800 font-medium">{c.namaTsk}</span></p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                  <Link href={`/admin/cv/${c.id}`} className="flex-1 bg-blue-50 text-blue-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-blue-100 transition-colors">Lihat CV</Link>
-                  {(userData?.role === "admin" || userData?.role === "approval") && (
-                    <Link href={`/admin/edit/${c.id}`} className="flex-1 bg-green-50 text-green-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-green-100 transition-colors">Edit</Link>
-                  )}
-                  {userData?.role === "admin" && (
-                    <button onClick={() => handleDeleteSingle(c)} className="flex-1 bg-red-50 text-red-600 text-center py-2 rounded-lg font-bold text-xs hover:bg-red-100 transition-colors">Hapus</button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {filtered.length === 0 && (
-          <div className="card py-12 text-center text-gray-400">Tidak ada data ditemukan</div>
-        )}
+      {filtered.length === 0 && (
+        <div className="card py-12 text-center text-gray-400">Tidak ada data ditemukan</div>
+      )}
       </div>
 
       {/* Delete Confirmation Modal */}
