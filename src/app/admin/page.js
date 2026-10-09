@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterBidang, setFilterBidang] = useState("");
   const [filterKategori, setFilterKategori] = useState("");
+  const [viewMode, setViewMode] = useState("card");
 
   useEffect(() => {
     if (!authLoading && (!user || !["admin", "viewer", "approval"].includes(userData?.role))) {
@@ -284,48 +285,97 @@ export default function AdminDashboard() {
         </div>
 
         <div className="card !p-0 overflow-hidden border-none shadow-2xl bg-white rounded-[3rem] mb-20">
-          <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row gap-6 bg-white sticky top-0 z-20">
+          <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row gap-6 bg-white sticky top-0 z-20 justify-between items-center">
              <input className="flex-1 h-14 bg-slate-50 border-none rounded-2xl px-12 font-black text-base text-slate-800 outline-none" placeholder="Cari kandidat..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-             <select className="md:w-72 h-14 px-8 bg-slate-50 border-none rounded-2xl text-xs font-black uppercase tracking-widest text-slate-800 outline-none" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                <option value="">Semua Status ({stats.total})</option>
-                {Object.keys(stats.byStatus).map(s => <option key={s} value={s}>{s}</option>)}
-             </select>
+             <div className="flex items-center gap-4 w-full md:w-auto">
+               <select className="flex-1 md:w-60 h-14 px-6 bg-slate-50 border-none rounded-2xl text-xs font-black uppercase tracking-widest text-slate-800 outline-none" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                  <option value="">Semua Status ({stats.total})</option>
+                  {Object.keys(stats.byStatus).map(s => <option key={s} value={s}>{s}</option>)}
+               </select>
+               <div className="flex items-center bg-slate-50 p-1.5 rounded-2xl gap-1 shrink-0">
+                 <button
+                   onClick={() => setViewMode("card")}
+                   className={`px-4 py-3 rounded-xl text-xs font-black uppercase transition-all ${viewMode === "card" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-200"}`}
+                 >
+                   Kartu
+                 </button>
+                 <button
+                   onClick={() => setViewMode("table")}
+                   className={`px-4 py-3 rounded-xl text-xs font-black uppercase transition-all ${viewMode === "table" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-200"}`}
+                 >
+                   Tabel
+                 </button>
+               </div>
+             </div>
           </div>
-          <div className="overflow-x-auto px-8 pb-8">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest">
-                  <th className="py-7 px-8 rounded-l-[2rem]">Kandidat</th>
-                  <th className="py-7 px-8 text-center">Status</th>
-                  <th className="py-7 px-8">Keterangan</th>
-                  <th className="py-7 px-8 text-center rounded-r-[2rem]">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
+
+          {viewMode === "card" ? (
+            <div className="p-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {filteredCandidates.map((c) => {
                   const config = statusConfig[c.statusProgres] || statusConfig["Belum Ada Status"];
                   return (
-                    <tr key={c.id} className="hover:bg-slate-50 transition-all cursor-default">
-                      <td className="py-5 px-8">
-                        <div className="flex items-center gap-5">
-                           <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
-                           <div><h4 className="text-sm font-black text-slate-900 uppercase">{safeText(c.namaLengkap)}</h4><p className="text-[10px] text-slate-400 font-bold uppercase mt-2">{safeText(c.namaPanggilan, "")} • {safeText(c.bidangKerja, "")}</p></div>
+                    <div key={c.id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col h-full border border-slate-100">
+                      <div className="relative aspect-[3/4] overflow-hidden bg-slate-100 shrink-0">
+                        <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-700 object-cover object-top" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
+                        <div className="absolute top-3 right-3">
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${config.bg} ${config.text} ${config.border} shadow-lg`}>
+                            {c.statusProgres || "BELUM ADA"}
+                          </span>
                         </div>
-                      </td>
-                      <td className="py-5 px-8 text-center"><span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase border ${config.bg} ${config.text} ${config.border}`}>{c.statusProgres || "BELUM ADA"}</span></td>
-                      <td className="py-5 px-8 max-w-[350px]"><p className="text-[11px] text-slate-500 font-medium leading-relaxed italic line-clamp-2 uppercase">{c.keteranganProgres || "-"}</p></td>
-                      <td className="py-5 px-8 text-center">
-                        <div className="flex justify-center gap-4">
-                          <Link href={`/admin/edit/${c.id}`} className="p-3.5 bg-slate-900 text-white rounded-2xl hover:bg-indigo-600 transition-all shadow-xl active:scale-95"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></Link>
-                          <Link href={`/admin/cv/${c.id}`} className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></Link>
+                        <div className="absolute bottom-4 left-4 right-4 text-white">
+                          <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-0.5 block">{safeText(c.bidangKerja)}</span>
+                          <h3 className="text-base font-black uppercase leading-tight tracking-tight drop-shadow-md line-clamp-1">{safeText(c.namaLengkap)}</h3>
+                          <p className="text-[11px] text-slate-300 font-medium">{safeText(c.namaPanggilan, "-")}</p>
                         </div>
-                      </td>
-                    </tr>
+                      </div>
+                      <div className="p-4 flex gap-2 bg-white mt-auto">
+                        <Link href={`/admin/edit/${c.id}`} className="flex-1 bg-slate-900 text-white text-center py-2.5 rounded-xl font-bold text-xs hover:bg-indigo-600 transition-colors">Edit</Link>
+                        <Link href={`/admin/cv/${c.id}`} className="flex-1 bg-blue-50 text-blue-600 text-center py-2.5 rounded-xl font-bold text-xs hover:bg-blue-100 transition-colors">CV</Link>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto px-8 pb-8">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest">
+                    <th className="py-7 px-8 rounded-l-[2rem]">Kandidat</th>
+                    <th className="py-7 px-8 text-center">Status</th>
+                    <th className="py-7 px-8">Keterangan</th>
+                    <th className="py-7 px-8 text-center rounded-r-[2rem]">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filteredCandidates.map((c) => {
+                    const config = statusConfig[c.statusProgres] || statusConfig["Belum Ada Status"];
+                    return (
+                      <tr key={c.id} className="hover:bg-slate-50 transition-all cursor-default">
+                        <td className="py-5 px-8">
+                          <div className="flex items-center gap-5">
+                             <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
+                             <div><h4 className="text-sm font-black text-slate-900 uppercase">{safeText(c.namaLengkap)}</h4><p className="text-[10px] text-slate-400 font-bold uppercase mt-2">{safeText(c.namaPanggilan, "")} • {safeText(c.bidangKerja, "")}</p></div>
+                          </div>
+                        </td>
+                        <td className="py-5 px-8 text-center"><span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase border ${config.bg} ${config.text} ${config.border}`}>{c.statusProgres || "BELUM ADA"}</span></td>
+                        <td className="py-5 px-8 max-w-[350px]"><p className="text-[11px] text-slate-500 font-medium leading-relaxed italic line-clamp-2 uppercase">{c.keteranganProgres || "-"}</p></td>
+                        <td className="py-5 px-8 text-center">
+                          <div className="flex justify-center gap-4">
+                            <Link href={`/admin/edit/${c.id}`} className="p-3.5 bg-slate-900 text-white rounded-2xl hover:bg-indigo-600 transition-all shadow-xl active:scale-95"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></Link>
+                            <Link href={`/admin/cv/${c.id}`} className="p-3.5 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
       <style jsx global>{`

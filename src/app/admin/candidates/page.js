@@ -21,6 +21,7 @@ function CandidatesContent() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterGender, setFilterGender] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [viewMode, setViewMode] = useState("card");
 
   // Handle URL Parameters
   useEffect(() => {
@@ -467,26 +468,93 @@ function CandidatesContent() {
           </div>
         </div>
 
-        {/* Desktop Table View */}
-        <div className="hidden lg:block card !p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[1200px]">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="py-3 px-4">
-                    <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={selectAll} className="rounded" />
-                  </th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">Foto</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">Nama Lengkap</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">Jenis Kelamin</th>
-                  <th className="text-left py-3 px-1 font-medium text-gray-600">Bidang</th>
-                  <th className="text-left py-3 px-1 font-medium text-gray-600">Kategori</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">Kode Job</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">Status</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
-                  <th className="text-left py-3 px-2 font-medium text-gray-600 whitespace-nowrap min-w-[120px]">Tgl Submit</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Aksi</th>
+        {/* View Mode Toggle */}
+        <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-500 uppercase">Tampilan:</span>
+            <button
+              onClick={() => setViewMode("card")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${viewMode === "card" ? "bg-indigo-600 text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            >
+              Kartu
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all ${viewMode === "table" ? "bg-indigo-600 text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            >
+              Tabel
+            </button>
+          </div>
+          <span className="text-xs sm:text-sm text-gray-500 font-medium">{filtered.length} kandidat</span>
+        </div>
+
+        {viewMode === "card" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
+            {filtered.map((c) => {
+              return (
+                <div key={c.id} className={`group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full border-2 ${selected.includes(c.id) ? "border-indigo-600 ring-2 ring-indigo-600" : "border-gray-100 hover:border-indigo-200"} relative`}>
+                  <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 shrink-0">
+                    <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-700 object-cover object-top" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-transparent to-transparent opacity-80"></div>
+                    <div className="absolute top-3 left-3">
+                      <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="w-5 h-5 rounded accent-indigo-600 cursor-pointer shadow-lg" />
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase shadow-lg ${
+                        c.statusProgres === "Nihongo check" ? "bg-indigo-500 text-white" :
+                        c.statusProgres === "Belum Lolos Nihongo check" ? "bg-gray-500 text-white" :
+                        c.statusProgres === "Pending Nunggu Job" ? "bg-amber-500 text-white" :
+                        c.statusProgres === "Penjadwalan Interview" ? "bg-violet-500 text-white" :
+                        c.statusProgres === "On Proses" ? "bg-sky-500 text-white" :
+                        c.statusProgres === "Tidak Lolos Interview" ? "bg-orange-500 text-white" :
+                        c.statusProgres === "Status On Job (Selesai)" ? "bg-emerald-500 text-white" :
+                        c.statusProgres === "Cancel" ? "bg-rose-500 text-white" :
+                        "bg-slate-700 text-white"
+                      }`}>
+                        {c.statusProgres || "BELUM ADA"}
+                      </span>
+                    </div>
+                    <div className="absolute bottom-4 left-4 right-4 text-white">
+                      <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-0.5 block">{safeText(c.bidangKerja)}</span>
+                      <h3 className="text-base font-black uppercase leading-tight tracking-tight drop-shadow-md line-clamp-1">{safeText(c.namaLengkap)}</h3>
+                      <p className="text-[11px] text-gray-300 font-medium">{safeText(c.namaPanggilan, "-")} • {safeText(c.kodeJob, "-")}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 flex gap-2 bg-white mt-auto">
+                    <Link href={`/admin/cv/${c.id}`} className="flex-1 bg-indigo-50 text-indigo-600 text-center py-2 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">CV</Link>
+                    {(userData?.role === "admin" || userData?.role === "approval") && (
+                      <Link href={`/admin/edit/${c.id}`} className="flex-1 bg-green-50 text-green-600 text-center py-2 rounded-xl font-bold text-xs hover:bg-green-100 transition-colors">Edit</Link>
+                    )}
+                    {userData?.role === "admin" && (
+                      <button onClick={() => handleDeleteSingle(c)} className="bg-red-50 text-red-600 px-3 py-2 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">Hapus</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="card !p-0 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[1200px]">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="py-3 px-4">
+                      <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={selectAll} className="rounded" />
+                    </th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600">Foto</th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600">Nama Lengkap</th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600">Jenis Kelamin</th>
+                    <th className="text-left py-3 px-1 font-medium text-gray-600">Bidang</th>
+                    <th className="text-left py-3 px-1 font-medium text-gray-600">Kategori</th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600">Kode Job</th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600">Status</th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600">Detail Progres</th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600">No HP</th>
+                    <th className="text-left py-3 px-2 font-medium text-gray-600 whitespace-nowrap min-w-[120px]">Tgl Submit</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Aksi</th>
+                  </tr>
+                </thead>
                 </tr>
               </thead>
               <tbody>
