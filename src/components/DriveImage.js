@@ -103,3 +103,5 @@ export default function DriveImage({ url, alt = "Photo", size = "w-12 h-12", cla
     />
   );
 }
+
+DriveImage.safeText = safeText;
