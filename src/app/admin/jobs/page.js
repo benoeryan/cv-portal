@@ -447,6 +447,14 @@ export default function JobManagementPage() {
                     <p className="text-[11px] font-black text-slate-800 uppercase">Mitra Perusahaan ({selectedJobDetail.perusahaan || "-"}) • TSK / Sumber: {selectedJobDetail.kumiaiPartner || "-"}</p>
                  </div>
 
+                 {/* Job Description Box (Purple) */}
+                 <div className="bg-white border border-purple-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="bg-purple-50 px-5 py-2.5 border-b border-purple-100">
+                       <p className="text-[9px] font-black text-purple-700 uppercase">DESKRIPSI PEKERJAAN & TUGAS</p>
+                    </div>
+                    <div className="p-5"><p className="text-[11px] font-black text-purple-950 uppercase leading-relaxed whitespace-pre-line">{selectedJobDetail.deskripsiPekerjaan || selectedJobDetail.deskripsi || selectedJobDetail.keterangan || "-"}</p></div>
+                 </div>
+
                  {/* Qualification Box (Yellow) */}
                  <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="bg-amber-50 px-5 py-2.5 border-b border-amber-100">
