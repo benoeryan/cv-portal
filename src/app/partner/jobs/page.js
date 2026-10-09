@@ -16,6 +16,16 @@ export default function PartnerJobListPage() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
 
+  const getCleanJobTitle = (j) => {
+    if (!j) return "---";
+    const name = (j.namaJob || "").trim();
+    const upper = name.toUpperCase();
+    if (upper.startsWith("LPK") || upper.startsWith("PT") || upper.includes("CORP") || upper.includes("AQNESIA")) {
+      return j.bidang || j.kategori || "Lowongan Pekerjaan Jepang";
+    }
+    return name || "---";
+  };
+
   useEffect(() => {
     if (!authLoading && (!user || !["partner", "admin"].includes(userData?.role))) {
       router.push("/"); return;
