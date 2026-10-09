@@ -324,7 +324,7 @@ export default function JobManagementPage() {
           </div>
         ) : (
           /* CARD VIEW - EXACTLY AS IMAGE 1 */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-6">
              {filteredJobs.map((j) => (
                <div key={j.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-500">
                   <div className="p-8 space-y-5">
