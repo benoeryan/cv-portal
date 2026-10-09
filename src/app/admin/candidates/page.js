@@ -555,9 +555,7 @@ function CandidatesContent() {
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Aksi</th>
                   </tr>
                 </thead>
-                </tr>
-              </thead>
-              <tbody>
+                <tbody>
                 {filtered.map((c) => {
                   const submitDate = c.submittedAt ? new Date(c.submittedAt) : null;
                   const isValidDate = submitDate && !isNaN(submitDate);
