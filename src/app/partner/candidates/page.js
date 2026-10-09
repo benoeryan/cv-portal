@@ -67,7 +67,11 @@ export default function PartnerCandidateSearchPage() {
       const q = query(collection(db, "jobs"));
       const snap = await getDocs(q);
       const allJobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const availableJobs = allJobs.filter(j => (j.statusJob?.toUpperCase() === "OPEN" || j.createdBy === user.uid));
+      const availableJobs = allJobs.filter(j => {
+        const status = (j.statusJob || "open").toLowerCase();
+        const isClosed = status === "close" || status === "tutup" || status === "closed";
+        return !isClosed || j.createdBy === user?.uid;
+      });
       setMyJobs(availableJobs);
     } catch (err) { console.error(err); }
   };

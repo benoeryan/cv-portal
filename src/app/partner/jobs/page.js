@@ -29,7 +29,11 @@ export default function PartnerJobListPage() {
       const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setJobs(data.filter(j => j.statusJob?.toUpperCase() === "OPEN" || j.createdBy === user.uid));
+      setJobs(data.filter(j => {
+        const status = (j.statusJob || "open").toLowerCase();
+        const isClosed = status === "close" || status === "tutup" || status === "closed";
+        return !isClosed || j.createdBy === user?.uid;
+      }));
     } catch (err) { console.error(err); }
     setLoading(false);
   };

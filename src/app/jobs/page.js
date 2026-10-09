@@ -37,7 +37,10 @@ export default function CandidateJobListPage() {
       const snapshot = await getDocs(q);
       const data = snapshot.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .filter(j => j.statusJob === "Open" || j.statusJob === "OPEN");
+        .filter(j => {
+          const status = (j.statusJob || "open").toLowerCase();
+          return status !== "close" && status !== "tutup" && status !== "closed";
+        });
       setJobs(data);
     } catch (err) { console.error(err); }
     setLoading(false);
