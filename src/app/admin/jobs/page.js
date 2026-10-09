@@ -14,6 +14,12 @@ export default function JobManagementPage() {
   const [viewMode, setViewMode] = useState("card");
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterSkema, setFilterSkema] = useState("");
+  const [filterBidang, setFilterBidang] = useState("");
+  const [filterMitra, setFilterMitra] = useState("");
+  const [filterGaji, setFilterGaji] = useState("");
+
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
@@ -46,14 +52,32 @@ export default function JobManagementPage() {
     setLoading(false);
   };
 
+  const uniqueBidang = useMemo(() => [...new Set(jobs.map(j => j.bidang || j.kategori).filter(Boolean))].sort(), [jobs]);
+  const uniqueMitra = useMemo(() => [...new Set(jobs.map(j => j.kumiaiPartner || j.perusahaan).filter(Boolean))].sort(), [jobs]);
+
   const filteredJobs = useMemo(() => {
-    return jobs.filter(j =>
-      !searchTerm ||
-      j.namaJob?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      j.kodeJob?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      j.perusahaan?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [jobs, searchTerm]);
+    return jobs.filter(j => {
+      const matchSearch = !searchTerm ||
+        j.namaJob?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        j.kodeJob?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        j.perusahaan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        j.kumiaiPartner?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchStatus = !filterStatus ||
+        (filterStatus === "Aktif" && (j.statusJob === "Open" || j.statusJob === "Aktif" || !j.statusJob)) ||
+        (filterStatus === "Tutup" && (j.statusJob === "Close" || j.statusJob === "Tutup" || j.statusJob === "Closed"));
+
+      const matchSkema = !filterSkema ||
+        (filterSkema === "Urgent" && (j.klasifikasiSkema?.toLowerCase().includes("urgent") || j.urgent)) ||
+        (filterSkema === "Standard" && (!j.klasifikasiSkema || j.klasifikasiSkema?.toLowerCase().includes("standard") || j.klasifikasiSkema?.toLowerCase().includes("standart")));
+
+      const matchBidang = !filterBidang || (j.bidang === filterBidang || j.kategori === filterBidang);
+      const matchMitra = !filterMitra || (j.kumiaiPartner === filterMitra || j.perusahaan === filterMitra);
+      const matchGaji = !filterGaji || j.gaji?.toLowerCase().includes(filterGaji.toLowerCase());
+
+      return matchSearch && matchStatus && matchSkema && matchBidang && matchMitra && matchGaji;
+    });
+  }, [jobs, searchTerm, filterStatus, filterSkema, filterBidang, filterMitra, filterGaji]);
 
   const handleImportGoogleSheets = async () => {
     if (!window.confirm("Import data job dari Google Sheets? Data dengan Kode Job yang sama akan diupdate.")) return;
@@ -183,7 +207,7 @@ export default function JobManagementPage() {
         </div>
 
         {/* Action Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-10 items-center">
+        <div className="flex flex-col md:flex-row gap-4 mb-6 items-center">
            <div className="flex-1 relative w-full">
               <input className="input-field pl-14 h-16 border-none shadow-xl bg-white rounded-3xl font-black text-lg text-slate-900" placeholder="Cari Lowongan..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               <svg className="w-6 h-6 absolute left-5 top-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -191,6 +215,62 @@ export default function JobManagementPage() {
            <div className="flex bg-white p-2 rounded-2xl shadow-lg border border-slate-50 shrink-0">
               <button onClick={() => setViewMode("table")} className={`px-8 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='table'?'bg-[#0F172A] text-white shadow-xl':'text-slate-400 hover:bg-slate-50'}`}>Listing Data</button>
               <button onClick={() => setViewMode("card")} className={`px-8 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='card'?'bg-[#0F172A] text-white shadow-xl':'text-slate-400 hover:bg-slate-50'}`}>Tampilan Kartu</button>
+           </div>
+        </div>
+
+        {/* Filter Bar */}
+        <div className="card p-6 mb-10 bg-white rounded-[2.5rem] shadow-xl border border-slate-100">
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Status</label>
+                 <select className="input-field text-xs font-bold bg-slate-50 border-none h-12 rounded-xl" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                    <option value="">Semua Status</option>
+                    <option value="Aktif">Aktif (Open)</option>
+                    <option value="Tutup">Tutup (Close)</option>
+                 </select>
+              </div>
+              <div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Skema / Prioritas</label>
+                 <select className="input-field text-xs font-bold bg-slate-50 border-none h-12 rounded-xl" value={filterSkema} onChange={(e) => setFilterSkema(e.target.value)}>
+                    <option value="">Semua Skema</option>
+                    <option value="Urgent">Urgent</option>
+                    <option value="Standard">Standard</option>
+                 </select>
+              </div>
+              <div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Bidang Job</label>
+                 <select className="input-field text-xs font-bold bg-slate-50 border-none h-12 rounded-xl" value={filterBidang} onChange={(e) => setFilterBidang(e.target.value)}>
+                    <option value="">Semua Bidang</option>
+                    {uniqueBidang.map(b => <option key={b} value={b}>{b}</option>)}
+                 </select>
+              </div>
+              <div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Mitra / TSK</label>
+                 <select className="input-field text-xs font-bold bg-slate-50 border-none h-12 rounded-xl" value={filterMitra} onChange={(e) => setFilterMitra(e.target.value)}>
+                    <option value="">Semua Mitra / TSK</option>
+                    {uniqueMitra.map(m => <option key={m} value={m}>{m}</option>)}
+                 </select>
+              </div>
+              <div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Besaran Gaji</label>
+                 <input className="input-field text-xs font-bold bg-slate-50 border-none h-12 rounded-xl px-4" placeholder="Cari nominal gaji..." value={filterGaji} onChange={(e) => setFilterGaji(e.target.value)} />
+              </div>
+           </div>
+           <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-50">
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterStatus("");
+                  setFilterSkema("");
+                  setFilterBidang("");
+                  setFilterMitra("");
+                  setFilterGaji("");
+                }}
+                className="text-xs font-black text-indigo-600 uppercase tracking-wider hover:text-indigo-800"
+              >
+                Reset Semua Filter
+              </button>
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{filteredJobs.length} Lowongan Ditemukan</span>
            </div>
         </div>
 
