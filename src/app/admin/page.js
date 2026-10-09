@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import DriveImage, { safeText } from "@/components/DriveImage";
+import DriveImage from "@/components/DriveImage";
 
 export default function AdminDashboard() {
   const { user, userData, loading: authLoading } = useAuth();

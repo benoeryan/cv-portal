@@ -17,7 +17,8 @@ export default function CVTemplate({ data }) {
   if (!data) return null;
 
   const age = calculateAge(data.tanggalLahir);
-  const photoUrl = getDriveImageUrl(data.pasPhoto);
+  const rawPhotoUrl = data.pasPhoto || data.foto || data.pasFoto || data.photo || data.urlFoto || data.linkFoto || data.pasPhoto3x4 || data.foto3x4;
+  const photoUrl = getDriveImageUrl(rawPhotoUrl);
 
   return (
     <div className="cv-container bg-white p-6 max-w-[210mm] mx-auto text-center uppercase" id="cv-print-area">
