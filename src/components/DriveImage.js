@@ -20,6 +20,43 @@ export function isAiPhotoUrl(url) {
   return aiDomains.some((domain) => lower.includes(domain));
 }
 
+export function getCandidatePhotoUrl(c) {
+  if (!c) return null;
+  if (typeof c === 'string') return c;
+  if (Array.isArray(c)) {
+    for (const item of c) {
+      const u = getCandidatePhotoUrl(item);
+      if (u) return u;
+    }
+    return null;
+  }
+  if (typeof c === 'object') {
+    return (
+      c.pasPhoto ||
+      c.pasFoto ||
+      c.foto ||
+      c.photo ||
+      c.urlFoto ||
+      c.linkFoto ||
+      c.pasPhoto3x4 ||
+      c.foto3x4 ||
+      c.sertifikatBahasaJepang ||
+      c.scanIjazah ||
+      c.fotoKtp ||
+      c.fotoKeluarga ||
+      c.sertifikatSSW ||
+      c.sertifikatSSW2 ||
+      c.dokumenSimA ||
+      c.cvRirekisho ||
+      c.url ||
+      c.path ||
+      c.downloadURL ||
+      null
+    );
+  }
+  return null;
+}
+
 // Convert Google Drive sharing link to direct image URL without breaking Firebase Storage or direct URLs
 export function getDriveImageUrl(url, size = 1000) {
   if (!url || isAiPhotoUrl(url)) return null;
@@ -32,7 +69,7 @@ export function getDriveImageUrl(url, size = 1000) {
   }
   let targetUrl = url;
   if (typeof url === 'object') {
-    targetUrl = url.url || url.pasPhoto || url.sertifikatBahasaJepang || url.fotoKtp || url.foto || url.path || url.firebaseUrl || url.downloadURL || "";
+    targetUrl = getCandidatePhotoUrl(url) || url.url || url.path || url.firebaseUrl || url.downloadURL || "";
   }
   if (typeof targetUrl !== 'string') return null;
 
@@ -81,8 +118,12 @@ export function safeText(val, fallback = "-") {
 
 export default function DriveImage({ url, alt = "Photo", size = "w-12 h-12", className = "" }) {
   const [hasError, setHasError] = useState(false);
-  const imgUrl = getDriveImageUrl(url, 1000);
-  const initials = getInitials(alt);
+  const targetPhoto = (typeof url === 'object' && url !== null && !url.url)
+    ? getCandidatePhotoUrl(url)
+    : url;
+
+  const imgUrl = getDriveImageUrl(targetPhoto || url, 1000);
+  const initials = getInitials(alt || (typeof url === 'object' ? url.namaLengkap : ""));
 
   const fallbackUI = (
     <div className={`${size} ${className} bg-purple-100 text-purple-700 font-black flex items-center justify-center text-xs shrink-0 rounded-xl uppercase border border-purple-200`}>
@@ -105,3 +146,4 @@ export default function DriveImage({ url, alt = "Photo", size = "w-12 h-12", cla
 }
 
 DriveImage.safeText = safeText;
+DriveImage.getCandidatePhotoUrl = getCandidatePhotoUrl;

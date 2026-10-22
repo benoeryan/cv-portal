@@ -6,9 +6,10 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { translateToJapanese } from "@/lib/translateHelper";
 import Navbar from "@/components/Navbar";
-import DriveImage from "@/components/DriveImage";
+import DriveImage, { getCandidatePhotoUrl } from "@/components/DriveImage";
 import Link from "next/link";
 import { getBackupCandidates } from "@/lib/backupData";
+import { supabase } from "@/lib/supabase";
 
 function safeText(val, fallback = "-") {
   if (!val) return fallback;
@@ -62,6 +63,26 @@ function CandidatesContent() {
     }
   }, [user, userData, authLoading]);
 
+  const syncToSupabase = async (candidatesData) => {
+    if (!candidatesData || candidatesData.length === 0) return;
+    try {
+      const rows = candidatesData.map(c => ({
+        id: c.id,
+        nama_lengkap: safeText(c.namaLengkap),
+        kode_job: safeText(c.kodeJob, ""),
+        bidang_kerja: safeText(c.bidangKerja, ""),
+        status_progres: safeText(c.statusProgres, ""),
+        jenis_kelamin: safeText(c.jenisKelamin, ""),
+        pas_photo: getCandidatePhotoUrl(c) || "",
+        data_json: c,
+        updated_at: new Date().toISOString()
+      }));
+      await supabase.from('candidates').upsert(rows, { onConflict: 'id' }).catch(() => {});
+    } catch (err) {
+      // Ignore background sync notice
+    }
+  };
+
   const loadCandidates = async () => {
     try {
       const q = query(collection(db, "candidates"));
@@ -91,6 +112,7 @@ function CandidatesContent() {
       });
 
       setCandidates(data);
+      syncToSupabase(data);
     } catch (err) {
       console.error("Error loading candidates, using backup:", err);
       const backupData = getBackupCandidates();
@@ -507,7 +529,7 @@ function CandidatesContent() {
               return (
                 <div key={c.id} className={`group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full border-2 ${selected.includes(c.id) ? "border-indigo-600 ring-2 ring-indigo-600" : "border-gray-100 hover:border-indigo-200"} relative`}>
                   <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 shrink-0">
-                    <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-700 object-cover object-top" />
+                    <DriveImage url={getCandidatePhotoUrl(c) || c} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-700 object-cover object-top" />
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-transparent to-transparent opacity-80"></div>
                     <div className="absolute top-3 left-3">
                       <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="w-5 h-5 rounded accent-indigo-600 cursor-pointer shadow-lg" />
@@ -579,7 +601,7 @@ function CandidatesContent() {
                         <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="rounded" />
                       </td>
                       <td className="py-3 px-2">
-                        <DriveImage url={c.pasPhoto || c.foto || c.pasFoto || c.photo || c.urlFoto || c.linkFoto || c.pasPhoto3x4 || c.foto3x4} alt={c.namaLengkap} />
+                        <DriveImage url={getCandidatePhotoUrl(c) || c} alt={c.namaLengkap} />
                       </td>
                       <td className="py-3 px-2">
                         <div className="font-medium text-gray-800 line-clamp-2">{safeText(c.namaLengkap)}</div>

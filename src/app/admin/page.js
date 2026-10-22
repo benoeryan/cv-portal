@@ -6,8 +6,9 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import DriveImage from "@/components/DriveImage";
+import DriveImage, { getCandidatePhotoUrl } from "@/components/DriveImage";
 import { getBackupCandidates } from "@/lib/backupData";
+import { supabase } from "@/lib/supabase";
 
 function safeText(val, fallback = "-") {
   if (!val) return fallback;
@@ -42,6 +43,26 @@ export default function AdminDashboard() {
     }
   }, [user, userData, authLoading]);
 
+  const syncToSupabase = async (candidatesData) => {
+    if (!candidatesData || candidatesData.length === 0) return;
+    try {
+      const rows = candidatesData.map(c => ({
+        id: c.id,
+        nama_lengkap: safeText(c.namaLengkap),
+        kode_job: safeText(c.kodeJob, ""),
+        bidang_kerja: safeText(c.bidangKerja, ""),
+        status_progres: safeText(c.statusProgres, ""),
+        jenis_kelamin: safeText(c.jenisKelamin, ""),
+        pas_photo: getCandidatePhotoUrl(c) || "",
+        data_json: c,
+        updated_at: new Date().toISOString()
+      }));
+      await supabase.from('candidates').upsert(rows, { onConflict: 'id' }).catch(() => {});
+    } catch (err) {
+      // Ignore background sync notice
+    }
+  };
+
   const loadCandidates = async () => {
     setRefreshing(true);
     try {
@@ -64,6 +85,7 @@ export default function AdminDashboard() {
       });
 
       setCandidates(data);
+      syncToSupabase(data);
     } catch (err) {
       console.error("Error loading candidates from Firestore, using backup:", err);
       const backupData = getBackupCandidates();
@@ -333,7 +355,7 @@ export default function AdminDashboard() {
                   return (
                     <div key={c.id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col h-full border border-slate-100">
                       <div className="relative aspect-[3/4] overflow-hidden bg-slate-100 shrink-0">
-                        <DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-700 object-cover object-top" />
+                        <DriveImage url={getCandidatePhotoUrl(c) || c} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-700 object-cover object-top" />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
                         <div className="absolute top-3 right-3">
                           <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${config.bg} ${config.text} ${config.border} shadow-lg`}>
@@ -373,7 +395,7 @@ export default function AdminDashboard() {
                       <tr key={c.id} className="hover:bg-slate-50 transition-all cursor-default">
                         <td className="py-5 px-8">
                           <div className="flex items-center gap-5">
-                             <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={c.pasPhoto || c.sertifikatBahasaJepang || c.fotoKtp || c.foto} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
+                             <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white shrink-0"><DriveImage url={getCandidatePhotoUrl(c) || c} alt={c.namaLengkap} size="w-full h-full" className="rounded-xl" /></div>
                              <div><h4 className="text-sm font-black text-slate-900 uppercase">{safeText(c.namaLengkap)}</h4><p className="text-[10px] text-slate-400 font-bold uppercase mt-2">{safeText(c.namaPanggilan, "")} • {safeText(c.bidangKerja, "")}</p></div>
                           </div>
                         </td>
