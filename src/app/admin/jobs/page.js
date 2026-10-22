@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { db, storage } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
+import { getBackupJobs } from "@/lib/backupData";
 
 export default function JobManagementPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -47,8 +48,13 @@ export default function JobManagementPage() {
     try {
       const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
-      setJobs(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-    } catch (err) { console.error(err); }
+      let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (data.length === 0) data = getBackupJobs();
+      setJobs(data);
+    } catch (err) {
+      console.error("Error loading jobs from Firestore, using backup:", err);
+      setJobs(getBackupJobs());
+    }
     setLoading(false);
   };
 

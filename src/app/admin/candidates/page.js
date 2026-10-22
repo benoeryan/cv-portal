@@ -8,6 +8,7 @@ import { translateToJapanese } from "@/lib/translateHelper";
 import Navbar from "@/components/Navbar";
 import DriveImage from "@/components/DriveImage";
 import Link from "next/link";
+import { getBackupCandidates } from "@/lib/backupData";
 
 function safeText(val, fallback = "-") {
   if (!val) return fallback;
@@ -65,11 +66,12 @@ function CandidatesContent() {
     try {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      let data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      // Ultra-robust sorting:
-      // 1. Valid dates (Update or Submit) come first, sorted NEWEST to OLDEST.
-      // 2. Invalid/Missing dates always go to the BOTTOM.
+      if (data.length === 0) {
+        data = getBackupCandidates();
+      }
+
       data.sort((a, b) => {
         const getTimestamp = (item) => {
           if (!item) return 0;
@@ -82,15 +84,17 @@ function CandidatesContent() {
         const timeA = getTimestamp(a);
         const timeB = getTimestamp(b);
 
-        if (timeA > 0 && timeB > 0) return timeB - timeA; // Newest first
-        if (timeA > 0 && timeB === 0) return -1; // A is valid, B is not -> A first
-        if (timeA === 0 && timeB > 0) return 1;  // B is valid, A is not -> B first
-        return 0; // Both invalid
+        if (timeA > 0 && timeB > 0) return timeB - timeA;
+        if (timeA > 0 && timeB === 0) return -1;
+        if (timeA === 0 && timeB > 0) return 1;
+        return 0;
       });
 
       setCandidates(data);
     } catch (err) {
-      console.error("Error loading candidates:", err);
+      console.error("Error loading candidates, using backup:", err);
+      const backupData = getBackupCandidates();
+      setCandidates(backupData);
     }
     setLoading(false);
   };

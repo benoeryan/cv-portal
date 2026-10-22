@@ -7,6 +7,7 @@ import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import DriveImage from "@/components/DriveImage";
+import { getBackupCandidates } from "@/lib/backupData";
 
 function safeText(val, fallback = "-") {
   if (!val) return fallback;
@@ -46,7 +47,11 @@ export default function AdminDashboard() {
     try {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      let data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      if (data.length === 0) {
+        data = getBackupCandidates();
+      }
 
       data.sort((a, b) => {
         const getTimestamp = (item) => {
@@ -60,7 +65,9 @@ export default function AdminDashboard() {
 
       setCandidates(data);
     } catch (err) {
-      console.error("Error loading candidates:", err);
+      console.error("Error loading candidates from Firestore, using backup:", err);
+      const backupData = getBackupCandidates();
+      setCandidates(backupData);
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
+import { getBackupJobs } from "@/lib/backupData";
 
 export default function PartnerJobListPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -38,13 +39,22 @@ export default function PartnerJobListPage() {
     try {
       const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (data.length === 0) data = getBackupJobs();
       setJobs(data.filter(j => {
         const status = (j.statusJob || "open").toLowerCase();
         const isClosed = status === "close" || status === "tutup" || status === "closed";
         return !isClosed || j.createdBy === user?.uid;
       }));
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error("Error loading jobs from Firestore, using backup:", err);
+      const backupData = getBackupJobs();
+      setJobs(backupData.filter(j => {
+        const status = (j.statusJob || "open").toLowerCase();
+        const isClosed = status === "close" || status === "tutup" || status === "closed";
+        return !isClosed || j.createdBy === user?.uid;
+      }));
+    }
     setLoading(false);
   };
 
