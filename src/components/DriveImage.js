@@ -40,6 +40,7 @@ export function getCandidatePhotoUrl(c) {
       c.linkFoto ||
       c.pasPhoto3x4 ||
       c.foto3x4 ||
+      c.cvRirekisho ||
       c.sertifikatBahasaJepang ||
       c.scanIjazah ||
       c.fotoKtp ||
@@ -47,12 +48,36 @@ export function getCandidatePhotoUrl(c) {
       c.sertifikatSSW ||
       c.sertifikatSSW2 ||
       c.dokumenSimA ||
-      c.cvRirekisho ||
       c.url ||
       c.path ||
       c.downloadURL ||
       null
     );
+  }
+  return null;
+}
+
+export function getDriveFileId(url) {
+  if (!url) return null;
+  let targetUrl = url;
+  if (typeof url === 'object') {
+    targetUrl = getCandidatePhotoUrl(url) || url.url || url.path || "";
+  }
+  if (typeof targetUrl !== 'string') return null;
+
+  if (targetUrl.includes('drive.google.com') || targetUrl.includes('docs.google.com')) {
+    const patterns = [
+      /\/open\?id=([a-zA-Z0-9_-]+)/,
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,
+      /\/d\/([a-zA-Z0-9_-]+)/,
+      /[?&]id=([a-zA-Z0-9_-]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = targetUrl.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
   }
   return null;
 }
@@ -73,21 +98,9 @@ export function getDriveImageUrl(url, size = 1000) {
   }
   if (typeof targetUrl !== 'string') return null;
 
-  // Only convert Google Drive URLs
-  if (targetUrl.includes('drive.google.com') || targetUrl.includes('docs.google.com')) {
-    const patterns = [
-      /\/open\?id=([a-zA-Z0-9_-]+)/,
-      /\/file\/d\/([a-zA-Z0-9_-]+)/,
-      /\/d\/([a-zA-Z0-9_-]+)/,
-      /id=([a-zA-Z0-9_-]+)/,
-      /drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/,
-    ];
-    for (const pattern of patterns) {
-      const match = targetUrl.match(pattern);
-      if (match) {
-        return `https://lh3.googleusercontent.com/d/${match[1]}=s${size}`;
-      }
-    }
+  const driveId = getDriveFileId(targetUrl);
+  if (driveId) {
+    return `https://lh3.googleusercontent.com/d/${driveId}=s${size}`;
   }
 
   return targetUrl;
@@ -117,12 +130,25 @@ export function safeText(val, fallback = "-") {
 }
 
 export default function DriveImage({ url, alt = "Photo", size = "w-12 h-12", className = "" }) {
-  const [hasError, setHasError] = useState(false);
+  const [retryStep, setRetryStep] = useState(0);
+
   const targetPhoto = (typeof url === 'object' && url !== null && !url.url)
     ? getCandidatePhotoUrl(url)
     : url;
 
-  const imgUrl = getDriveImageUrl(targetPhoto || url, 1000);
+  const rawUrl = targetPhoto || url;
+  const driveId = getDriveFileId(rawUrl);
+
+  let currentSrc = null;
+  if (driveId) {
+    if (retryStep === 0) currentSrc = `https://lh3.googleusercontent.com/d/${driveId}=s1000`;
+    else if (retryStep === 1) currentSrc = `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`;
+    else if (retryStep === 2) currentSrc = `https://drive.google.com/uc?export=view&id=${driveId}`;
+    else if (retryStep === 3) currentSrc = `https://docs.google.com/uc?export=download&id=${driveId}`;
+  } else {
+    currentSrc = (retryStep === 0) ? getDriveImageUrl(rawUrl, 1000) : null;
+  }
+
   const initials = getInitials(alt || (typeof url === 'object' ? url.namaLengkap : ""));
 
   const fallbackUI = (
@@ -131,19 +157,22 @@ export default function DriveImage({ url, alt = "Photo", size = "w-12 h-12", cla
     </div>
   );
 
-  if (!imgUrl || isAiPhotoUrl(imgUrl) || hasError) {
+  if (!currentSrc || isAiPhotoUrl(currentSrc) || retryStep > 3) {
     return fallbackUI;
   }
 
   return (
     <img
-      src={imgUrl}
+      src={currentSrc}
       alt={safeText(alt, "Photo")}
       className={`${size} ${className} object-cover rounded-xl`}
-      onError={() => setHasError(true)}
+      onError={() => {
+        setRetryStep((prev) => prev + 1);
+      }}
     />
   );
 }
 
 DriveImage.safeText = safeText;
 DriveImage.getCandidatePhotoUrl = getCandidatePhotoUrl;
+DriveImage.getDriveFileId = getDriveFileId;
