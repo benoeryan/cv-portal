@@ -21,7 +21,6 @@ function CandidatesContent() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterGender, setFilterGender] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [viewMode, setViewMode] = useState("table");
 
   // Handle URL Parameters
   useEffect(() => {

@@ -5,7 +5,17 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, addDoc, query, where, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
-import DriveImage from "@/components/DriveImage";
+import DriveImage, { getCandidatePhotoUrl } from "@/components/DriveImage";
+import { getBackupCandidates } from "@/lib/backupData";
+
+function safeText(val, fallback = "-") {
+  if (!val) return fallback;
+  if (typeof val === "string") return val;
+  if (typeof val === "object") {
+    return val.namaLengkap || val.nama || val.name || val.text || JSON.stringify(val);
+  }
+  return String(val);
+}
 
 export default function PartnerCandidateSearchPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -40,7 +50,8 @@ export default function PartnerCandidateSearchPage() {
     try {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (data.length === 0) data = getBackupCandidates();
 
       const filtered = data.filter(c => {
           const hasSSW = (c.sertifikatSSW && String(c.sertifikatSSW).includes("http")) ||
@@ -49,7 +60,17 @@ export default function PartnerCandidateSearchPage() {
           return hasSSW && isAvailable;
       });
       setCandidates(filtered);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error("Error loading candidates from Firestore, using backup:", err);
+      const backupData = getBackupCandidates();
+      const filtered = backupData.filter(c => {
+          const hasSSW = (c.sertifikatSSW && String(c.sertifikatSSW).includes("http")) ||
+                         (c.sertifikatSSW2 && String(c.sertifikatSSW2).includes("http"));
+          const isAvailable = !c.statusProgres || c.statusProgres === "Pending Nunggu Job";
+          return hasSSW && isAvailable;
+      });
+      setCandidates(filtered);
+    }
     setLoading(false);
   };
 
@@ -58,7 +79,11 @@ export default function PartnerCandidateSearchPage() {
       const q = query(collection(db, "jobs"));
       const snap = await getDocs(q);
       const allJobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const availableJobs = allJobs.filter(j => (j.statusJob?.toUpperCase() === "OPEN" || j.createdBy === user.uid));
+      const availableJobs = allJobs.filter(j => {
+        const status = (j.statusJob || "open").toLowerCase();
+        const isClosed = status === "close" || status === "tutup" || status === "closed";
+        return !isClosed || j.createdBy === user?.uid;
+      });
       setMyJobs(availableJobs);
     } catch (err) { console.error(err); }
   };
@@ -173,7 +198,7 @@ export default function PartnerCandidateSearchPage() {
               <div key={c.id} onClick={() => handleOpenDetail(c)} className="group bg-white rounded-[4rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-700 cursor-pointer flex flex-col h-full border-[6px] border-white hover:border-purple-100 relative active:scale-95">
                  <div className="relative aspect-[3/4] overflow-hidden bg-slate-200 shrink-0">
                     {/* ZOOM OUT FOTO: Gunakan object-cover object-top dengan aspect ratio lebih pendek */}
-                    <DriveImage url={c.pasPhoto || c.foto || c.pasFoto || c.photo || c.urlFoto || c.linkFoto || c.pasPhoto3x4 || c.foto3x4} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top p-1" />
+                    <DriveImage url={getCandidatePhotoUrl(c) || c} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top p-1" />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
                     <div className="absolute bottom-8 left-8 right-8 text-white">
                        <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block">{c.bidangKerja}</span>
