@@ -285,15 +285,17 @@ export default function AdminDashboard() {
         </div>
 
         <div className="card !p-0 overflow-hidden border-none shadow-2xl bg-white rounded-[3rem] mb-20">
-          <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row gap-6 bg-white sticky top-0 z-20 items-center">
-             <input className="flex-1 h-14 bg-slate-50 border-none rounded-2xl px-12 font-black text-base text-slate-800 outline-none w-full" placeholder="Cari kandidat..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-             <select className="md:w-72 h-14 px-8 bg-slate-50 border-none rounded-2xl text-xs font-black uppercase tracking-widest text-slate-800 outline-none shrink-0" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                <option value="">Semua Status ({stats.total})</option>
-                {Object.keys(stats.byStatus).map(s => <option key={s} value={s}>{s}</option>)}
-             </select>
-             <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shrink-0">
-                <button onClick={() => setViewMode("table")} className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='table'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-400 hover:bg-white'}`}>Tampilan Table</button>
-                <button onClick={() => setViewMode("card")} className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='card'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-400 hover:bg-white'}`}>Tampilan Kartu</button>
+          <div className="p-8 border-b border-slate-100 flex flex-col xl:flex-row gap-6 bg-white sticky top-0 z-20 items-center justify-between flex-wrap">
+             <input className="flex-1 min-w-[280px] w-full xl:w-auto h-14 bg-slate-50 border-none rounded-2xl px-12 font-black text-base text-slate-800 outline-none" placeholder="Cari kandidat..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+             <div className="flex items-center gap-4 flex-wrap w-full xl:w-auto justify-end">
+               <select className="w-full sm:w-72 h-14 px-8 bg-slate-50 border-none rounded-2xl text-xs font-black uppercase tracking-widest text-slate-800 outline-none" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                  <option value="">Semua Status ({stats.total})</option>
+                  {Object.keys(stats.byStatus).map(s => <option key={s} value={s}>{s}</option>)}
+               </select>
+               <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shrink-0 shadow-sm">
+                  <button onClick={() => setViewMode("table")} className={`px-6 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='table'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-500 hover:bg-white'}`}>Tampilan Table</button>
+                  <button onClick={() => setViewMode("card")} className={`px-6 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='card'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-500 hover:bg-white'}`}>Tampilan Kartu</button>
+               </div>
              </div>
           </div>
 
