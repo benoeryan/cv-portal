@@ -40,6 +40,46 @@ function CandidatesContent() {
   const [extractingAll, setExtractingAll] = useState(false);
   const [translatingAll, setTranslatingAll] = useState(false);
   const [bulkProgress, setBulkProgress] = useState("");
+  const [viewMode, setViewMode] = useState("table");
+
+  const handleStatusChange = async (candidateId, newStatus) => {
+    try {
+      await updateDoc(doc(db, "candidates", candidateId), {
+        statusProgres: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+      setCandidates(prev => prev.map(c => c.id === candidateId ? { ...c, statusProgres: newStatus } : c));
+    } catch (err) {
+      alert("Gagal mengubah status: " + err.message);
+    }
+  };
+
+  const handleDragStart = (e, candidateId) => {
+    e.dataTransfer.setData("text/plain", candidateId);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e, targetStatus) => {
+    e.preventDefault();
+    const candidateId = e.dataTransfer.getData("text/plain");
+    if (candidateId) {
+      handleStatusChange(candidateId, targetStatus);
+    }
+  };
+
+  const KANBAN_COLUMNS = [
+    { id: "", label: "Belum Ada Status", color: "bg-slate-100 border-slate-300 text-slate-700" },
+    { id: "Nihongo check", label: "Nihongo Check", color: "bg-amber-50 border-amber-200 text-amber-800" },
+    { id: "Belum Lolos Nihongo check", label: "Belum Lolos Nihongo", color: "bg-rose-50 border-rose-200 text-rose-800" },
+    { id: "Pending Nunggu Job", label: "Pending Nunggu Job", color: "bg-orange-50 border-orange-200 text-orange-800" },
+    { id: "Penjadwalan Interview", label: "Penjadwalan Interview", color: "bg-violet-50 border-violet-200 text-violet-800" },
+    { id: "On Proses", label: "On Proses", color: "bg-sky-50 border-sky-200 text-sky-800" },
+    { id: "Status On Job (Selesai)", label: "On Job (Selesai)", color: "bg-emerald-50 border-emerald-200 text-emerald-800" },
+    { id: "Cancel", label: "Cancel", color: "bg-gray-100 border-gray-300 text-gray-800" }
+  ];
 
   useEffect(() => {
     if (!authLoading && (!user || !["admin", "viewer", "approval"].includes(userData?.role))) {
@@ -467,8 +507,83 @@ function CandidatesContent() {
           </div>
         </div>
 
-        {/* Desktop Table View */}
-        <div className="hidden lg:block card !p-0 overflow-hidden">
+        {/* View Mode Toggle */}
+        <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 shrink-0 w-fit mb-6">
+           <button onClick={() => setViewMode("table")} className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='table'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-400 hover:bg-slate-50'}`}>Tampilan Table</button>
+           <button onClick={() => setViewMode("card")} className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='card'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-400 hover:bg-slate-50'}`}>Tampilan Kartu</button>
+           <button onClick={() => setViewMode("kanban")} className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='kanban'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-400 hover:bg-slate-50'}`}>Kanban Pipeline</button>
+        </div>
+
+        {viewMode === "kanban" ? (
+          <div className="flex overflow-x-auto pb-6 gap-6 custom-scrollbar items-start">
+            {KANBAN_COLUMNS.map((col) => {
+              const colCandidates = filtered.filter(c => (c.statusProgres || "") === col.id);
+              return (
+                <div
+                  key={col.id}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, col.id)}
+                  className="w-80 shrink-0 bg-slate-100 rounded-[2.5rem] p-5 flex flex-col max-h-[80vh] border-2 border-slate-200 shadow-sm"
+                >
+                  <div className={`p-4 rounded-2xl mb-4 font-black text-xs uppercase tracking-widest flex justify-between items-center border ${col.color}`}>
+                    <span>{col.label}</span>
+                    <span className="bg-white px-2.5 py-1 rounded-full text-xs shadow-sm">{colCandidates.length}</span>
+                  </div>
+
+                  <div className="overflow-y-auto space-y-4 pr-1 custom-scrollbar flex-grow">
+                    {colCandidates.length === 0 ? (
+                      <div className="text-center py-8 text-slate-400 text-xs font-bold uppercase tracking-wider border-2 border-dashed border-slate-200 rounded-2xl">
+                        Tidak ada kandidat
+                      </div>
+                    ) : (
+                      colCandidates.map((c) => (
+                        <div
+                          key={c.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, c.id)}
+                          className="bg-white p-5 rounded-3xl shadow-md border border-slate-100 hover:shadow-xl transition-all cursor-grab active:cursor-grabbing space-y-3 relative group"
+                        >
+                          <div className="flex items-center gap-3">
+                             <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+                                <DriveImage url={c.pasPhoto || c.foto || c.pasFoto || c.photo || c.urlFoto || c.linkFoto || c.pasPhoto3x4 || c.foto3x4} alt={c.namaLengkap} size="w-full h-full" className="object-cover object-top" />
+                             </div>
+                             <div className="min-w-0 flex-grow">
+                                <h4 className="font-black text-slate-900 text-xs uppercase truncate">{c.namaLengkap}</h4>
+                                <p className="text-[10px] font-bold text-indigo-600 uppercase mt-0.5">{c.bidangKerja || "UMUM"}</p>
+                             </div>
+                          </div>
+
+                          <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 pt-2 border-t border-slate-100">
+                             <span>{c.kodeJob || "-"}</span>
+                             <div className="flex gap-2">
+                                <Link href={`/admin/cv/${c.id}`} className="text-blue-600 hover:underline font-black">CV</Link>
+                                <Link href={`/admin/edit/${c.id}`} className="text-indigo-600 hover:underline font-black">Edit</Link>
+                             </div>
+                          </div>
+
+                          <div className="pt-1">
+                             <select
+                               value={c.statusProgres || ""}
+                               onChange={(e) => handleStatusChange(c.id, e.target.value)}
+                               className="w-full bg-slate-50 border border-slate-200 text-[10px] font-black uppercase rounded-xl py-1.5 px-2 text-slate-700 outline-none"
+                             >
+                               {KANBAN_COLUMNS.map(opt => (
+                                 <option key={opt.id} value={opt.id}>{opt.label}</option>
+                               ))}
+                             </select>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : viewMode === "table" ? (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block card !p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[1200px]">
               <thead>
