@@ -627,9 +627,9 @@ function CandidatesContent() {
         {viewMode === "table" && (
           <>
             {/* Desktop Table View */}
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[1200px]">
+            <div className="hidden lg:block card !p-0 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[1200px]">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="py-3 px-4">
