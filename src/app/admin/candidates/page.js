@@ -514,7 +514,7 @@ function CandidatesContent() {
            <button onClick={() => setViewMode("kanban")} className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all ${viewMode==='kanban'?'bg-indigo-600 text-white shadow-lg scale-105':'text-slate-400 hover:bg-slate-50'}`}>Kanban Pipeline</button>
         </div>
 
-        {viewMode === "kanban" ? (
+        {viewMode === "kanban" && (
           <div className="flex overflow-x-auto pb-6 gap-6 custom-scrollbar items-start">
             {KANBAN_COLUMNS.map((col) => {
               const colCandidates = filtered.filter(c => (c.statusProgres || "") === col.id);
@@ -580,10 +580,54 @@ function CandidatesContent() {
               );
             })}
           </div>
-        ) : viewMode === "table" ? (
+        )}
+
+        {viewMode === "card" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+            {filtered.map((c) => (
+              <div key={c.id} className="group bg-white rounded-[3rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full border-4 border-white hover:border-purple-100 relative active:scale-95">
+                 <div className="relative aspect-[3/4] overflow-hidden bg-slate-200 shrink-0">
+                    <DriveImage url={c.pasPhoto || c.foto || c.pasFoto || c.photo || c.urlFoto || c.linkFoto || c.pasPhoto3x4 || c.foto3x4} alt={c.namaLengkap} size="w-full h-full" className="group-hover:scale-105 transition-transform duration-1000 object-cover object-top p-1" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-80"></div>
+                    <div className="absolute top-4 left-4 z-10">
+                      <input type="checkbox" checked={selected.includes(c.id)} onChange={(e) => { e.stopPropagation(); toggleSelect(c.id); }} className="w-5 h-5 rounded" />
+                    </div>
+                    <div className="absolute bottom-6 left-6 right-6 text-white">
+                       <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1 block truncate">{c.bidangKerja || "UMUM"}</span>
+                       <h3 className="text-base font-black uppercase leading-tight tracking-tighter drop-shadow-2xl line-clamp-2">{safeText(c.namaLengkap)}</h3>
+                       {c.namaPanggilan && <p className="text-[10px] font-bold text-slate-300 uppercase mt-0.5">{safeText(c.namaPanggilan, "")}</p>}
+                    </div>
+                 </div>
+                 <div className="p-6 space-y-4 flex-grow flex flex-col justify-between">
+                    <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs">
+                       <div className="text-center flex-1 border-r border-slate-200 pr-2">
+                          <p className="text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">Gender</p>
+                          <p className="text-[10px] font-black text-slate-800 uppercase">{(c.jenisKelamin?.toUpperCase().includes("LAKI") || c.jenisKelamin?.toUpperCase().includes("PRIA")) ? 'Pria' : 'Wanita'}</p>
+                       </div>
+                       <div className="text-center flex-1 pl-2">
+                          <p className="text-[8px] font-black text-slate-400 uppercase mb-1 tracking-widest">Status</p>
+                          <p className="text-[10px] font-black text-emerald-600 uppercase truncate">{c.statusProgres || "Belum Ada"}</p>
+                       </div>
+                    </div>
+                    <div className="flex justify-between items-center gap-2 pt-2 border-t border-slate-100">
+                       <Link href={`/admin/cv/${c.id}`} className="flex-1 text-center py-2.5 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px] uppercase hover:bg-blue-600 hover:text-white transition-all shadow-sm">View CV</Link>
+                       {(userData?.role === "admin" || userData?.role === "approval") && (
+                         <Link href={`/admin/edit/${c.id}`} className="flex-1 text-center py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase hover:bg-indigo-600 hover:text-white transition-all shadow-sm">Edit</Link>
+                       )}
+                       {userData?.role === "admin" && (
+                         <button onClick={() => handleDeleteSingle(c)} className="px-3 py-2.5 bg-red-50 text-red-500 rounded-xl font-black text-[10px] uppercase hover:bg-red-500 hover:text-white transition-all shadow-sm">Hapus</button>
+                       )}
+                    </div>
+                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {viewMode === "table" && (
           <>
             {/* Desktop Table View */}
-            <div className="hidden lg:block card !p-0 overflow-hidden">
+
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[1200px]">
               <thead>
@@ -774,6 +818,7 @@ function CandidatesContent() {
             );
           })}
         </div>
+        )}
 
         {filtered.length === 0 && (
           <div className="card py-12 text-center text-gray-400">Tidak ada data ditemukan</div>
