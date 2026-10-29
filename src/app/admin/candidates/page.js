@@ -625,7 +625,7 @@ function CandidatesContent() {
         )}
 
         {viewMode === "table" && (
-          <>
+          <div className="space-y-4">
             {/* Desktop Table View */}
             <div className="hidden lg:block card !p-0 overflow-hidden">
               <div className="overflow-x-auto">
@@ -818,6 +818,7 @@ function CandidatesContent() {
             );
           })}
         </div>
+          </div>
         )}
 
         {filtered.length === 0 && (
