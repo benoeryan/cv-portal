@@ -1,9 +1,38 @@
 import { supabase } from "./supabase";
 import { getBackupCandidates, getBackupJobs, getBackupUsers } from "./backupData";
 
-// Generic Supabase JSONB CRUD helper
+async function ensureTableSeeded(tableName) {
+  try {
+    const { count, error: countError } = await supabase
+      .from(tableName)
+      .select("*", { count: "exact", head: true });
+
+    if (countError || count === 0) {
+      let backupData = [];
+      if (tableName === "candidates") backupData = getBackupCandidates();
+      else if (tableName === "jobs") backupData = getBackupJobs();
+      else if (tableName === "users") backupData = getBackupUsers();
+
+      if (backupData.length > 0) {
+        const records = backupData.map(item => ({
+          id: String(item.id || item.userId || "id_" + Math.random()),
+          data: item,
+          updated_at: new Date().toISOString()
+        }));
+        for (let i = 0; i < records.length; i += 50) {
+          const batch = records.slice(i, i + 50);
+          await supabase.from(tableName).upsert(batch);
+        }
+      }
+    }
+  } catch (err) {
+    console.error(`Error seeding ${tableName} to Supabase:`, err);
+  }
+}
+
 export async function dbGetDocs(tableName) {
   try {
+    await ensureTableSeeded(tableName);
     const { data, error } = await supabase.from(tableName).select("*");
     if (error || !data || data.length === 0) {
       if (tableName === "candidates") return getBackupCandidates();
@@ -26,7 +55,8 @@ export async function dbGetDocs(tableName) {
 
 export async function dbGetDoc(tableName, id) {
   try {
-    const { data, error } = await supabase.from(tableName).select("*").eq("id", id).maybeSingle();
+    await ensureTableSeeded(tableName);
+    const { data, error } = await supabase.from(tableName).select("*").eq("id", String(id)).maybeSingle();
     if (error || !data) {
       const all = tableName === "candidates" ? getBackupCandidates() : tableName === "jobs" ? getBackupJobs() : getBackupUsers();
       return all.find(x => x.id === id) || null;
@@ -82,7 +112,7 @@ export async function dbUpdateDoc(tableName, id, payload) {
 
 export async function dbDeleteDoc(tableName, id) {
   try {
-    const { error } = await supabase.from(tableName).delete().eq("id", id);
+    const { error } = await supabase.from(tableName).delete().eq("id", String(id));
     if (error) throw error;
     return true;
   } catch (err) {
