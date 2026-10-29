@@ -201,6 +201,43 @@ export default function SettingsPage() {
     setResetingPassword(false);
   };
 
+  const handleDownloadBackup = async () => {
+    try {
+      setLoading(true);
+      const backupData = {
+        exportedAt: new Date().toISOString(),
+        candidates: [],
+        users: [],
+        jobs: [],
+        partners: [],
+        requests: []
+      };
+
+      const collectionsList = ["candidates", "users", "jobs", "partners", "requests"];
+      for (const colName of collectionsList) {
+        try {
+          const snap = await getDocs(collection(db, colName));
+          backupData[colName] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) {
+          console.warn(`Could not backup collection ${colName}:`, e);
+        }
+      }
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `cv_portal_full_backup_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      setMessage("Backup keseluruhan data berhasil diunduh!");
+    } catch (err) {
+      setMessage("Gagal melakukan backup: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getRoleInfo = (role) => ROLES.find((r) => r.value === role) || ROLES[3];
 
   if (authLoading || loading) {
@@ -377,6 +414,18 @@ export default function SettingsPage() {
         {/* TAB: System */}
         {activeTab === "system" && (
           <div className="space-y-4">
+            <div className="card">
+              <h3 className="font-semibold text-gray-700 mb-2">Cadangan & Ekspor Data Keseluruhan (Backup)</h3>
+              <p className="text-sm text-gray-500 mb-4">Unduh seluruh database aplikasi (Kandidat, Akun Pengguna, Pekerjaan, Mitra, dan Request) ke dalam satu file JSON komprehensif.</p>
+              <button
+                onClick={handleDownloadBackup}
+                disabled={loading}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2 text-sm uppercase tracking-wider disabled:opacity-50"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                {loading ? "Mengunduh..." : "Download Full Backup (JSON)"}
+              </button>
+            </div>
             <div className="card">
               <h3 className="font-semibold text-gray-700 mb-3">Informasi Sistem</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
