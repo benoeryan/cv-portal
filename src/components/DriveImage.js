@@ -24,9 +24,7 @@ export function getCandidatePhotoUrl(c) {
   if (!c) return null;
   if (typeof c === 'string') {
     const trimmed = c.trim();
-    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("data:") && !trimmed.startsWith("blob:") && !/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) {
-      return null;
-    }
+    if (!trimmed) return null;
     return trimmed;
   }
   if (Array.isArray(c)) {
@@ -95,7 +93,7 @@ export function getDriveFileId(url) {
 }
 
 export function getDriveImageUrl(url, size = 1000) {
-  if (!url || isAiPhotoUrl(url)) return null;
+  if (!url) return null;
   if (Array.isArray(url)) {
     for (const u of url) {
       const res = getDriveImageUrl(u, size);
@@ -109,17 +107,14 @@ export function getDriveImageUrl(url, size = 1000) {
   }
   if (typeof targetUrl !== 'string') return null;
   const trimmed = targetUrl.trim();
+  if (!trimmed || isAiPhotoUrl(trimmed)) return null;
 
   const driveId = getDriveFileId(trimmed);
   if (driveId) {
     return `https://lh3.googleusercontent.com/d/${driveId}=s${size}`;
   }
 
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
-    return trimmed;
-  }
-
-  return null;
+  return trimmed;
 }
 
 export function getInitials(name) {
@@ -161,8 +156,8 @@ export default function DriveImage({ url, alt = "Photo", size = "w-12 h-12", cla
     else if (retryStep === 1) currentSrc = `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`;
     else if (retryStep === 2) currentSrc = `https://drive.google.com/uc?export=view&id=${driveId}`;
     else if (retryStep === 3) currentSrc = `https://docs.google.com/uc?export=download&id=${driveId}`;
-  } else if (rawUrl && typeof rawUrl === 'string' && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://") || rawUrl.startsWith("data:") || rawUrl.startsWith("blob:"))) {
-    currentSrc = rawUrl;
+  } else {
+    currentSrc = getDriveImageUrl(rawUrl, 1000);
   }
 
   const initials = getInitials(alt || (typeof url === 'object' ? url.namaLengkap : ""));
