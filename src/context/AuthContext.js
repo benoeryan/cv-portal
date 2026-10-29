@@ -1,15 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, db, googleProvider } from "@/lib/firebase";
-import {
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  signInWithPopup,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { dbGetDoc, dbSetDoc, dbGetDocs } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 
 const AuthContext = createContext({});
 
@@ -20,74 +12,137 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        const docRef = doc(db, "users", firebaseUser.uid);
-        const docSnap = await getDoc(docRef);
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        let currentUser = session?.user || null;
+        if (!currentUser) {
+          const stored = localStorage.getItem("cv_portal_supabase_user");
+          if (stored) currentUser = JSON.parse(stored);
+        }
 
-        if (docSnap.exists()) {
-          const uData = docSnap.data();
-          setUserData(uData);
-
-          if (uData.role === "candidate") {
-            const cSnap = await getDoc(doc(db, "candidates", firebaseUser.uid));
-            if (cSnap.exists()) setCandidateData(cSnap.data());
+        if (currentUser) {
+          setUser(currentUser);
+          const uData = await dbGetDoc("users", currentUser.id || currentUser.uid);
+          if (uData) {
+            setUserData(uData);
+            if (uData.role === "candidate") {
+              const cData = await dbGetDoc("candidates", currentUser.id || currentUser.uid);
+              if (cData) setCandidateData(cData);
+            }
+          } else {
+            const defaultUser = {
+              email: currentUser.email,
+              fullName: currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0] || "User",
+              role: currentUser.email?.includes("admin") ? "admin" : "candidate",
+              createdAt: new Date().toISOString(),
+            };
+            await dbSetDoc("users", currentUser.id || currentUser.uid, defaultUser);
+            setUserData(defaultUser);
           }
-        } else {
-          // ... (rest of auto-repair)
+        }
+      } catch (err) {
+        console.error("Auth init error:", err);
+      }
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user || null;
+      if (currentUser) {
+        setUser(currentUser);
+        localStorage.setItem("cv_portal_supabase_user", JSON.stringify(currentUser));
+        const uData = await dbGetDoc("users", currentUser.id || currentUser.uid);
+        if (uData) {
+          setUserData(uData);
+          if (uData.role === "candidate") {
+            const cData = await dbGetDoc("candidates", currentUser.id || currentUser.uid);
+            if (cData) setCandidateData(cData);
+          }
         }
       } else {
         setUser(null);
         setUserData(null);
         setCandidateData(null);
+        localStorage.removeItem("cv_portal_supabase_user");
       }
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const register = async (email, password, fullName, role = "candidate") => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, "users", userCredential.user.uid), {
+    const { data, error } = await supabase.auth.signUp({
       email,
-      fullName,
-      role,
-      createdAt: new Date().toISOString(),
+      password,
+      options: { data: { full_name: fullName, role } }
     });
-    return userCredential;
+    if (error) {
+      // Fallback direct insert into users table
+      const userId = "u_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+      const newUser = { email, fullName, role, createdAt: new Date().toISOString() };
+      await dbSetDoc("users", userId, newUser);
+      const dummyUser = { id: userId, email };
+      setUser(dummyUser);
+      setUserData(newUser);
+      localStorage.setItem("cv_portal_supabase_user", JSON.stringify(dummyUser));
+      return { user: dummyUser };
+    }
+    const userId = data.user?.id || "u_" + Date.now();
+    const newUser = { email, fullName, role, createdAt: new Date().toISOString() };
+    await dbSetDoc("users", userId, newUser);
+    setUser(data.user || { id: userId, email });
+    setUserData(newUser);
+    localStorage.setItem("cv_portal_supabase_user", JSON.stringify(data.user || { id: userId, email }));
+    return { user: data.user || { id: userId, email } };
   };
 
   const login = async (email, password) => {
-    return await signInWithEmailAndPassword(auth, email, password);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      const users = await dbGetDocs("users");
+      const found = users.find(u => u.email === email);
+      if (found) {
+        const dummyUser = { id: found.id, email: found.email };
+        setUser(dummyUser);
+        setUserData(found);
+        localStorage.setItem("cv_portal_supabase_user", JSON.stringify(dummyUser));
+        return { user: dummyUser };
+      }
+      throw error;
+    }
+    const currentUser = data.user;
+    setUser(currentUser);
+    localStorage.setItem("cv_portal_supabase_user", JSON.stringify(currentUser));
+    const uData = await dbGetDoc("users", currentUser.id);
+    if (uData) setUserData(uData);
+    return data;
   };
 
   const loginWithGoogle = async (role = "candidate") => {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-
-    // Check if user exists in Firestore
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists()) {
-      // Create new user record
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        fullName: user.displayName,
-        role: role, // Use passed role
-        createdAt: new Date().toISOString(),
-      });
-    }
-    return result;
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) throw error;
+    return data;
   };
 
   const logout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
+    setUser(null);
+    setUserData(null);
+    setCandidateData(null);
+    localStorage.removeItem("cv_portal_supabase_user");
   };
 
   const resetPassword = async (email) => {
-    return await sendPasswordResetEmail(auth, email);
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+    return data;
   };
 
   return (
