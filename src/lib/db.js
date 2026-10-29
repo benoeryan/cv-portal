@@ -9,9 +9,17 @@ export async function dbGetDocs(tableName) {
     } catch (e) {}
 
     const map = new Map();
-    [...localAdds, ...backup].forEach(item => {
-      if (item && item.id && !map.has(String(item.id))) {
+    // First load backup data
+    backup.forEach(item => {
+      if (item && item.id) {
         map.set(String(item.id), item);
+      }
+    });
+    // Then override with localAdds (which contain the absolute latest user updates, status changes, and history)
+    localAdds.forEach(item => {
+      if (item && item.id) {
+        const existing = map.get(String(item.id)) || {};
+        map.set(String(item.id), { ...existing, ...item });
       }
     });
     return Array.from(map.values());
