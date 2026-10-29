@@ -25,6 +25,9 @@ export function getCandidatePhotoUrl(c) {
   if (typeof c === 'string') {
     const trimmed = c.trim();
     if (!trimmed) return null;
+    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("data:") && !trimmed.startsWith("blob:") && !/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) {
+      return null; // Reject plain text names/filenames
+    }
     return trimmed;
   }
   if (Array.isArray(c)) {
@@ -114,7 +117,11 @@ export function getDriveImageUrl(url, size = 1000) {
     return `https://lh3.googleusercontent.com/d/${driveId}=s${size}`;
   }
 
-  return trimmed;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
+    return trimmed;
+  }
+
+  return null; // Reject non-URL plain text strings to prevent 404
 }
 
 export function getInitials(name) {

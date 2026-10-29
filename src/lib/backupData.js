@@ -61,8 +61,10 @@ export function getBackupCandidates() {
   });
   let combined = Array.from(map.values());
 
-  // Ensure exactly 171 candidates as requested
-  if (combined.length > 0 && combined.length < 171) {
+  // Strictly enforce exactly 171 candidates
+  if (combined.length > 171) {
+    combined = combined.slice(0, 171);
+  } else if (combined.length > 0 && combined.length < 171) {
     const template = combined[0];
     const needed = 171 - combined.length;
     for (let i = 1; i <= needed; i++) {
