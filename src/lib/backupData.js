@@ -32,54 +32,29 @@ export function parseFirestoreFields(fields) {
 }
 
 export function getBackupCandidates() {
-  const list = [];
-  if (backupJson && backupJson.candidates) {
-    backupJson.candidates.forEach((c) => {
-      list.push({
-        id: c.id,
-        ...parseFirestoreFields(c.fields),
-      });
-    });
-  }
-  if (backupJson && backupJson.users) {
-    backupJson.users.forEach((u) => {
-      const parsed = parseFirestoreFields(u.fields);
-      if (parsed.namaLengkap || parsed.bidangKerja || parsed.role === "candidate" || parsed.pasPhoto || parsed.pasFoto) {
-        list.push({
-          id: u.id,
-          ...parsed,
-        });
-      }
-    });
-  }
+  if (!backupJson || !backupJson.candidates) return [];
+  const list = backupJson.candidates.map((c) => ({
+    id: c.id,
+    ...parseFirestoreFields(c.fields),
+  }));
+
+  let localAdds = [];
+  try {
+    localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
+  } catch (e) {}
 
   const map = new Map();
   list.forEach(item => {
-    if (item && item.id && !map.has(String(item.id))) {
-      map.set(String(item.id), item);
+    if (item && item.id) map.set(String(item.id), item);
+  });
+  localAdds.forEach(item => {
+    if (item && item.id) {
+      const existing = map.get(String(item.id)) || {};
+      map.set(String(item.id), { ...existing, ...item });
     }
   });
-  let combined = Array.from(map.values());
 
-  // Strictly enforce exactly 171 candidates
-  if (combined.length > 171) {
-    combined = combined.slice(0, 171);
-  } else if (combined.length > 0 && combined.length < 171) {
-    const template = combined[0];
-    const needed = 171 - combined.length;
-    for (let i = 1; i <= needed; i++) {
-      combined.push({
-        ...template,
-        id: `id_extra_${i}_${Date.now()}`,
-        namaLengkap: `KANDIDAT TAMBAHAN ${i}`,
-        namaPanggilan: `SISWA ${i}`,
-        noHp: `0812345678${i < 10 ? '0' + i : i}`,
-        statusProgres: i % 3 === 0 ? "Pending Nunggu Job" : i % 2 === 0 ? "On Proses" : "Nihongo check",
-      });
-    }
-  }
-
-  return combined;
+  return Array.from(map.values());
 }
 
 export function getBackupUsers() {
