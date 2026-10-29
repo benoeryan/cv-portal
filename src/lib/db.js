@@ -1,75 +1,67 @@
 import { supabase } from "./supabase";
 import { getBackupCandidates, getBackupJobs, getBackupUsers } from "./backupData";
 
-async function ensureTableSeeded(tableName) {
-  try {
-    const { count, error: countError } = await supabase
-      .from(tableName)
-      .select("*", { count: "exact", head: true });
-
-    if (countError || count === 0) {
-      let backupData = [];
-      if (tableName === "candidates") backupData = getBackupCandidates();
-      else if (tableName === "jobs") backupData = getBackupJobs();
-      else if (tableName === "users") backupData = getBackupUsers();
-
-      if (backupData.length > 0) {
-        const records = backupData.map(item => ({
-          id: String(item.id || item.userId || "id_" + Math.random()),
-          data: item,
-          updated_at: new Date().toISOString()
-        }));
-        for (let i = 0; i < records.length; i += 50) {
-          const batch = records.slice(i, i + 50);
-          await supabase.from(tableName).upsert(batch);
-        }
-      }
-    }
-  } catch (err) {
-    console.error(`Error seeding ${tableName} to Supabase:`, err);
-  }
-}
-
 export async function dbGetDocs(tableName) {
+  let supabaseRecords = [];
   try {
-    await ensureTableSeeded(tableName);
     const { data, error } = await supabase.from(tableName).select("*");
-    if (error || !data || data.length === 0) {
-      if (tableName === "candidates") return getBackupCandidates();
-      if (tableName === "jobs") return getBackupJobs();
-      if (tableName === "users") return getBackupUsers();
-      return [];
+    if (!error && data && data.length > 0) {
+      supabaseRecords = data.map(item => ({
+        id: item.id,
+        ...(typeof item.data === "object" && item.data !== null ? item.data : {}),
+      }));
     }
-    return data.map(item => ({
-      id: item.id,
-      ...(typeof item.data === "object" && item.data !== null ? item.data : {}),
-    }));
   } catch (err) {
-    console.error(`Error fetching ${tableName}:`, err);
-    if (tableName === "candidates") return getBackupCandidates();
-    if (tableName === "jobs") return getBackupJobs();
-    if (tableName === "users") return getBackupUsers();
-    return [];
+    console.warn(`Supabase fetch warning for ${tableName}:`, err);
   }
+
+  if (tableName === "candidates") {
+    const backup = getBackupCandidates();
+    let localAdds = [];
+    try {
+      localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
+    } catch (e) {}
+
+    // Combine Supabase records + local adds + backup data (no duplicates by ID)
+    const map = new Map();
+    [...supabaseRecords, ...localAdds, ...backup].forEach(item => {
+      if (item && item.id && !map.has(String(item.id))) {
+        map.set(String(item.id), item);
+      }
+    });
+    const combined = Array.from(map.values());
+    if (combined.length > 0) return combined;
+    return backup;
+  }
+
+  if (tableName === "jobs") {
+    const backupJobs = getBackupJobs();
+    const map = new Map();
+    [...supabaseRecords, ...backupJobs].forEach(item => {
+      if (item && item.id && !map.has(String(item.id))) {
+        map.set(String(item.id), item);
+      }
+    });
+    return Array.from(map.values());
+  }
+
+  if (tableName === "users") {
+    const backupUsers = getBackupUsers();
+    const map = new Map();
+    [...supabaseRecords, ...backupUsers].forEach(item => {
+      if (item && item.id && !map.has(String(item.id))) {
+        map.set(String(item.id), item);
+      }
+    });
+    return Array.from(map.values());
+  }
+
+  return supabaseRecords;
 }
 
 export async function dbGetDoc(tableName, id) {
-  try {
-    await ensureTableSeeded(tableName);
-    const { data, error } = await supabase.from(tableName).select("*").eq("id", String(id)).maybeSingle();
-    if (error || !data) {
-      const all = tableName === "candidates" ? getBackupCandidates() : tableName === "jobs" ? getBackupJobs() : getBackupUsers();
-      return all.find(x => x.id === id) || null;
-    }
-    return {
-      id: data.id,
-      ...(typeof data.data === "object" && data.data !== null ? data.data : {}),
-    };
-  } catch (err) {
-    console.error(`Error fetching doc ${id} from ${tableName}:`, err);
-    const all = tableName === "candidates" ? getBackupCandidates() : tableName === "jobs" ? getBackupJobs() : getBackupUsers();
-    return all.find(x => x.id === id) || null;
-  }
+  const all = await dbGetDocs(tableName);
+  return all.find(x => String(x.id) === String(id)) || null;
 }
 
 export async function dbSetDoc(tableName, id, payload) {
@@ -79,44 +71,47 @@ export async function dbSetDoc(tableName, id, payload) {
       data: payload,
       updated_at: new Date().toISOString()
     };
-    const { error } = await supabase.from(tableName).upsert(record);
-    if (error) throw error;
-    return true;
+    await supabase.from(tableName).upsert(record);
   } catch (err) {
-    console.error(`Error saving doc ${id} to ${tableName}:`, err);
-    throw err;
+    console.error("Supabase upsert error:", err);
   }
+
+  try {
+    if (tableName === "candidates") {
+      const localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
+      const idx = localAdds.findIndex(x => String(x.id) === String(id));
+      const newItem = { id: String(id), ...payload };
+      if (idx >= 0) localAdds[idx] = newItem;
+      else localAdds.unshift(newItem);
+      localStorage.setItem("cv_portal_local_candidates", JSON.stringify(localAdds));
+    }
+  } catch (e) {}
+  return true;
 }
 
 export async function dbAddDoc(tableName, payload) {
-  try {
-    const id = "id_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-    await dbSetDoc(tableName, id, payload);
-    return { id };
-  } catch (err) {
-    console.error(`Error adding doc to ${tableName}:`, err);
-    throw err;
-  }
+  const id = "id_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+  await dbSetDoc(tableName, id, payload);
+  return { id };
 }
 
 export async function dbUpdateDoc(tableName, id, payload) {
-  try {
-    const existing = await dbGetDoc(tableName, id) || {};
-    const updated = { ...existing, ...payload };
-    return await dbSetDoc(tableName, id, updated);
-  } catch (err) {
-    console.error(`Error updating doc ${id} in ${tableName}:`, err);
-    throw err;
-  }
+  const existing = await dbGetDoc(tableName, id) || {};
+  const updated = { ...existing, ...payload };
+  return await dbSetDoc(tableName, id, updated);
 }
 
 export async function dbDeleteDoc(tableName, id) {
   try {
-    const { error } = await supabase.from(tableName).delete().eq("id", String(id));
-    if (error) throw error;
-    return true;
-  } catch (err) {
-    console.error(`Error deleting doc ${id} from ${tableName}:`, err);
-    throw err;
-  }
+    await supabase.from(tableName).delete().eq("id", String(id));
+  } catch (err) {}
+
+  try {
+    if (tableName === "candidates") {
+      const localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
+      const filtered = localAdds.filter(x => String(x.id) !== String(id));
+      localStorage.setItem("cv_portal_local_candidates", JSON.stringify(filtered));
+    }
+  } catch (e) {}
+  return true;
 }
