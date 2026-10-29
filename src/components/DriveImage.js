@@ -25,7 +25,7 @@ export function getCandidatePhotoUrl(c) {
   if (typeof c === 'string') {
     const trimmed = c.trim();
     if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("data:") && !trimmed.startsWith("blob:") && !/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) {
-      return null; // Plain text name/filename, not a valid photo URL
+      return null;
     }
     return trimmed;
   }
@@ -110,20 +110,16 @@ export function getDriveImageUrl(url, size = 1000) {
   if (typeof targetUrl !== 'string') return null;
   const trimmed = targetUrl.trim();
 
-  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("data:") && !trimmed.startsWith("blob:")) {
-    const fileId = getDriveFileId(trimmed);
-    if (fileId) {
-      return `https://lh3.googleusercontent.com/d/${fileId}=s${size}`;
-    }
-    return null; // Not a valid URL or Drive ID (e.g. filename text)
-  }
-
   const driveId = getDriveFileId(trimmed);
   if (driveId) {
     return `https://lh3.googleusercontent.com/d/${driveId}=s${size}`;
   }
 
-  return trimmed;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
+    return trimmed;
+  }
+
+  return null;
 }
 
 export function getInitials(name) {
@@ -165,8 +161,8 @@ export default function DriveImage({ url, alt = "Photo", size = "w-12 h-12", cla
     else if (retryStep === 1) currentSrc = `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`;
     else if (retryStep === 2) currentSrc = `https://drive.google.com/uc?export=view&id=${driveId}`;
     else if (retryStep === 3) currentSrc = `https://docs.google.com/uc?export=download&id=${driveId}`;
-  } else {
-    currentSrc = (retryStep === 0) ? getDriveImageUrl(rawUrl, 1000) : null;
+  } else if (rawUrl && typeof rawUrl === 'string' && (rawUrl.startsWith("http://") || rawUrl.startsWith("https://") || rawUrl.startsWith("data:") || rawUrl.startsWith("blob:"))) {
+    currentSrc = rawUrl;
   }
 
   const initials = getInitials(alt || (typeof url === 'object' ? url.namaLengkap : ""));

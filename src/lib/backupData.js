@@ -32,11 +32,34 @@ export function parseFirestoreFields(fields) {
 }
 
 export function getBackupCandidates() {
-  if (!backupJson || !backupJson.candidates) return [];
-  return backupJson.candidates.map((c) => ({
-    id: c.id,
-    ...parseFirestoreFields(c.fields),
-  }));
+  const list = [];
+  if (backupJson && backupJson.candidates) {
+    backupJson.candidates.forEach((c) => {
+      list.push({
+        id: c.id,
+        ...parseFirestoreFields(c.fields),
+      });
+    });
+  }
+  if (backupJson && backupJson.users) {
+    backupJson.users.forEach((u) => {
+      const parsed = parseFirestoreFields(u.fields);
+      if (parsed.namaLengkap || parsed.bidangKerja || parsed.role === "candidate" || parsed.pasPhoto || parsed.pasFoto) {
+        list.push({
+          id: u.id,
+          ...parsed,
+        });
+      }
+    });
+  }
+  // Remove duplicates by id
+  const map = new Map();
+  list.forEach(item => {
+    if (item && item.id && !map.has(String(item.id))) {
+      map.set(String(item.id), item);
+    }
+  });
+  return Array.from(map.values());
 }
 
 export function getBackupUsers() {
