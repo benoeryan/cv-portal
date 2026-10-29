@@ -1,20 +1,6 @@
-import { supabase } from "./supabase";
 import { getBackupCandidates, getBackupJobs, getBackupUsers } from "./backupData";
 
 export async function dbGetDocs(tableName) {
-  let supabaseRecords = [];
-  try {
-    const { data, error } = await supabase.from(tableName).select("*");
-    if (!error && data && data.length > 0) {
-      supabaseRecords = data.map(item => ({
-        id: item.id,
-        ...(typeof item.data === "object" && item.data !== null ? item.data : {}),
-      }));
-    }
-  } catch (err) {
-    console.warn(`Supabase fetch warning for ${tableName}:`, err);
-  }
-
   if (tableName === "candidates") {
     const backup = getBackupCandidates();
     let localAdds = [];
@@ -22,22 +8,8 @@ export async function dbGetDocs(tableName) {
       localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
     } catch (e) {}
 
-    // Combine Supabase records + local adds + backup data (no duplicates by ID)
     const map = new Map();
-    [...supabaseRecords, ...localAdds, ...backup].forEach(item => {
-      if (item && item.id && !map.has(String(item.id))) {
-        map.set(String(item.id), item);
-      }
-    });
-    const combined = Array.from(map.values());
-    if (combined.length > 0) return combined;
-    return backup;
-  }
-
-  if (tableName === "jobs") {
-    const backupJobs = getBackupJobs();
-    const map = new Map();
-    [...supabaseRecords, ...backupJobs].forEach(item => {
+    [...localAdds, ...backup].forEach(item => {
       if (item && item.id && !map.has(String(item.id))) {
         map.set(String(item.id), item);
       }
@@ -45,18 +17,9 @@ export async function dbGetDocs(tableName) {
     return Array.from(map.values());
   }
 
-  if (tableName === "users") {
-    const backupUsers = getBackupUsers();
-    const map = new Map();
-    [...supabaseRecords, ...backupUsers].forEach(item => {
-      if (item && item.id && !map.has(String(item.id))) {
-        map.set(String(item.id), item);
-      }
-    });
-    return Array.from(map.values());
-  }
-
-  return supabaseRecords;
+  if (tableName === "jobs") return getBackupJobs();
+  if (tableName === "users") return getBackupUsers();
+  return [];
 }
 
 export async function dbGetDoc(tableName, id) {
@@ -65,17 +28,6 @@ export async function dbGetDoc(tableName, id) {
 }
 
 export async function dbSetDoc(tableName, id, payload) {
-  try {
-    const record = {
-      id: String(id),
-      data: payload,
-      updated_at: new Date().toISOString()
-    };
-    await supabase.from(tableName).upsert(record);
-  } catch (err) {
-    console.error("Supabase upsert error:", err);
-  }
-
   try {
     if (tableName === "candidates") {
       const localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
@@ -102,10 +54,6 @@ export async function dbUpdateDoc(tableName, id, payload) {
 }
 
 export async function dbDeleteDoc(tableName, id) {
-  try {
-    await supabase.from(tableName).delete().eq("id", String(id));
-  } catch (err) {}
-
   try {
     if (tableName === "candidates") {
       const localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
