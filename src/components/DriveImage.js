@@ -22,7 +22,13 @@ export function isAiPhotoUrl(url) {
 
 export function getCandidatePhotoUrl(c) {
   if (!c) return null;
-  if (typeof c === 'string') return c;
+  if (typeof c === 'string') {
+    const trimmed = c.trim();
+    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("data:") && !trimmed.startsWith("blob:") && !/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) {
+      return null; // Plain text name/filename, not a valid photo URL
+    }
+    return trimmed;
+  }
   if (Array.isArray(c)) {
     for (const item of c) {
       const u = getCandidatePhotoUrl(item);
@@ -64,16 +70,22 @@ export function getDriveFileId(url) {
     targetUrl = getCandidatePhotoUrl(url) || url.url || url.path || "";
   }
   if (typeof targetUrl !== 'string') return null;
+  const trimmed = targetUrl.trim();
 
-  if (targetUrl.includes('drive.google.com') || targetUrl.includes('docs.google.com')) {
+  if (/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com') || trimmed.includes('googleusercontent.com')) {
     const patterns = [
       /\/open\?id=([a-zA-Z0-9_-]+)/,
       /\/file\/d\/([a-zA-Z0-9_-]+)/,
       /\/d\/([a-zA-Z0-9_-]+)/,
       /[?&]id=([a-zA-Z0-9_-]+)/,
+      /\/d\/([a-zA-Z0-9_-]+)=/,
     ];
     for (const pattern of patterns) {
-      const match = targetUrl.match(pattern);
+      const match = trimmed.match(pattern);
       if (match && match[1]) {
         return match[1];
       }
@@ -82,7 +94,6 @@ export function getDriveFileId(url) {
   return null;
 }
 
-// Convert Google Drive sharing link to direct image URL without breaking Firebase Storage or direct URLs
 export function getDriveImageUrl(url, size = 1000) {
   if (!url || isAiPhotoUrl(url)) return null;
   if (Array.isArray(url)) {
@@ -97,13 +108,22 @@ export function getDriveImageUrl(url, size = 1000) {
     targetUrl = getCandidatePhotoUrl(url) || url.url || url.path || url.firebaseUrl || url.downloadURL || "";
   }
   if (typeof targetUrl !== 'string') return null;
+  const trimmed = targetUrl.trim();
 
-  const driveId = getDriveFileId(targetUrl);
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("data:") && !trimmed.startsWith("blob:")) {
+    const fileId = getDriveFileId(trimmed);
+    if (fileId) {
+      return `https://lh3.googleusercontent.com/d/${fileId}=s${size}`;
+    }
+    return null; // Not a valid URL or Drive ID (e.g. filename text)
+  }
+
+  const driveId = getDriveFileId(trimmed);
   if (driveId) {
     return `https://lh3.googleusercontent.com/d/${driveId}=s${size}`;
   }
 
-  return targetUrl;
+  return trimmed;
 }
 
 export function getInitials(name) {
