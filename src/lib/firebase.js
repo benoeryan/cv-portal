@@ -117,6 +117,38 @@ export const auth = {
 };
 export const googleProvider = {};
 
+export async function createUserWithEmailAndPassword(authInstance, email, password) {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) {
+    const userId = "u_" + Math.random().toString(36).substring(2, 10);
+    return { user: { uid: userId, email } };
+  }
+  return { user: data.user || { uid: "u_" + Date.now(), email } };
+}
+
+export async function signInWithEmailAndPassword(authInstance, email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return { user: data.user };
+}
+
+export async function signOut(authInstance) {
+  await supabase.auth.signOut();
+  return true;
+}
+
+export async function signInWithPopup(authInstance, provider) {
+  const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+  if (error) throw error;
+  return data;
+}
+
+export async function sendPasswordResetEmail(authInstance, email) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) throw error;
+  return data;
+}
+
 export const storage = {};
 export function ref(storageInstance, path) {
   return { path };
