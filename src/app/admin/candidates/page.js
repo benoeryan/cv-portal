@@ -8,6 +8,7 @@ import { translateToJapanese } from "@/lib/translateHelper";
 import Navbar from "@/components/Navbar";
 import DriveImage, { safeText } from "@/components/DriveImage";
 import Link from "next/link";
+import { getBackupCandidates } from "@/lib/backupData";
 
 function CandidatesContent() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -95,7 +96,11 @@ function CandidatesContent() {
     try {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      let data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      if (!data || data.length === 0) {
+        data = getBackupCandidates();
+      }
 
       // Ultra-robust sorting:
       // 1. Valid dates (Update or Submit) come first, sorted NEWEST to OLDEST.
@@ -120,7 +125,8 @@ function CandidatesContent() {
 
       setCandidates(data);
     } catch (err) {
-      console.error("Error loading candidates:", err);
+      console.error("Error loading candidates from Firestore, falling back to backup:", err);
+      setCandidates(getBackupCandidates());
     }
     setLoading(false);
   };

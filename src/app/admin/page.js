@@ -7,6 +7,7 @@ import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/fi
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import DriveImage from "@/components/DriveImage";
+import { getBackupCandidates } from "@/lib/backupData";
 
 export default function AdminDashboard() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -37,7 +38,11 @@ export default function AdminDashboard() {
     try {
       const q = query(collection(db, "candidates"));
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      let data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      if (!data || data.length === 0) {
+        data = getBackupCandidates();
+      }
 
       data.sort((a, b) => {
         const getTimestamp = (item) => {
@@ -51,7 +56,8 @@ export default function AdminDashboard() {
 
       setCandidates(data);
     } catch (err) {
-      console.error("Error loading candidates:", err);
+      console.error("Error loading candidates from Firestore, falling back to backup:", err);
+      setCandidates(getBackupCandidates());
     } finally {
       setLoading(false);
       setRefreshing(false);
