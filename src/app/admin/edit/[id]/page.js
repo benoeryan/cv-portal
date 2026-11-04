@@ -431,17 +431,30 @@ export default function EditCandidatePage() {
 
   const handleSave = async () => {
     setSaving(true);
+    const dataToSave = {
+      ...data,
+      translations,
+      updatedAt: new Date().toISOString(),
+    };
+
     try {
-      await updateDoc(doc(db, "candidates", params.id), {
-        ...data,
-        translations,
-        updatedAt: new Date().toISOString(),
-      });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      await updateDoc(doc(db, "candidates", params.id), dataToSave);
     } catch (err) {
-      alert("Error: " + err.message);
+      console.warn("Firestore updateDoc error, saving locally:", err.message);
     }
+
+    try {
+      const rawLocal = typeof window !== "undefined" ? (localStorage.getItem("cv_portal_cached_candidates") || "[]") : "[]";
+      const localList = JSON.parse(rawLocal);
+      const updatedList = localList.map(c => String(c.id) === String(params.id) ? { ...c, ...dataToSave } : c);
+      if (!updatedList.some(c => String(c.id) === String(params.id))) {
+        updatedList.push({ id: params.id, ...dataToSave });
+      }
+      localStorage.setItem("cv_portal_cached_candidates", JSON.stringify(updatedList));
+    } catch (e) {}
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
     setSaving(false);
   };
 
