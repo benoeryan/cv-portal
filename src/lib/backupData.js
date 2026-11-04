@@ -38,17 +38,41 @@ export function getBackupCandidates() {
     ...parseFirestoreFields(c.fields),
   }));
 
-  const jianRecord = {
-    id: "jian_mutiasukma_2026",
-    namaLengkap: "JIAN MUTIASUKMA",
-    namaPanggilan: "Jian",
-    bidangKerja: "KAIGO",
-    kategoriKandidat: "NEW COMER",
-    statusProgres: "Pending Nunggu Job",
-    jenisKelamin: "PEREMPUAN",
-    submittedAt: "2026-10-22T12:00:00.000Z",
-    updatedAt: "2026-10-22T12:00:00.000Z"
-  };
+  const recentAdds = [
+    {
+      id: "jian_mutiasukma_2026",
+      namaLengkap: "JIAN MUTIASUKMA",
+      namaPanggilan: "Jian",
+      bidangKerja: "KAIGO",
+      kategoriKandidat: "NEW COMER",
+      statusProgres: "Pending Nunggu Job",
+      jenisKelamin: "PEREMPUAN",
+      submittedAt: "2026-10-22T12:00:00.000Z",
+      updatedAt: "2026-10-22T12:00:00.000Z"
+    },
+    {
+      id: "iqbal_adama_2026",
+      namaLengkap: "IQBAL ADAMA",
+      namaPanggilan: "Iqbal",
+      bidangKerja: "PERHOTELAN",
+      kategoriKandidat: "NEW COMER",
+      statusProgres: "Pending Nunggu Job",
+      jenisKelamin: "LAKI-LAKI",
+      submittedAt: "2026-10-22T12:00:00.000Z",
+      updatedAt: "2026-10-22T12:00:00.000Z"
+    },
+    {
+      id: "syahira_ayudha_2026",
+      namaLengkap: "SYAHIRA AYUDHA",
+      namaPanggilan: "Syahira",
+      bidangKerja: "KAIGO",
+      kategoriKandidat: "NEW COMER",
+      statusProgres: "Pending Nunggu Job",
+      jenisKelamin: "PEREMPUAN",
+      submittedAt: "2026-10-22T12:00:00.000Z",
+      updatedAt: "2026-10-22T12:00:00.000Z"
+    }
+  ];
 
   let localAdds = [];
   try {
@@ -57,7 +81,7 @@ export function getBackupCandidates() {
   } catch (e) {}
 
   const map = new Map();
-  map.set("jian_mutiasukma_2026", jianRecord);
+  recentAdds.forEach(r => map.set(r.id, r));
 
   list.forEach(item => {
     if (item && item.id) map.set(String(item.id), item);
