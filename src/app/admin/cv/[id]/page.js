@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import CVTemplate from "@/components/CVTemplate";
+import { getBackupCandidates } from "@/lib/backupData";
 
 export default function AdminCVViewPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -30,9 +31,17 @@ export default function AdminCVViewPage() {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setData(docSnap.data());
+        setLoading(false);
+        return;
       }
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Firestore getDoc error, searching backup:", err);
+    }
+
+    const backups = getBackupCandidates();
+    const found = backups.find(c => String(c.id) === String(params.id) || String(c.namaLengkap).toLowerCase().includes(String(params.id).toLowerCase()));
+    if (found) {
+      setData(found);
     }
     setLoading(false);
   };

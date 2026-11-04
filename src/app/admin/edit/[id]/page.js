@@ -7,6 +7,7 @@ import { doc, getDoc, updateDoc, collection, getDocs, query, orderBy } from "fir
 import Navbar from "@/components/Navbar";
 import { translateToJapanese, translateToIndonesian } from "@/lib/translateHelper";
 import JapaneseDatePicker from "@/components/JapaneseDatePicker";
+import { getBackupCandidates } from "@/lib/backupData";
 
 // Fields that should be translated to Japanese
 const TRANSLATABLE_FIELDS = [
@@ -157,9 +158,18 @@ export default function EditCandidatePage() {
         const d = docSnap.data();
         setData(d);
         setTranslations(d.translations || {});
+        setLoading(false);
+        return;
       }
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Firestore getDoc error, searching backup:", err);
+    }
+
+    const backups = getBackupCandidates();
+    const found = backups.find(c => String(c.id) === String(params.id) || String(c.namaLengkap).toLowerCase().includes(String(params.id).toLowerCase()));
+    if (found) {
+      setData(found);
+      setTranslations(found.translations || {});
     }
     setLoading(false);
   };
