@@ -38,15 +38,31 @@ export function getBackupCandidates() {
     ...parseFirestoreFields(c.fields),
   }));
 
+  const jianRecord = {
+    id: "jian_mutiasukma_2026",
+    namaLengkap: "JIAN MUTIASUKMA",
+    namaPanggilan: "Jian",
+    bidangKerja: "KAIGO",
+    kategoriKandidat: "NEW COMER",
+    statusProgres: "Pending Nunggu Job",
+    jenisKelamin: "PEREMPUAN",
+    submittedAt: "2026-10-22T12:00:00.000Z",
+    updatedAt: "2026-10-22T12:00:00.000Z"
+  };
+
   let localAdds = [];
   try {
-    localAdds = JSON.parse(localStorage.getItem("cv_portal_local_candidates") || "[]");
+    const rawLocal = typeof window !== "undefined" ? (localStorage.getItem("cv_portal_cached_candidates") || localStorage.getItem("cv_portal_local_candidates") || "[]") : "[]";
+    localAdds = JSON.parse(rawLocal);
   } catch (e) {}
 
   const map = new Map();
+  map.set("jian_mutiasukma_2026", jianRecord);
+
   list.forEach(item => {
     if (item && item.id) map.set(String(item.id), item);
   });
+
   localAdds.forEach(item => {
     if (item && item.id) {
       const existing = map.get(String(item.id)) || {};

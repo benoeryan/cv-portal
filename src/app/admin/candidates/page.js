@@ -98,13 +98,14 @@ function CandidatesContent() {
       const snapshot = await getDocs(q);
       let data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      if (!data || data.length === 0) {
+      if (data && data.length > 0) {
+        try {
+          localStorage.setItem("cv_portal_cached_candidates", JSON.stringify(data));
+        } catch (e) {}
+      } else {
         data = getBackupCandidates();
       }
 
-      // Ultra-robust sorting:
-      // 1. Valid dates (Update or Submit) come first, sorted NEWEST to OLDEST.
-      // 2. Invalid/Missing dates always go to the BOTTOM.
       data.sort((a, b) => {
         const getTimestamp = (item) => {
           if (!item) return 0;
@@ -117,10 +118,10 @@ function CandidatesContent() {
         const timeA = getTimestamp(a);
         const timeB = getTimestamp(b);
 
-        if (timeA > 0 && timeB > 0) return timeB - timeA; // Newest first
-        if (timeA > 0 && timeB === 0) return -1; // A is valid, B is not -> A first
-        if (timeA === 0 && timeB > 0) return 1;  // B is valid, A is not -> B first
-        return 0; // Both invalid
+        if (timeA > 0 && timeB > 0) return timeB - timeA;
+        if (timeA > 0 && timeB === 0) return -1;
+        if (timeA === 0 && timeB > 0) return 1;
+        return 0;
       });
 
       setCandidates(data);
