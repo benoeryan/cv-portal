@@ -3,10 +3,6 @@ import path from "path";
 
 /**
  * Script untuk meng-restore data Firestore dari firestore_backup.json ke project Firebase baru.
- *
- * Cara Penggunaan:
- * 1. Buka file firebase-applet-config.json atau .env, ganti config dengan project Firebase baru Anda.
- * 2. Jalankan perintah: node scripts/restore-data.mjs
  */
 
 async function restoreData() {
@@ -29,7 +25,7 @@ async function restoreData() {
     console.warn("Gagal membaca firebase-applet-config.json, menggunakan environment default.");
   }
 
-  const projectId = config.projectId || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "test-kesehatan-ijef-corp-7c278";
+  const projectId = config.projectId || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "simantap-ijef";
   console.log(`Target Project ID Firebase: ${projectId}`);
 
   // Restore Candidates
@@ -57,24 +53,26 @@ async function restoreData() {
 
   // Restore Users
   let restoredUsers = 0;
-  for (const doc of backupData.users) {
-    const docId = doc.id;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${encodeURIComponent(docId)}`;
-    try {
-      const res = await fetch(url, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fields: doc.fields })
-      });
-      if (res.ok) {
-        restoredUsers++;
-        if (restoredUsers % 10 === 0) console.log(`Restored ${restoredUsers} users...`);
-      } else {
-        const errText = await res.text();
-        console.error(`Gagal restore user ${docId}: ${res.status} ${errText}`);
+  if (backupData.users) {
+    for (const doc of backupData.users) {
+      const docId = doc.id;
+      const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${encodeURIComponent(docId)}`;
+      try {
+        const res = await fetch(url, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fields: doc.fields })
+        });
+        if (res.ok) {
+          restoredUsers++;
+          if (restoredUsers % 10 === 0) console.log(`Restored ${restoredUsers} users...`);
+        } else {
+          const errText = await res.text();
+          console.error(`Gagal restore user ${docId}: ${res.status} ${errText}`);
+        }
+      } catch (err) {
+        console.error(`Gagal restore user ${docId}:`, err);
       }
-    } catch (err) {
-      console.error(`Gagal restore user ${docId}:`, err);
     }
   }
 

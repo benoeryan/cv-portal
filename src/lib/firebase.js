@@ -4,13 +4,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAWlNi_iBOWxZBD6E20aHOSrRpPsirDdOM",
-  authDomain: "test-kesehatan-ijef-corp-7c278.firebaseapp.com",
-  projectId: "test-kesehatan-ijef-corp-7c278",
-  storageBucket: "test-kesehatan-ijef-corp-7c278.firebasestorage.app",
-  messagingSenderId: "48180557823",
-  appId: "1:48180557823:web:47ea8db8126737dbc0d9ca",
-  measurementId: "G-KP414T146X",
+  apiKey: "AIzaSyBPL7vthHw3FSMOu_R-b88y4WwbYoJAo3A",
+  authDomain: "simantap-ijef.firebaseapp.com",
+  projectId: "simantap-ijef",
+  storageBucket: "simantap-ijef.firebasestorage.app",
+  messagingSenderId: "770616748921",
+  appId: "1:770616748921:web:a1f198f006d95f8f589da8"
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
