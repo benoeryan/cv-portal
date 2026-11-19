@@ -6,6 +6,8 @@ import { db, storage } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import { getBackupJobs } from "@/lib/backupData";
+import html2canvas from "html2canvas";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function JobManagementPage() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -26,6 +28,12 @@ export default function JobManagementPage() {
   const [editingJob, setEditingJob] = useState(null);
   const [selectedJobDetail, setSelectedJobDetail] = useState(null);
 
+  // Flyer Modal State
+  const [showFlyerModal, setShowFlyerModal] = useState(false);
+  const [selectedFlyerJob, setSelectedFlyerJob] = useState(null);
+  const [generatingFlyer, setGeneratingFlyer] = useState(false);
+  const flyerRef = useRef(null);
+
   const [formData, setFormData] = useState({
     kodeJob: "", namaJob: "", perusahaan: "", lokasi: "", bidang: "", kategori: "SISWA NON IJEF : NEW COMER",
     klasifikasiSkema: "Standard", gaji: "", keterangan: "", benefit: "", klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
@@ -43,17 +51,74 @@ export default function JobManagementPage() {
     if (user && userData?.role === "admin") loadJobs();
   }, [user, userData, authLoading]);
 
+  const fetchGoogleSheetsJobsSilently = async () => {
+    try {
+      const sheetId = "1P2P6Z_-11udONGzjSDIBVcX-OfnT8jeUwAPYL-p12yY";
+      const sheetName = "LIST JOB AVAILABLE";
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+
+      const response = await fetch(csvUrl);
+      const csvText = await response.text();
+
+      const rows = csvText.split("\n").map(row => {
+        const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+        return matches ? matches.map(m => m.replace(/^"|"$/g, "")) : [];
+      });
+
+      if (rows.length < 2) return [];
+
+      const dataRows = rows.slice(1);
+      const items = [];
+      for (const row of dataRows) {
+        if (!row[1] && !row[3]) continue;
+        const jobData = {
+          id: `sheet_${row[3] || String(Date.now())}`,
+          statusJob: row[0] || "Open",
+          namaJob: row[1] || "",
+          lokasi: row[2] || "Jepang",
+          kodeJob: row[3] || String(Date.now()),
+          jenisKelamin: row[4] || "Pria & Wanita",
+          gaji: row[5] || "-",
+          jumlahKandidat: row[6] || "1",
+          syaratKhusus: row[7] || "-",
+          biayaJob: row[8] || "-",
+          keterangan: row[9] || "-",
+          kumiaiPartner: row[10] || "-",
+          bidang: "Umum",
+          perusahaan: row[1] || "-",
+          kategori: "SISWA NON IJEF : NEW COMER",
+          klasifikasiSkema: "Standard",
+          klasifikasiKandidat: "SISWA NON IJEF : NEW COMER",
+          deskripsiPekerjaan: row[9] || "-",
+          benefit: "-",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        items.push(jobData);
+      }
+      return items;
+    } catch (e) {
+      return [];
+    }
+  };
+
   const loadJobs = async () => {
     setLoading(true);
     try {
       const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (data.length === 0) data = getBackupJobs();
+
+      if (!data || data.length === 0) {
+        data = await fetchGoogleSheetsJobsSilently();
+        if (!data || data.length === 0) data = getBackupJobs();
+      }
+
       setJobs(data);
     } catch (err) {
-      console.error("Error loading jobs from Firestore, using backup:", err);
-      setJobs(getBackupJobs());
+      console.error("Error loading jobs from Firestore, using fallback:", err);
+      const sheetData = await fetchGoogleSheetsJobsSilently();
+      setJobs(sheetData.length > 0 ? sheetData : getBackupJobs());
     }
     setLoading(false);
   };
@@ -104,8 +169,8 @@ export default function JobManagementPage() {
       if (rows.length < 2) throw new Error("Format sheet tidak valid atau kosong.");
 
       const dataRows = rows.slice(1);
-      const snapshot = await getDocs(query(collection(db, "jobs")));
-      const existingJobs = snapshot.docs.map(d => ({ id: d.id, kodeJob: d.data().kodeJob }));
+      const snapshot = await getDocs(query(collection(db, "jobs"))).catch(() => ({ docs: [] }));
+      const existingJobs = snapshot.docs ? snapshot.docs.map(d => ({ id: d.id, kodeJob: d.data().kodeJob })) : [];
 
       let count = 0;
       for (const row of dataRows) {
@@ -123,7 +188,6 @@ export default function JobManagementPage() {
           biayaJob: row[8] || "-",
           keterangan: row[9] || "-",
           kumiaiPartner: row[10] || "-",
-          // Mandatory fields for system consistency
           bidang: "Umum",
           perusahaan: row[1] || "-",
           kategori: "SISWA NON IJEF : NEW COMER",
@@ -137,12 +201,12 @@ export default function JobManagementPage() {
         const existing = existingJobs.find(j => j.kodeJob === jobData.kodeJob);
 
         if (existing) {
-          await updateDoc(doc(db, "jobs", existing.id), jobData);
+          await updateDoc(doc(db, "jobs", existing.id), jobData).catch(() => {});
         } else {
           await addDoc(collection(db, "jobs"), {
             ...jobData,
             createdAt: new Date().toISOString()
-          });
+          }).catch(() => {});
         }
         count++;
       }
@@ -184,6 +248,49 @@ export default function JobManagementPage() {
   const handleDelete = async (id) => {
     if (!window.confirm("Hapus lowongan ini secara permanen?")) return;
     try { await deleteDoc(doc(db, "jobs", id)); loadJobs(); } catch (err) { alert(err.message); }
+  };
+
+  // Flyer Handlers
+  const handleOpenFlyer = (job) => {
+    setSelectedFlyerJob(job);
+    setShowFlyerModal(true);
+  };
+
+  const handleDownloadFlyer = async () => {
+    if (!flyerRef.current) return;
+    setGeneratingFlyer(true);
+    try {
+      const canvas = await html2canvas(flyerRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `Flyer_Job_${selectedFlyerJob?.kodeJob || "IJEF"}.png`;
+      link.click();
+    } catch (err) {
+      console.error("Flyer download error:", err);
+      alert("Gagal mengunduh flyer: " + err.message);
+    }
+    setGeneratingFlyer(false);
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!selectedFlyerJob) return;
+    const text = `📢 *LOWONGAN PEKERJAAN JEPANG - IJEF CORP* 📢\n\n` +
+      `📌 *Posisi*: ${selectedFlyerJob.namaJob}\n` +
+      `🆔 *Kode Job*: ${selectedFlyerJob.kodeJob || "-"}\n` +
+      `📍 *Lokasi*: ${selectedFlyerJob.lokasi || "Jepang"}\n` +
+      `💰 *Gaji*: ${selectedFlyerJob.gaji || "-"}\n` +
+      `👥 *Gender/Kuota*: ${selectedFlyerJob.jenisKelamin || "-"} • ${selectedFlyerJob.jumlahKandidat || "1"} Orang\n\n` +
+      `📑 *Kualifikasi*: ${selectedFlyerJob.syaratKhusus || "-"}\n` +
+      `💰 *Biaya Proses*: ${selectedFlyerJob.biayaJob || "-"}\n\n` +
+      `🔗 *Daftar Sekarang*: https://cv-portal-deploy.netlify.app/candidate/form?jobCode=${selectedFlyerJob.kodeJob || ""}`;
+
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
   };
 
   if (authLoading || loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
@@ -318,6 +425,7 @@ export default function JobManagementPage() {
                       <td className="py-5 px-4">
                         <div className="flex justify-center gap-1.5">
                            <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="View Detail"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
+                           <button onClick={() => handleOpenFlyer(j)} className="p-1.5 bg-purple-50 text-purple-600 rounded-lg border border-purple-100 hover:bg-purple-600 hover:text-white transition-all shadow-sm" title="Share Flyer"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg></button>
                            <button onClick={() => handleEdit(j)} className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Edit"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg></button>
                            <button onClick={() => handleDelete(j.id)} className="p-1.5 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 hover:bg-rose-600 hover:text-white transition-all shadow-sm" title="Hapus"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </div>
@@ -329,7 +437,7 @@ export default function JobManagementPage() {
             </div>
           </div>
         ) : (
-          /* CARD VIEW - EXACTLY AS IMAGE 1 */
+          /* CARD VIEW - 5 CARDS PER ROW */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 gap-6">
              {filteredJobs.map((j) => (
                <div key={j.id} className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-500">
@@ -340,7 +448,7 @@ export default function JobManagementPage() {
                            <span className="bg-purple-50 text-purple-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase">{j.kodeJob || "-"}</span>
                            <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase">Aktif</span>
                         </div>
-                        <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight">{j.lokasi || "Berbagai Prefektur di Jepang"}</span>
+                        <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight">{j.lokasi || "Jepang"}</span>
                      </div>
 
                      {/* Titles */}
@@ -380,19 +488,21 @@ export default function JobManagementPage() {
                   </div>
 
                   {/* Actions Footer */}
-                  <div className="px-8 py-5 bg-slate-50/30 border-t border-slate-100/50 flex justify-between items-center">
-                     <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-800 transition-all">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        Lihat Detail
+                  <div className="px-6 py-4 bg-slate-50/30 border-t border-slate-100/50 flex justify-between items-center mt-auto">
+                     <button onClick={() => { setSelectedJobDetail(j); setShowDetailModal(true); }} className="flex items-center gap-1 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-800 transition-all">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        Detail
                      </button>
-                     <div className="flex gap-5">
-                        <button onClick={() => handleEdit(j)} className="flex items-center gap-1.5 text-purple-600 font-black text-[10px] uppercase tracking-widest hover:text-purple-800">
+                     <button onClick={() => handleOpenFlyer(j)} className="flex items-center gap-1 text-purple-600 font-black text-[10px] uppercase tracking-widest hover:text-purple-800">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                        Flyer
+                     </button>
+                     <div className="flex gap-2">
+                        <button onClick={() => handleEdit(j)} className="text-purple-600 hover:text-purple-800" title="Edit">
                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                           Edit
                         </button>
-                        <button onClick={() => handleDelete(j.id)} className="flex items-center gap-1.5 text-rose-500 font-black text-[10px] uppercase tracking-widest hover:text-rose-700">
+                        <button onClick={() => handleDelete(j.id)} className="text-rose-500 hover:text-rose-700" title="Hapus">
                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                           Hapus
                         </button>
                      </div>
                   </div>
@@ -402,12 +512,11 @@ export default function JobManagementPage() {
         )}
       </div>
 
-      {/* DETAILED VIEW MODAL - EXACTLY AS IMAGE 2 */}
+      {/* DETAILED VIEW MODAL */}
       {showDetailModal && selectedJobDetail && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-md animate-fadeIn font-sans">
            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[95vh] flex flex-col">
               <div className="p-10 overflow-y-auto custom-scrollbar space-y-7">
-                 {/* Modal Header */}
                  <div className="flex justify-between items-start">
                     <div className="flex gap-2">
                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-md text-[10px] font-black uppercase">KODE: {selectedJobDetail.kodeJob || "0"}</span>
@@ -416,13 +525,11 @@ export default function JobManagementPage() {
                     <button onClick={() => setShowDetailModal(false)} className="text-slate-300 hover:text-slate-800 text-4xl font-light transition-all leading-none">&times;</button>
                  </div>
 
-                 {/* Title & Category */}
                  <div>
                     <h2 className="text-3xl font-black text-slate-900 uppercase leading-none tracking-tighter">{selectedJobDetail.namaJob}</h2>
                     <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest">{selectedJobDetail.kategori || "Semua Non-IJEF"}</p>
                  </div>
 
-                 {/* 4-Grid Stats */}
                  <div className="grid grid-cols-2 gap-4">
                     <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">PREFEKTUR / DAERAH</p>
@@ -442,7 +549,6 @@ export default function JobManagementPage() {
                     </div>
                  </div>
 
-                 {/* TSK / Partner */}
                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-sm">
                     <p className="text-[9px] font-black text-slate-400 uppercase mb-1.5">TSK / SUMBER JOB PARTNER</p>
                     <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">{selectedJobDetail.kumiaiPartner || "-"}</p>
@@ -493,10 +599,115 @@ export default function JobManagementPage() {
                     <div className="p-5"><p className="text-[11px] font-black text-slate-800 uppercase leading-relaxed">{selectedJobDetail.keterangan || "-"}</p></div>
                  </div>
               </div>
-              <div className="px-10 py-6 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <div className="px-10 py-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                 <button
+                   onClick={() => { setShowDetailModal(false); handleOpenFlyer(selectedJobDetail); }}
+                   className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center gap-2"
+                 >
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                   Share Flyer
+                 </button>
                  <button onClick={() => setShowDetailModal(false)} className="bg-[#0F172A] text-white px-10 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all">Tutup Detail</button>
               </div>
            </div>
+        </div>
+      )}
+
+      {/* JOB FLYER MODAL */}
+      {showFlyerModal && selectedFlyerJob && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-fadeIn font-sans">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden max-h-[95vh] flex flex-col">
+            <div className="px-8 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
+              <h3 className="text-base font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                Flyer Lowongan Pekerjaan
+              </h3>
+              <button onClick={() => setShowFlyerModal(false)} className="text-slate-300 hover:text-slate-800 text-3xl font-light leading-none">&times;</button>
+            </div>
+
+            <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col items-center">
+              {/* THE RENDERED FLYER POSTER CARD */}
+              <div ref={flyerRef} className="w-full bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-white p-8 rounded-[2rem] shadow-2xl space-y-6 relative overflow-hidden border-4 border-indigo-500/30">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                {/* Poster Header */}
+                <div className="flex justify-between items-start border-b border-white/10 pb-4">
+                  <div>
+                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] block">IJEF CORP • JAPAN JOB OPPORTUNITY 🇯🇵</span>
+                    <h2 className="text-2xl font-black uppercase text-white mt-1 leading-tight tracking-tight">{selectedFlyerJob.namaJob || "LOWONGAN KERJA JEPANG"}</h2>
+                  </div>
+                  <span className="bg-purple-500/30 text-purple-300 px-3 py-1 rounded-xl text-[10px] font-black uppercase border border-purple-400/30">
+                    KODE: {selectedFlyerJob.kodeJob || "IJEF"}
+                  </span>
+                </div>
+
+                {/* Key Highlights */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10">
+                    <p className="text-[9px] font-black text-indigo-300 uppercase tracking-widest">LOKASI / PREFEKTUR</p>
+                    <p className="text-sm font-black text-white uppercase mt-0.5">{selectedFlyerJob.lokasi || "Jepang"}</p>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10">
+                    <p className="text-[9px] font-black text-amber-300 uppercase tracking-widest">ESTIMASI GAJI</p>
+                    <p className="text-sm font-black text-amber-400 uppercase mt-0.5">{selectedFlyerJob.gaji || "-"}</p>
+                  </div>
+                </div>
+
+                {/* Details Summary */}
+                <div className="bg-white/5 backdrop-blur-md p-5 rounded-2xl border border-white/10 space-y-2 text-xs font-medium">
+                  <div className="flex justify-between border-b border-white/5 pb-2">
+                    <span className="text-slate-400">Gender & Kuota:</span>
+                    <span className="font-bold text-white uppercase">{selectedFlyerJob.jenisKelamin || "Pria & Wanita"} • {selectedFlyerJob.jumlahKandidat || "1"} Orang</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-2">
+                    <span className="text-slate-400">Kategori Job:</span>
+                    <span className="font-bold text-indigo-300 uppercase">{selectedFlyerJob.kategori || "SISWA NON IJEF"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Biaya Proses:</span>
+                    <span className="font-bold text-emerald-400 uppercase">{selectedFlyerJob.biayaJob || "Sesuai Ketentuan"}</span>
+                  </div>
+                </div>
+
+                {/* Qualification Box */}
+                <div className="bg-amber-500/10 border border-amber-400/30 p-4 rounded-xl">
+                  <p className="text-[9px] font-black text-amber-300 uppercase tracking-widest mb-1">KUALIFIKASI & SYARAT:</p>
+                  <p className="text-xs text-amber-100 font-medium leading-relaxed">{selectedFlyerJob.syaratKhusus || "-"}</p>
+                </div>
+
+                {/* Poster Footer QR Code & Branding */}
+                <div className="pt-4 border-t border-white/10 flex justify-between items-center">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Lembaga Pelatihan Kerja IJEF Corp</p>
+                    <p className="text-[9px] font-medium text-slate-500 mt-0.5">Daftar & info detail via CV Portal IJEF</p>
+                  </div>
+                  <div className="bg-white p-2 rounded-xl shadow-lg">
+                    <QRCodeSVG value={`https://cv-portal-deploy.netlify.app/candidate/form?jobCode=${selectedFlyerJob.kodeJob || ""}`} size={56} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="px-8 py-4 bg-slate-50 border-t border-slate-100 flex justify-between gap-3">
+              <button
+                onClick={handleShareWhatsApp}
+                className="flex-1 bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
+                Share WA
+              </button>
+              <button
+                onClick={handleDownloadFlyer}
+                disabled={generatingFlyer}
+                className="flex-1 bg-slate-900 text-white py-3.5 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-indigo-600 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 11-6 0 3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                {generatingFlyer ? "Mengunduh..." : "Download Flyer"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
