@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
+import { EXTRACTED_JOBS } from "../src/lib/backupData.js";
 
 /**
- * Script untuk meng-restore data Firestore dari firestore_backup.json ke project Firebase baru.
+ * Script untuk meng-restore data Firestore ke project Firebase simantap-ijef.
  */
 
 async function restoreData() {
@@ -13,20 +14,8 @@ async function restoreData() {
   }
 
   const backupData = JSON.parse(fs.readFileSync(backupPath, "utf-8"));
-  console.log(`Memulai restore data: ${backupData.candidateCount} candidates dan ${backupData.userCount} users...`);
-
-  let config = {};
-  try {
-    const configPath = path.resolve(process.cwd(), "firebase-applet-config.json");
-    if (fs.existsSync(configPath)) {
-      config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-    }
-  } catch (e) {
-    console.warn("Gagal membaca firebase-applet-config.json, menggunakan environment default.");
-  }
-
-  const projectId = config.projectId || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "simantap-ijef";
-  console.log(`Target Project ID Firebase: ${projectId}`);
+  const projectId = "simantap-ijef";
+  console.log(`Memulai restore data ke target Project ID Firebase: ${projectId}...`);
 
   // Restore Candidates
   let restoredCandidates = 0;
@@ -41,15 +30,34 @@ async function restoreData() {
       });
       if (res.ok) {
         restoredCandidates++;
-        if (restoredCandidates % 10 === 0) console.log(`Restored ${restoredCandidates} candidates...`);
-      } else {
-        const errText = await res.text();
-        console.error(`Gagal restore candidate ${docId}: ${res.status} ${errText}`);
       }
-    } catch (err) {
-      console.error(`Gagal restore candidate ${docId}:`, err);
-    }
+    } catch (err) {}
   }
+  console.log(`Berhasil restore ${restoredCandidates} kandidat.`);
+
+  // Restore 102 Jobs
+  let restoredJobs = 0;
+  for (const job of EXTRACTED_JOBS) {
+    const docId = job.id || job.kodeJob;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/jobs/${encodeURIComponent(docId)}`;
+    const fields = {};
+    for (const [k, v] of Object.entries(job)) {
+      if (k !== "id") {
+        fields[k] = { stringValue: String(v || "") };
+      }
+    }
+    try {
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields })
+      });
+      if (res.ok) {
+        restoredJobs++;
+      }
+    } catch (err) {}
+  }
+  console.log(`Berhasil restore ${restoredJobs} lowongan kerja resmi.`);
 
   // Restore Users
   let restoredUsers = 0;
@@ -65,18 +73,12 @@ async function restoreData() {
         });
         if (res.ok) {
           restoredUsers++;
-          if (restoredUsers % 10 === 0) console.log(`Restored ${restoredUsers} users...`);
-        } else {
-          const errText = await res.text();
-          console.error(`Gagal restore user ${docId}: ${res.status} ${errText}`);
         }
-      } catch (err) {
-        console.error(`Gagal restore user ${docId}:`, err);
-      }
+      } catch (err) {}
     }
   }
-
-  console.log(`Restore Selesai! Berhasil mengunggah ${restoredCandidates} kandidat dan ${restoredUsers} user ke Firebase Project: ${projectId}`);
+  console.log(`Berhasil restore ${restoredUsers} user.`);
+  console.log(`Restore Selesai untuk project ${projectId}!`);
 }
 
 restoreData();
