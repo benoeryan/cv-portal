@@ -109,18 +109,58 @@ export default function JobManagementPage() {
       const snapshot = await getDocs(q);
       let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      if (!data || data.length === 0) {
-        data = await fetchGoogleSheetsJobsSilently();
-        if (!data || data.length === 0) data = getBackupJobs();
+      const isDummyData = data.some(j =>
+        j.namaJob?.toLowerCase().includes("existing cashback") ||
+        j.namaJob?.toLowerCase().includes("gentar bumi") ||
+        j.namaJob?.toLowerCase().includes("haris sauri") ||
+        j.namaJob?.toLowerCase().includes("kartiwa") ||
+        j.namaJob?.toLowerCase().includes("sri rahayu") ||
+        j.namaJob?.toLowerCase().includes("veri setiono") ||
+        j.namaJob?.toLowerCase().includes("prayoga ageng")
+      );
+
+      if (isDummyData || !data || data.length === 0) {
+        data = getBackupJobs();
       }
 
       setJobs(data);
     } catch (err) {
       console.error("Error loading jobs from Firestore, using fallback:", err);
-      const sheetData = await fetchGoogleSheetsJobsSilently();
-      setJobs(sheetData.length > 0 ? sheetData : getBackupJobs());
+      setJobs(getBackupJobs());
     }
     setLoading(false);
+  };
+
+  const handleResetTo102Jobs = async () => {
+    if (!window.confirm("Hapus semua 66 data lowongan lama/dummy dan ganti dengan 102 data lowongan kerja resmi yang baru di Firestore?")) return;
+    setImporting(true);
+    try {
+      const snapshot = await getDocs(collection(db, "jobs")).catch(() => ({ docs: [] }));
+      if (snapshot.docs && snapshot.docs.length > 0) {
+        for (const d of snapshot.docs) {
+          await deleteDoc(doc(db, "jobs", d.id)).catch(() => {});
+        }
+      }
+
+      const backup102 = getBackupJobs();
+      let count = 0;
+      for (const j of backup102) {
+        const { id, ...jobData } = j;
+        await addDoc(collection(db, "jobs"), {
+          ...jobData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }).catch(() => {});
+        count++;
+      }
+
+      alert(`Berhasil menghapus data lama dan mengunggah ${count} lowongan kerja resmi ke database!`);
+      loadJobs();
+    } catch (err) {
+      console.error("Reset error:", err);
+      alert("Gagal mereset: " + err.message);
+    }
+    setImporting(false);
   };
 
   const uniqueBidang = useMemo(() => [...new Set(jobs.map(j => j.bidang || j.kategori).filter(Boolean))].sort(), [jobs]);
@@ -305,6 +345,15 @@ export default function JobManagementPage() {
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">IJEF Portal</p>
            </div>
            <div className="flex gap-3">
+             <button
+               onClick={handleResetTo102Jobs}
+               disabled={importing}
+               className="bg-purple-700 text-white px-8 py-5 rounded-[2rem] font-black shadow-2xl hover:bg-purple-800 transition-all uppercase text-[10px] tracking-widest active:scale-95 flex items-center gap-2"
+               title="Hapus 66 data dummy dan upload 102 job resmi"
+             >
+                <svg className={`w-4 h-4 ${importing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                {importing ? "Mereset..." : "Ganti & Reset 102 Job Resmi"}
+             </button>
              <button
                onClick={handleImportGoogleSheets}
                disabled={importing}

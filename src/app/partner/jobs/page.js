@@ -40,7 +40,19 @@ export default function PartnerJobListPage() {
       const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (data.length === 0) data = getBackupJobs();
+
+      const isDummyData = data.some(j =>
+        j.namaJob?.toLowerCase().includes("existing cashback") ||
+        j.namaJob?.toLowerCase().includes("gentar bumi") ||
+        j.namaJob?.toLowerCase().includes("haris sauri") ||
+        j.namaJob?.toLowerCase().includes("kartiwa") ||
+        j.namaJob?.toLowerCase().includes("sri rahayu")
+      );
+
+      if (isDummyData || !data || data.length === 0) {
+        data = getBackupJobs();
+      }
+
       setJobs(data.filter(j => {
         const status = (j.statusJob || "open").toLowerCase();
         const isClosed = status === "close" || status === "tutup" || status === "closed";
