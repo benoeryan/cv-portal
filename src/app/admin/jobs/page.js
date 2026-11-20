@@ -6,6 +6,7 @@ import { db, storage } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import { getBackupJobs } from "@/lib/backupData";
+import { autoPopulateFirestore } from "@/lib/autoPopulate";
 import html2canvas from "html2canvas";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -121,6 +122,7 @@ export default function JobManagementPage() {
 
       if (isDummyData || !data || data.length === 0) {
         data = getBackupJobs();
+        autoPopulateFirestore().catch(() => {});
       }
 
       setJobs(data);
