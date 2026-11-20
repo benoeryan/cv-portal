@@ -162,7 +162,7 @@ const rawJobList = [
   { kodeJob: "TG-CLEAN-053", namaJob: "BUILDING CLEANING TOKYO (ビルクリーニング)", lokasi: "Tokyo Metropolis (東京都)", gaji: "205.000円/bulan", kuota: "10", gender: "Pria & Wanita", bidang: "Building Cleaning", syarat: "JLPT N4/JFT A2 + SSW Building Cleaning", kat: "SISWA NON IJEF : NEW COMER" },
   { kodeJob: "TG-STEEL-054", namaJob: "MATSUMI IRONWORK (松巳鉄工)", lokasi: "Aichi & Mie (愛知・三重)", gaji: "1.180円/jam", kuota: "2", gender: "Pria", bidang: "Manufaktur / Mesin", syarat: "SSW Tekkou Metal Processing", kat: "SISWA MATCHING JOB : EX-MAGANG" },
   { kodeJob: "TG-CATTLE-055", namaJob: "CATTLE FARMING FUKUOKA (畜産業 牛)", lokasi: "Fukuoka Prefecture (福岡県)", gaji: "190.000円/bulan", kuota: "3", gender: "Pria", bidang: "Peternakan", syarat: "N4 / JFT A2 + SSW Peternakan", kat: "SISWA NON IJEF : NEW COMER" },
-  { kodeJob: "TG-CONST-056", label: "STEEL CONSTRUCTION TOBI (鉄骨 とび)", lokasi: "Fukuoka Prefecture (福岡県)", gaji: "11.500円/hari", kuota: "4", gender: "Pria", bidang: "Konstruksi", syarat: "SSW Tobi / Ex-magang Konstruksi", kat: "SISWA MATCHING JOB : EX-MAGANG" },
+  { kodeJob: "TG-CONST-056", namaJob: "STEEL CONSTRUCTION TOBI (鉄骨 とび)", lokasi: "Fukuoka Prefecture (福岡県)", gaji: "11.500円/hari", kuota: "4", gender: "Pria", bidang: "Konstruksi", syarat: "SSW Tobi / Ex-magang Konstruksi", kat: "SISWA MATCHING JOB : EX-MAGANG" },
   { kodeJob: "TG-FISH-057", namaJob: "AQUACULTURE FISHERY (養殖業)", lokasi: "Nagasaki & Saga (長崎・佐賀)", gaji: "185.000円/bulan", kuota: "3", gender: "Pria", bidang: "Perikanan / Budidaya", syarat: "Bisa berenang, SSW Budidaya Perikanan", kat: "SISWA NON IJEF : NEW COMER" },
   { kodeJob: "TG-FISH-058", namaJob: "AQUACULTURE FUKUOKA (養殖業 福岡)", lokasi: "Fukuoka Prefecture (福岡県)", gaji: "188.000円/bulan", kuota: "2", gender: "Pria", bidang: "Perikanan / Budidaya", syarat: "Bisa berenang, N4/JFT A2 + SSW Budidaya", kat: "SISWA NON IJEF : NEW COMER" },
   { kodeJob: "TG-TOSOU-059", namaJob: "PAINTING KUMAMOTO (塗装業 熊本)", lokasi: "Kumamoto Prefecture (熊本県)", gaji: "1.090円/jam", kuota: "3", gender: "Pria", bidang: "Konstruksi", syarat: "SSW Tosou / Pengalaman mengecat", kat: "SISWA MATCHING JOB : EX-MAGANG" },
@@ -176,32 +176,32 @@ const rawJobList = [
   { kodeJob: "TG-IJEF094-067", namaJob: "SEA PRODUCE PROCESSING (海産物加工)", lokasi: "Yamaguchi Prefecture (山口県)", gaji: "1.080円/jam", kuota: "3", gender: "Wanita", bidang: "Pengolahan Makanan", syarat: "Pengolahan produk laut, JFT A2/N4 + SSW Food", kat: "SISWA NON IJEF : NEW COMER" }
 ];
 
-// GENERATE EXTENDED 102 ITEMS FULL ARRAY
+// GENERATE EXTENDED 102 ITEMS FULL ARRAY (FULLY SANITIZED FOR FIREBASE)
 export const EXTRACTED_JOBS = Array.from({ length: 102 }, (_, i) => {
   const index = i + 1;
   const numStr = String(index).padStart(3, "0");
   if (i < rawJobList.length) {
+    const raw = rawJobList[i];
     return {
       id: `job_${numStr}`,
-      kodeJob: rawJobList[i].kodeJob,
-      namaJob: rawJobList[i].namaJob,
-      lokasi: rawJobList[i].lokasi,
-      gaji: rawJobList[i].gaji,
-      jumlahKandidat: rawJobList[i].kuota || "2",
-      jenisKelamin: rawJobList[i].gender || "Pria & Wanita",
-      syaratKhusus: rawJobList[i].syarat || "JLPT N4 / JFT-Basic A2 + SSW",
+      kodeJob: String(raw.kodeJob || `TG-JOB-${numStr}`),
+      namaJob: String(raw.namaJob || raw.label || `LOWONGAN KERJA (${numStr})`),
+      lokasi: String(raw.lokasi || "Jepang"),
+      gaji: String(raw.gaji || "-"),
+      jumlahKandidat: String(raw.kuota || "2"),
+      jenisKelamin: String(raw.gender || "Pria & Wanita"),
+      syaratKhusus: String(raw.syarat || "JLPT N4 / JFT-Basic A2 + SSW"),
       biayaJob: "Sesuai Ketentuan",
       benefit: "Asrama bersubsidi, Asuransi sosial lengkap",
       keterangan: `Dokumen Job Order File (${numStr}) - LPK IJEF Corp`,
-      bidang: rawJobList[i].bidang || "Umum",
+      bidang: String(raw.bidang || "Umum"),
       perusahaan: `Mitra Perusahaan Japan (${numStr})`,
       kumiaiPartner: "TSK Partner",
-      kategori: rawJobList[i].kat || "SISWA NON IJEF : NEW COMER",
+      kategori: String(raw.kat || "SISWA NON IJEF : NEW COMER"),
       klasifikasiSkema: index % 3 === 0 ? "Urgent" : "Standard",
       statusJob: "Open"
     };
   } else {
-    // Generate items 68 up to 102
     const categories = ["Pengolahan Makanan", "Kaigo (Perawat Lansia)", "Manufaktur / Mesin", "Konstruksi", "Peternakan", "Perikanan / Budidaya", "Engineering / Gijinkoku"];
     const cat = categories[i % categories.length];
     return {

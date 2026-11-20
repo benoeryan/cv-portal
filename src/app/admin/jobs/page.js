@@ -132,7 +132,7 @@ export default function JobManagementPage() {
   };
 
   const handleResetTo102Jobs = async () => {
-    if (!window.confirm("Hapus semua 66 data lowongan lama/dummy dan ganti dengan 102 data lowongan kerja resmi yang baru di Firestore?")) return;
+    if (!window.confirm("Hapus semua data lowongan lama/dummy dan ganti dengan 102 data lowongan kerja resmi yang baru di Firestore?")) return;
     setImporting(true);
     try {
       const snapshot = await getDocs(collection(db, "jobs")).catch(() => ({ docs: [] }));
@@ -146,11 +146,27 @@ export default function JobManagementPage() {
       let count = 0;
       for (const j of backup102) {
         const { id, ...jobData } = j;
-        await addDoc(collection(db, "jobs"), {
-          ...jobData,
+        const cleanData = {
+          kodeJob: String(jobData.kodeJob || ""),
+          namaJob: String(jobData.namaJob || jobData.label || "LOWONGAN KERJA"),
+          lokasi: String(jobData.lokasi || "Jepang"),
+          gaji: String(jobData.gaji || "-"),
+          jumlahKandidat: String(jobData.jumlahKandidat || "1"),
+          jenisKelamin: String(jobData.jenisKelamin || "Pria & Wanita"),
+          syaratKhusus: String(jobData.syaratKhusus || "-"),
+          biayaJob: String(jobData.biayaJob || "Sesuai Ketentuan"),
+          benefit: String(jobData.benefit || "-"),
+          keterangan: String(jobData.keterangan || "-"),
+          bidang: String(jobData.bidang || "Umum"),
+          perusahaan: String(jobData.perusahaan || "-"),
+          kumiaiPartner: String(jobData.kumiaiPartner || "-"),
+          kategori: String(jobData.kategori || "SISWA NON IJEF : NEW COMER"),
+          klasifikasiSkema: String(jobData.klasifikasiSkema || "Standard"),
+          statusJob: String(jobData.statusJob || "Open"),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
-        }).catch(() => {});
+        };
+        await addDoc(collection(db, "jobs"), cleanData);
         count++;
       }
 
