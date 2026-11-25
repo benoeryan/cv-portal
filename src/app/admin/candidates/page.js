@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import DriveImage, { safeText } from "@/components/DriveImage";
 import Link from "next/link";
 import { getBackupCandidates } from "@/lib/backupData";
+import { autoPopulateFirestore } from "@/lib/autoPopulate";
 
 function CandidatesContent() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -98,13 +99,18 @@ function CandidatesContent() {
       const snapshot = await getDocs(q);
       let data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      if (data && data.length > 0) {
-        try {
-          localStorage.setItem("cv_portal_cached_candidates", JSON.stringify(data));
-        } catch (e) {}
-      } else {
-        data = getBackupCandidates();
+      if (!data || data.length < 100) {
+        const backupData = getBackupCandidates();
+        const map = new Map();
+        backupData.forEach(c => map.set(String(c.id), c));
+        data.forEach(c => map.set(String(c.id), { ...(map.get(String(c.id)) || {}), ...c }));
+        data = Array.from(map.values());
+        autoPopulateFirestore().catch(() => {});
       }
+
+      try {
+        localStorage.setItem("cv_portal_cached_candidates", JSON.stringify(data));
+      } catch (e) {}
 
       data.sort((a, b) => {
         const getTimestamp = (item) => {

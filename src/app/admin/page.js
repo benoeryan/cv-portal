@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import DriveImage from "@/components/DriveImage";
 import { getBackupCandidates } from "@/lib/backupData";
+import { autoPopulateFirestore } from "@/lib/autoPopulate";
 
 export default function AdminDashboard() {
   const { user, userData, loading: authLoading } = useAuth();
@@ -40,8 +41,13 @@ export default function AdminDashboard() {
       const snapshot = await getDocs(q);
       let data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      if (!data || data.length === 0) {
-        data = getBackupCandidates();
+      if (!data || data.length < 100) {
+        const backupData = getBackupCandidates();
+        const map = new Map();
+        backupData.forEach(c => map.set(String(c.id), c));
+        data.forEach(c => map.set(String(c.id), { ...(map.get(String(c.id)) || {}), ...c }));
+        data = Array.from(map.values());
+        autoPopulateFirestore().catch(() => {});
       }
 
       data.sort((a, b) => {
