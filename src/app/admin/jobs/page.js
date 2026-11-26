@@ -188,11 +188,6 @@ export default function JobManagementPage() {
     }
     setImporting(false);
   };
-      console.error("Reset error:", err);
-      alert("Gagal mereset: " + err.message);
-    }
-    setImporting(false);
-  };
 
   const uniqueBidang = useMemo(() => [...new Set(jobs.map(j => j.bidang || j.kategori).filter(Boolean))].sort(), [jobs]);
   const uniqueMitra = useMemo(() => [...new Set(jobs.map(j => j.kumiaiPartner || j.perusahaan).filter(Boolean))].sort(), [jobs]);
